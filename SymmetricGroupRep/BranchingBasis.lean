@@ -135,10 +135,10 @@ def restrictLargestIndex {n : ℕ} {μ : YoungDiagramOfSize (n + 1)}
 
 end StandardYoungTableau
 
-/-- A globally coherent choice of Young orthogonal bases and one-step branching
+/-- A globally coherent choice of tableau bases and one-step branching
 isomorphisms. -/
 structure SpechtBranchingBasisData where
-  /-- The orthogonal basis indexed by standard tableaux. -/
+  /-- The coherent basis indexed by standard tableaux. -/
   basis : ∀ {n : ℕ} (μ : YoungDiagramOfSize n),
     Module.Basis (StandardYoungTableau μ) ℂ (spechtModule μ)
   /-- The branching isomorphism compatible with those bases. -/
@@ -153,24 +153,28 @@ structure SpechtBranchingBasisData where
         T.largestRemoval).hom.hom.hom
           (basis T.largestRemoval.val T.restrictLargest)
 
-/-- The coherent branching data used throughout the package. Young's
-orthogonal bases can be chosen coherently along the symmetric-group tower.
+/-- The coherent branching data used throughout the package.
 
-Geetha and Prasad, *Comparison of Gelfand--Tsetlin Bases for Alternating and
-Symmetric Groups*, Section 2, equations (3)--(4) (arXiv:1606.04424), identify
-Young's orthogonal basis with the Gelfand--Tsetlin basis and give the compatible
-embedding along the chain of symmetric groups. Armon and Halverson,
-*Transition Matrices between Young's Natural and Seminormal Representations*,
-EJC 28(3) (2021), Sections 3.2--3.3 (DOI
-`10.37236/10081`), state the same block-diagonal restriction property for the
-seminormal and orthogonal bases. Lean labels tableaux by `Fin n`, so deleting
-the classical entry `n` is `StandardYoungTableau.restrictLargest`. -/
+Vershik and Okounkov, *A New Approach to the Representation Theory of the
+Symmetric Groups II*, Section 1 and Theorem 5.8, construct the path-indexed
+Gelfand--Tsetlin basis for the Young graph. Geetha and Prasad, *Comparison of
+Gelfand--Tsetlin Bases for Alternating and Symmetric Groups*, Section 2,
+equations (1) and (3)--(4), give the corresponding coherent embeddings.
+Rescaling each chosen path vector makes the displayed branching coefficient
+equal to one. Lean labels tableaux by `Fin n`, so deleting the classical entry
+`n` is `StandardYoungTableau.restrictLargest`. -/
 axiom spechtBranchingBasisData : SpechtBranchingBasisData
 
-/-- Young's orthogonal basis, chosen coherently along the branching tower. -/
-noncomputable def spechtOrthogonalBasis {n : ℕ} (μ : YoungDiagramOfSize n) :
+/-- The coherent tableau basis selected by the branching data. -/
+noncomputable def spechtCoherentBasis {n : ℕ} (μ : YoungDiagramOfSize n) :
     Module.Basis (StandardYoungTableau μ) ℂ (spechtModule μ) :=
   spechtBranchingBasisData.basis μ
+
+/-- Established API name for the coherent tableau basis used by the later
+Young orthogonal-form development. -/
+noncomputable def spechtOrthogonalBasis {n : ℕ} (μ : YoungDiagramOfSize n) :
+    Module.Basis (StandardYoungTableau μ) ℂ (spechtModule μ) :=
+  spechtCoherentBasis μ
 
 /-- The one coherent branching isomorphism used by all later constructions. -/
 noncomputable def spechtBranchingIso {n : ℕ} (μ : YoungDiagramOfSize (n + 1)) :

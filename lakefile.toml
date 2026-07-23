@@ -1,6 +1,7 @@
 name = "SymmetricGroupRep"
 version = "0.1.0"
 defaultTargets = ["SymmetricGroupRep"]
+weakLeanArgs = ["-j", "4"]
 
 [[require]]
 name = "mathlib"
@@ -9,4 +10,3 @@ rev = "v4.29.1"
 
 [[lean_lib]]
 name = "SymmetricGroupRep"
-
