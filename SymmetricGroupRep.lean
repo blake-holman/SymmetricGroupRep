@@ -6,6 +6,7 @@ import SymmetricGroupRep.Dimensions
 import SymmetricGroupRep.HookLength
 import SymmetricGroupRep.KSubsets
 import SymmetricGroupRep.Kostka
+import SymmetricGroupRep.Kronecker
 import SymmetricGroupRep.LittlewoodRichardson
 import SymmetricGroupRep.MultiplicitySpaces
 import SymmetricGroupRep.Orthogonal
@@ -14,5 +15,6 @@ import SymmetricGroupRep.ProductClassification
 import SymmetricGroupRep.Regular
 import SymmetricGroupRep.RegularDecomposition
 import SymmetricGroupRep.SelfDuality
+import SymmetricGroupRep.SchurWeyl
 import SymmetricGroupRep.Tableaux
 import SymmetricGroupRep.YoungPermutation

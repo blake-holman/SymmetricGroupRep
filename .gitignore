@@ -1,2 +1,7 @@
 /.lake
 
+
+# Claude Code files (local only, do not push)
+.claude/
+.mcp.json
+CLAUDE.md
