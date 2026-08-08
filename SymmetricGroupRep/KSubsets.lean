@@ -28,8 +28,8 @@ noncomputable def youngPermutationModuleTwoRowIso {n r : ℕ} (h : 2 * r ≤ n) 
 @[simp]
 theorem kSubsetRepresentation_rho_single (n k : ℕ) (sigma : SymmetricGroup n)
     (subset : KSubsets n k) (c : ℂ) :
-    (kSubsetRepresentation n k).ρ sigma (Finsupp.single subset c) =
-      Finsupp.single (sigma • subset) c :=
+    (kSubsetRepresentation n k).ρ sigma (MonoidAlgebra.single subset c) =
+      MonoidAlgebra.single (sigma • subset) c :=
   Representation.ofMulAction_single sigma subset c
 
 /-- Taking complements gives an equivariant isomorphism between the `k`-subset

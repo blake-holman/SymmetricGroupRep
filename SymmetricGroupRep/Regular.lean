@@ -12,6 +12,6 @@ noncomputable def symmetricGroupLeftRegular (n : ℕ) :
 @[simp]
 theorem symmetricGroupLeftRegular_ρ_single (n : ℕ)
     (g h : SymmetricGroup n) (c : ℂ) :
-    (symmetricGroupLeftRegular n).ρ g (Finsupp.single h c) =
-      Finsupp.single (g * h) c := by
+    (symmetricGroupLeftRegular n).ρ g (MonoidAlgebra.single h c) =
+      MonoidAlgebra.single (g * h) c := by
   exact Representation.ofMulAction_single g h c

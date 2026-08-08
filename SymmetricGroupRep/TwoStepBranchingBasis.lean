@@ -547,7 +547,7 @@ theorem spechtEndomorphism_eq_smul_id_of_apply_basis {n : ℕ}
     apply smul_left_injective ℂ
       (Module.Basis.ne_zero (spechtOrthogonalBasis nu) R)
     rw [hd] at happly
-    simpa using happly
+    exact happly
   subst d
   exact hd
 
@@ -579,8 +579,7 @@ theorem spechtBranchingIso_twoSteps_basis {n : ℕ}
         (biproduct.ι (fun nu : OneBoxRemoval mu => spechtModule nu.val)
           T.largestRemoval).hom.hom.hom
             (spechtOrthogonalBasis T.largestRemoval.val T.restrictLargest) := by
-    simpa only [FDRep.isoToLinearEquiv, FGModuleCat.isoToLinearEquiv] using
-      spechtBranchingIso_basis mu T
+    exact spechtBranchingIso_basis mu T
   rw [htop]
   let F := SymmetricGroupRepresentation.restriction n
   let f := fun nu : OneBoxRemoval mu => spechtModule nu.val
@@ -610,7 +609,7 @@ theorem spechtBranchingIso_twoSteps_basis {n : ℕ}
         (biproduct.ι (fun nu => F.obj (spechtModule nu.val))
           T.largestRemoval).hom.hom.hom
             (spechtOrthogonalBasis T.largestRemoval.val T.restrictLargest) := by
-    simpa only [ConcreteCategory.comp_apply, ModuleCat.comp_apply] using hmap
+    exact hmap
   rw [hmapApply]
   have hmapIsoMor := biproduct.ι_map
     (fun nu : OneBoxRemoval mu => (spechtBranchingIso nu.val).hom)
@@ -630,8 +629,7 @@ theorem spechtBranchingIso_twoSteps_basis {n : ℕ}
           T.largestRemoval).hom.hom.hom
             ((spechtBranchingIso T.largestRemoval.val).hom.hom.hom
               (spechtOrthogonalBasis T.largestRemoval.val T.restrictLargest)) := by
-    simpa only [biproduct.mapIso_hom, ConcreteCategory.comp_apply,
-      ModuleCat.comp_apply] using hmapIso
+    exact hmapIso
   rw [hmapIsoApply]
   have hinner :
       (spechtBranchingIso T.largestRemoval.val).hom.hom.hom
@@ -640,8 +638,7 @@ theorem spechtBranchingIso_twoSteps_basis {n : ℕ}
           (fun xi : OneBoxRemoval T.largestRemoval.val => spechtModule xi.val)
           T.restrictLargest.largestRemoval).hom.hom.hom
             (spechtOrthogonalBasis T.eraseTwoLargestShape T.restrictTwoLargest) := by
-    simpa only [FDRep.isoToLinearEquiv, FGModuleCat.isoToLinearEquiv] using
-      spechtBranchingIso_basis T.largestRemoval.val T.restrictLargest
+    exact spechtBranchingIso_basis T.largestRemoval.val T.restrictLargest
   rw [hinner]
   have hflatten (i : OneBoxRemoval mu) (j : OneBoxRemoval i.val) :
       biproduct.ι (fun xi : OneBoxRemoval i.val => spechtModule xi.val) j ≫
@@ -665,8 +662,7 @@ theorem spechtBranchingIso_twoSteps_basis {n : ℕ}
     (fun h => h.hom.hom.hom
       (spechtOrthogonalBasis T.eraseTwoLargestShape T.restrictTwoLargest))
     (hflatten T.largestRemoval T.restrictLargest.largestRemoval)
-  simpa only [ConcreteCategory.comp_apply, ModuleCat.comp_apply,
-    StandardYoungTableau.largestTwoStepRemoval] using happ
+  exact happ
 
 /-- The endpoint-regrouped two-step branching isomorphism sends a tableau
 basis vector to the copy selected by its two largest entries. -/
@@ -703,8 +699,7 @@ theorem spechtBranchingIso_twoSteps_byEndpoint_basis {n : ℕ}
               (spechtOrthogonalBasis mu T))) = _
   rw [show (spechtBranchingIso_twoSteps mu).hom.hom.hom
       (spechtOrthogonalBasis mu T) = _ by
-    simpa only [FDRep.isoToLinearEquiv, FGModuleCat.isoToLinearEquiv] using
-      spechtBranchingIso_twoSteps_basis mu T]
+    exact spechtBranchingIso_twoSteps_basis mu T]
   have hreindex :
       biproduct.ι (fun p : TwoStepRemoval mu => spechtModule p.2.val)
           T.largestTwoStepRemoval ≫
@@ -914,7 +909,7 @@ theorem spechtBranchingIso_twoSteps_byEndpoint_basis {n : ℕ}
     (fun h => h.hom.hom.hom
       (spechtOrthogonalBasis T.eraseTwoLargestShape T.restrictTwoLargest))
     hregroup
-  simpa only [e, ConcreteCategory.comp_apply, ModuleCat.comp_apply] using happ
+  exact happ
 
 /-- The inclusion of the path selected by a tableau sends the lower tableau
 basis vector back to the original tableau basis vector. -/
@@ -937,10 +932,8 @@ theorem twoStepBranchingInclusion_apply_spechtOrthogonalBasis {n : ℕ}
             (spechtOrthogonalBasis T.eraseTwoLargestShape
               T.restrictTwoLargest))) = _
   rw [← spechtBranchingIso_twoSteps_byEndpoint_basis]
-  simpa only [FDRep.isoToLinearEquiv, FGModuleCat.isoToLinearEquiv,
-    ConcreteCategory.comp_apply, ModuleCat.comp_apply, ModuleCat.id_apply] using
-    congrArg (fun f => f.hom.hom.hom (spechtOrthogonalBasis mu T))
-      (spechtBranchingIso_twoSteps_byEndpoint mu).hom_inv_id
+  exact congrArg (fun f => f.hom.hom.hom (spechtOrthogonalBasis mu T))
+    (spechtBranchingIso_twoSteps_byEndpoint mu).hom_inv_id
 
 /-- Projecting a tableau basis vector onto its own two-step path recovers the
 lower tableau basis vector. -/
@@ -963,8 +956,7 @@ theorem twoStepBranchingProjection_apply_spechtOrthogonalBasis {n : ℕ}
             (spechtOrthogonalBasis mu T))) = _
   rw [show (spechtBranchingIso_twoSteps_byEndpoint mu).hom.hom.hom
       (spechtOrthogonalBasis mu T) = _ by
-    simpa only [FDRep.isoToLinearEquiv, FGModuleCat.isoToLinearEquiv] using
-      spechtBranchingIso_twoSteps_byEndpoint_basis mu T]
+    exact spechtBranchingIso_twoSteps_byEndpoint_basis mu T]
   have houter :
       (biproduct.π
         (fun nu : YoungDiagramOfSize n =>
@@ -986,8 +978,7 @@ theorem twoStepBranchingProjection_apply_spechtOrthogonalBasis {n : ℕ}
           T.largestTwoStepRemovalTo).hom.hom.hom
             (spechtOrthogonalBasis T.eraseTwoLargestShape
               T.restrictTwoLargest) := by
-    simpa only [ConcreteCategory.comp_apply, ModuleCat.comp_apply,
-      ModuleCat.id_apply] using congrArg
+    exact congrArg
         (fun f => f.hom.hom.hom
           ((biproduct.ι
             (fun _ : TwoStepRemovalTo mu T.eraseTwoLargestShape =>
@@ -995,19 +986,18 @@ theorem twoStepBranchingProjection_apply_spechtOrthogonalBasis {n : ℕ}
             T.largestTwoStepRemovalTo).hom.hom.hom
               (spechtOrthogonalBasis T.eraseTwoLargestShape
                 T.restrictTwoLargest)))
-        (biproduct.ι_π
+        (biproduct.ι_π_self
           (fun nu : YoungDiagramOfSize n =>
             ⨁ fun _ : TwoStepRemovalTo mu nu => spechtModule nu)
-          T.eraseTwoLargestShape T.eraseTwoLargestShape)
+          T.eraseTwoLargestShape)
   rw [houter]
-  simpa only [ConcreteCategory.comp_apply, ModuleCat.comp_apply,
-    ModuleCat.id_apply] using congrArg
+  exact congrArg
       (fun f => f.hom.hom.hom
         (spechtOrthogonalBasis T.eraseTwoLargestShape T.restrictTwoLargest))
-      (biproduct.ι_π
+      (biproduct.ι_π_self
         (fun _ : TwoStepRemovalTo mu T.eraseTwoLargestShape =>
           spechtModule T.eraseTwoLargestShape)
-        T.largestTwoStepRemovalTo T.largestTwoStepRemovalTo)
+        T.largestTwoStepRemovalTo)
 
 /-- Projection onto a different path with the same endpoint kills a tableau
 basis vector. -/
@@ -1029,8 +1019,7 @@ theorem twoStepBranchingProjection_apply_eq_zero_of_path_ne {n : ℕ}
             (spechtOrthogonalBasis mu T))) = 0
   rw [show (spechtBranchingIso_twoSteps_byEndpoint mu).hom.hom.hom
       (spechtOrthogonalBasis mu T) = _ by
-    simpa only [FDRep.isoToLinearEquiv, FGModuleCat.isoToLinearEquiv] using
-      spechtBranchingIso_twoSteps_byEndpoint_basis mu T]
+    exact spechtBranchingIso_twoSteps_byEndpoint_basis mu T]
   have hmor :
       biproduct.ι
           (fun _ : TwoStepRemovalTo mu T.eraseTwoLargestShape =>
@@ -1051,8 +1040,10 @@ theorem twoStepBranchingProjection_apply_eq_zero_of_path_ne {n : ℕ}
   have happ := congrArg
     (fun f => f.hom.hom.hom
       (spechtOrthogonalBasis T.eraseTwoLargestShape T.restrictTwoLargest)) hmor
-  simpa only [ConcreteCategory.comp_apply, ModuleCat.comp_apply,
-    LinearMap.map_zero] using happ
+  simpa only [Action.comp_hom, ObjectProperty.FullSubcategory.comp_hom, ModuleCat.hom_comp,
+    LinearMap.coe_comp, Function.comp_apply,
+    Action.zero_hom, ObjectProperty.zero_hom, ModuleCat.hom_zero,
+    LinearMap.zero_apply] using happ
 
 /-- Projection onto a different endpoint kills a tableau basis vector. -/
 theorem twoStepBranchingProjection_apply_eq_zero_of_endpoint_ne {n : ℕ}
@@ -1071,8 +1062,7 @@ theorem twoStepBranchingProjection_apply_eq_zero_of_endpoint_ne {n : ℕ}
             (spechtOrthogonalBasis mu T))) = 0
   rw [show (spechtBranchingIso_twoSteps_byEndpoint mu).hom.hom.hom
       (spechtOrthogonalBasis mu T) = _ by
-    simpa only [FDRep.isoToLinearEquiv, FGModuleCat.isoToLinearEquiv] using
-      spechtBranchingIso_twoSteps_byEndpoint_basis mu T]
+    exact spechtBranchingIso_twoSteps_byEndpoint_basis mu T]
   have hmor :
       biproduct.ι
           (fun _ : TwoStepRemovalTo mu T.eraseTwoLargestShape =>
@@ -1091,8 +1081,10 @@ theorem twoStepBranchingProjection_apply_eq_zero_of_endpoint_ne {n : ℕ}
   have happ := congrArg
     (fun f => f.hom.hom.hom
       (spechtOrthogonalBasis T.eraseTwoLargestShape T.restrictTwoLargest)) hmor
-  simpa only [ConcreteCategory.comp_apply, ModuleCat.comp_apply,
-    LinearMap.map_zero] using happ
+  simpa only [Action.comp_hom, ObjectProperty.FullSubcategory.comp_hom, ModuleCat.hom_comp,
+    LinearMap.coe_comp, Function.comp_apply,
+    Action.zero_hom, ObjectProperty.zero_hom, ModuleCat.hom_zero,
+    LinearMap.zero_apply] using happ
 
 /-- A path transporter sends a tableau basis vector along the chosen target
 path while preserving its lower tableau. -/
@@ -1195,7 +1187,9 @@ theorem twoStepBranchingProjection_apply_swapped_eq_zero {n : ℕ}
   have happ := congrArg
     (fun f => f.hom.hom.hom
       (spechtOrthogonalBasis T.eraseTwoLargestShape T.restrictTwoLargest)) hmor
-  simpa only [ConcreteCategory.comp_apply, ModuleCat.comp_apply,
+  simpa only [Action.comp_hom, ObjectProperty.FullSubcategory.comp_hom, ModuleCat.hom_comp,
+    LinearMap.coe_comp, Function.comp_apply,
+    Action.zero_hom, ObjectProperty.zero_hom, ModuleCat.hom_zero,
     LinearMap.zero_apply] using happ
 
 /-- Swapping the last two labels reverses their axial distance. -/
@@ -1221,8 +1215,9 @@ theorem lastAdjacentTranspositionEndomorphism_apply_basis {n : ℕ}
           (1 - ((T.axialDistance (Fin.last n) : ℂ)⁻¹) ^ 2) •
           spechtOrthogonalBasis mu (T.swapAdjacent (Fin.last n) h) := by
   rw [lastAdjacentTranspositionEndomorphism_hom]
-  simpa [swappedOrthogonalBasisVector, h] using
-    spechtOrthogonalBasis_adjacentTransposition mu T (Fin.last n)
+  have hbasis := spechtOrthogonalBasis_adjacentTransposition mu T (Fin.last n)
+  simp only [swappedOrthogonalBasisVector, dif_pos h] at hbasis
+  exact hbasis
 
 /-- On the swapped tableau, the same transposition has diagonal coefficient
 with the opposite sign and the same off-diagonal coefficient. -/

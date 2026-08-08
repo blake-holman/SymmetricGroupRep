@@ -7,6 +7,7 @@ import Mathlib.LinearAlgebra.Dimension.StrongRankCondition
 open CategoryTheory CategoryTheory.Limits
 
 attribute [local instance] Limits.HasFiniteBiproducts.of_hasFiniteProducts
+attribute [local instance] Fintype.ofFinite
 
 universe u
 

@@ -7,6 +7,7 @@ import Mathlib.GroupTheory.Perm.Finite
 open CategoryTheory CategoryTheory.Limits
 
 attribute [local instance] Limits.HasFiniteBiproducts.of_hasFiniteProducts
+attribute [local instance] Fintype.ofFinite
 
 noncomputable section
 
@@ -55,12 +56,15 @@ def outerTensorIso {G H : Type} [Monoid G] [Monoid H]
   let eW' := FDRep.isoToLinearEquiv eW
   let E : Representation.Equiv (outerTensor V W).ρ (outerTensor V' W').ρ :=
     Representation.Equiv.mk (TensorProduct.congr eV' eW') fun gh => by
+      obtain ⟨g, h⟩ := gh
       apply TensorProduct.ext'
       intro v w
-      have hV := LinearMap.congr_fun (FDRep.Iso.conj_ρ eV gh.1) (eV' v)
-      have hW := LinearMap.congr_fun (FDRep.Iso.conj_ρ eW gh.2) (eW' w)
-      simpa [eV', eW', LinearEquiv.conj_apply] using
-        congrArg₂ (fun x y => x ⊗ₜ[ℂ] y) hV.symm hW.symm
+      have hV := LinearMap.congr_fun (FDRep.Iso.conj_ρ eV g) (eV' v)
+      have hW := LinearMap.congr_fun (FDRep.Iso.conj_ρ eW h) (eW' w)
+      have htmul := congrArg₂ (fun x y => x ⊗ₜ[ℂ] y) hV.symm hW.symm
+      simp only [eV', eW', LinearEquiv.conj_apply, LinearMap.comp_apply,
+        LinearEquiv.coe_coe, LinearEquiv.symm_apply_apply] at htmul
+      exact htmul
   exact Action.mkIso E.toLinearEquiv.toFGModuleCatIso fun gh => by
     apply FGModuleCat.hom_ext
     exact E.toIntertwiningMap.2 gh

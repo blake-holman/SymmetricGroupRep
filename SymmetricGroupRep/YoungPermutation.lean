@@ -100,8 +100,8 @@ noncomputable def youngPermutationModule {n : ℕ} (mu : YoungDiagramOfSize n) :
 @[simp]
 theorem youngPermutationModule_rho_single {n : ℕ} (mu : YoungDiagramOfSize n)
     (sigma : SymmetricGroup n) (T : Tabloid mu) (c : ℂ) :
-    (youngPermutationModule mu).ρ sigma (Finsupp.single T c) =
-      Finsupp.single (sigma • T) c :=
+    (youngPermutationModule mu).ρ sigma (MonoidAlgebra.single T c) =
+      MonoidAlgebra.single (sigma • T) c :=
   Representation.ofMulAction_single sigma T c
 
 namespace FDRep
@@ -116,7 +116,7 @@ noncomputable def ofMulActionEquiv
       FDRep.of (Representation.ofMulAction ℂ G Y) := by
   let E : (Representation.ofMulAction ℂ G X).Equiv
       (Representation.ofMulAction ℂ G Y) :=
-    Representation.Equiv.mk (Finsupp.domLCongr e) fun g => by
+    Representation.Equiv.mk (MonoidAlgebra.mapDomainLinearEquiv ℂ ℂ e) fun g => by
       ext x
       simp [equivariant]
   exact Action.mkIso E.toLinearEquiv.toFGModuleCatIso fun g => by

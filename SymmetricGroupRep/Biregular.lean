@@ -33,10 +33,10 @@ noncomputable def symmetricGroupBiregular (n : ℕ) :
 @[simp]
 theorem symmetricGroupBiregular_ρ_single (n : ℕ)
     (g h x : SymmetricGroup n) (c : ℂ) :
-    (symmetricGroupBiregular n).ρ (g, h) (Finsupp.single x c) =
-      Finsupp.single (g * x * h⁻¹) c := by
-  change Finsupp.lmapDomain ℂ ℂ (g * · * h⁻¹) (Finsupp.single x c) = _
-  exact Finsupp.mapDomain_single
+    (symmetricGroupBiregular n).ρ (g, h) (MonoidAlgebra.single x c) =
+      MonoidAlgebra.single (g * x * h⁻¹) c := by
+  letI := symmetricGroupBiregularAction n
+  exact Representation.ofMulAction_single (g, h) x c
 
 /-- As an `S_n × S_n`-representation, `ℂ[S_n]` is the multiplicity-free sum of
 `S^μ ⊠ (S^μ)ᘁ`.

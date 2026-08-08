@@ -13,29 +13,29 @@ namespace FDRep
 /-- A real weighted average of a finite group action on a permutation module. -/
 noncomputable def realGroupAverage {G X : Type} [Group G] [Fintype G]
     [MulAction G X] (a : G → ℝ) :
-    (X →₀ ℝ) →ₗ[ℝ] (X →₀ ℝ) :=
+    MonoidAlgebra ℝ X →ₗ[ℝ] MonoidAlgebra ℝ X :=
   ∑ g : G, a g • Representation.ofMulAction ℝ G X g
 
 /-- The same weighted average over the complex permutation module. -/
 noncomputable def complexGroupAverage {G X : Type} [Group G] [Fintype G]
     [MulAction G X] (a : G → ℝ) :
-    (X →₀ ℂ) →ₗ[ℂ] (X →₀ ℂ) :=
+    MonoidAlgebra ℂ X →ₗ[ℂ] MonoidAlgebra ℂ X :=
   ∑ g : G, (a g : ℂ) • Representation.ofMulAction ℂ G X g
 
 @[simp]
 theorem realGroupAverage_apply_single {G X : Type} [Group G] [Fintype G]
     [MulAction G X] (a : G → ℝ) (x : X) (r : ℝ) :
-    realGroupAverage a (Finsupp.single x r) =
-      ∑ h : G, Finsupp.single (h • x) (a h * r) := by
+    realGroupAverage a (MonoidAlgebra.single x r) =
+      ∑ h : G, MonoidAlgebra.single (h • x) (a h * r) := by
   simp [realGroupAverage, mul_comm]
 
 @[simp]
 theorem complexGroupAverage_apply_single {G X : Type} [Group G] [Fintype G]
     [MulAction G X] (a : G → ℝ) (x : X) (z : ℂ) :
-    complexGroupAverage a (Finsupp.single x z) =
-      ∑ h : G, Finsupp.single (h • x) (z * (a h : ℂ)) := by
+    complexGroupAverage a (MonoidAlgebra.single x z) =
+      ∑ h : G, MonoidAlgebra.single (h • x) (z * (a h : ℂ)) := by
   simp only [complexGroupAverage, LinearMap.sum_apply, LinearMap.smul_apply,
-    Representation.ofMulAction_single, Finsupp.smul_single]
+    Representation.ofMulAction_single, MonoidAlgebra.smul_single]
   apply Finset.sum_congr rfl
   intro h _
   simp [smul_eq_mul, mul_comm]
@@ -43,14 +43,14 @@ theorem complexGroupAverage_apply_single {G X : Type} [Group G] [Fintype G]
 /-- The matrix of the complex average in the permutation basis. -/
 noncomputable def complexGroupAverageMatrix {G X : Type} [Group G] [Fintype G]
     [MulAction G X] (a : G → ℝ) : Matrix X X ℂ :=
-  fun y x => complexGroupAverage a (Finsupp.single x 1) y
+  fun y x => (complexGroupAverage a (MonoidAlgebra.single x 1)).coeff y
 
 /-- The complex average has real entries in the permutation basis. -/
 theorem complexGroupAverageMatrix_entry_im {G X : Type} [Group G] [Fintype G]
     [MulAction G X] (a : G → ℝ) (x y : X) :
     (complexGroupAverageMatrix a y x).im = 0 := by
   rw [complexGroupAverageMatrix, complexGroupAverage_apply_single]
-  rw [Finset.sum_apply']
+  rw [MonoidAlgebra.coeff_sum, Finset.sum_apply']
   rw [Complex.im_sum]
   apply Finset.sum_eq_zero
   intro h _
@@ -65,7 +65,7 @@ theorem complexGroupAverageMatrix_isHermitian {G X : Type} [Group G] [Fintype G]
   rw [complexGroupAverageMatrix]
   rw [complexGroupAverageMatrix]
   rw [complexGroupAverage_apply_single, complexGroupAverage_apply_single]
-  rw [Finset.sum_apply', Finset.sum_apply']
+  rw [MonoidAlgebra.coeff_sum, MonoidAlgebra.coeff_sum, Finset.sum_apply', Finset.sum_apply']
   rw [star_sum]
   apply Fintype.sum_equiv (Equiv.inv G)
   intro g
