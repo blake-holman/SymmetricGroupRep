@@ -24,6 +24,31 @@ That makes completeness the sole remaining obstacle for the decomposition
 targets: `spechtModule_kronecker`, for instance, is one application of it to the
 Specht family and nothing else.
 
+## Build coverage
+
+`lake build` only compiles what is reachable from the root module. Seven modules
+were outside that graph — `CharacterProjectorAlgebra`, `CharacterProjectorReal`,
+`ElementDistinctness`, `PaddedDiagrams`, `PaddedHookBounds`,
+`SpechtCharacterReal`, `TwoStepBranchingBasis` — so "build green" was never full
+coverage of the tree. All 41 modules are now imported from the root, so the
+build checks everything.
+
+That gap had concealed a real regression. Making `spechtModule` a concrete
+definition rather than an axiom gave terms mentioning it actual definitional
+content, and two proofs in `TwoStepBranchingBasis.lean` then exceeded the
+default `whnf` heartbeat budget. A build-coverage audit initially recorded this
+as pre-existing because it compared against `HEAD`, which already contained the
+concrete definition; comparing against the frozen baseline `5f00453` in a
+detached worktree showed the module compiling cleanly there. The regression was
+therefore introduced by this project and is fixed by raising the heartbeat limit
+in that file — a resource bound, not an assumption, and the same device already
+used in `Induction.lean` and `PaddedHookBounds.lean`.
+
+`TwoStepBranchingBasis.lean` carries nine pre-existing lint hints (`simpa` that
+could be `simp`, and unused simp arguments). These are present verbatim at the
+frozen baseline and are left alone, since rewriting them would modify code
+unrelated to axiom elimination. The build has **zero errors**.
+
 ## Mechanised completion checks
 
 Two of the completion checks are now enforced rather than inspected by hand, so

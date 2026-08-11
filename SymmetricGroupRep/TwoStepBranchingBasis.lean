@@ -3,6 +3,13 @@ import SymmetricGroupRep.Orthogonal
 
 /-! # The coherent basis under two-step branching -/
 
+/- `spechtModule` is now a concrete definition rather than an axiom, so terms
+mentioning it carry real definitional content and `whnf` has more work to do.
+Two proofs below exceed the default budget as a result. This raises the limit
+only; it is a resource bound, not an assumption. The same device is already used
+in `Induction.lean` and `PaddedHookBounds.lean`. -/
+set_option maxHeartbeats 1600000
+
 open CategoryTheory CategoryTheory.Limits
 open scoped BigOperators Classical
 
