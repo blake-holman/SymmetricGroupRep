@@ -1418,7 +1418,15 @@
         "symmetricGroupLeftRegular_decomposition",
         "symmetricGroupBiregular_decomposition",
         "spechtModule_induction_branching"
-      ]
+      ],
+      "api_reconnaissance": {
+        "checked_in_session": true,
+        "categorical_route": "mathlib has CategoryTheory.exists_simple_subobject with simpleSubobject, simpleSubobjectArrow, a Mono instance and a Simple instance, all gated on IsArtinianObject X. That would give the induction step directly. BUT: `example (V : SymmetricGroupRepresentation n) : IsArtinianObject V := by infer_instance` FAILS - no instance exists for FDRep, and supplying one means building an order embedding from Subobject V into the submodules of a finite-dimensional space. Rejected as the primary route.",
+        "module_route": "Preferred. Work at the Representation/Submodule level, where mathlib does have support: MonoidAlgebra.instIsSemisimpleModule (Maschke, gated on NeZero (Nat.card G : k)), IsSemisimpleModule.exists_sSupIndep_sSup_simples_eq_top, IsSemisimpleModule.exists_linearEquiv_fin_dfinsupp, and the whole isotypic-component development in RingTheory/SimpleModule/Isotypic.lean (isotypicComponent, isotypicComponents, sSup_isotypicComponents, IsIsotypic.linearEquiv_fun). Transport to FDRep only at the end, via Representation.Equiv and Action.mkIso, which is the pattern already used in this repository by FDRep.ofMulActionEquiv and by spechtModule_singleRow.",
+        "corroboration": "This is also what TauCeti does: its development lives in Representation/Submodule rather than FDRep, which is independent evidence that the module level is the tractable one.",
+        "splitting": "Maschke as a splitting is available categorically without the Artinian route: mathlib provides `instance [NeZero (Nat.card G : k)] (V : FDRep k G) : Injective V`, and Injective.factorThru retracts any mono into V. Useful for the final assembly even if the induction happens at module level.",
+        "target_shape": "Every consuming target wants the same shape: V is isomorphic to the biproduct over i of the biproduct over Fin (finrank (S i -> V)) of S i. Proving one general lemma in that shape discharges the decomposition half of spechtModule_kronecker, symmetricGroupLeftRegular_decomposition, symmetricGroupBiregular_decomposition, youngsRule, spechtModule_littlewoodRichardson, spechtModule_branching, spechtModule_induction_branching and tensorPower_schurWeyl."
+      }
     },
     {
       "id": "equal_characters_imply_iso",
