@@ -927,7 +927,8 @@
           "note": "STATED WITHOUT PROOF in the source; see source_pack_issues. Its Corollary 1.13 is proved from the branching rule."
         }
       ],
-      "state": "axiom"
+      "state": "axiom",
+      "scheduling": "DEFERRED TO LAST by explicit instruction. It is the only target with no adequate proof anywhere in the literature at the generality its statement needs: Rosmanis states it without proof, and Ballantine-Orellana Theorem 2.1, proposed as a replacement, assumes lambda_1 - lambda_2 >= 2p, which the Lean hypotheses do not imply. It also depends on the Littlewood-Richardson rule, which is itself downstream of Young rule, so deferring it costs nothing."
     },
     {
       "id": "spechtOrthogonalBasis_adjacentTransposition",
