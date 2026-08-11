@@ -7,22 +7,27 @@ Independently confirmed target count: **27**. The inventory below was produced b
 scanning `rg -n '^\s*axiom\s+' --glob '*.lean' .` against the frozen baseline and
 extracting each declaration verbatim with `git show 5f00453:<file>`.
 
-Baseline `lake build`: succeeds (3210 jobs). Current: succeeds (3218 jobs).
+Baseline `lake build`: succeeds (3210 jobs). Current: succeeds (3232 jobs).
 
-Progress: **6 of 27 verified**, 21 `axiom` declarations remain in the tree.
+Progress: **12 of 27 verified**, 15 `axiom` declarations remain in the tree.
 
-The two pieces of shared scaffolding that gate most of the remainder — the
-isotypic decomposition and the rigid-dual character — are now proved, and
-`FDRep.simple_of_isIrreducible` reduced `spechtModule_irreducible` to a
-submodule-level statement with no category theory in it, which is now proved.
-Distinctness follows it: layer 2 is closed, so the only open node below the
-branching and tensor layers is completeness.
+The classification of the complex irreducibles of `S_n` by Young diagrams is
+fully proved — irreducibility, distinctness and completeness — and so is the
+classification of the irreducibles of `S_m × S_n` as outer tensor products. Every
+target that is a *decomposition into Specht modules with computed multiplicities*
+is now closed as well: the Kronecker product, the left-regular representation,
+and the biregular representation. Self-duality is closed too.
 
-The isotypic decomposition is now available in the multiplicity form the targets
-are stated in, as `SymmetricGroupRepresentation.exists_iso_biproduct_multiplicity`.
-That makes completeness the sole remaining obstacle for the decomposition
-targets: `spechtModule_kronecker`, for instance, is one application of it to the
-Specht family and nothing else.
+The engine behind all of them is the isotypic decomposition in multiplicity form,
+`FDRep.exists_iso_biproduct_multiplicity`, together with its two corollaries
+`FDRep.nonempty_iso_of_finrank_hom_eq` and
+`FDRep.nonempty_iso_of_character_eq_of_complete`. These are now stated for an
+arbitrary finite group rather than only for symmetric groups, which is what lets
+the same argument run over `S_n × S_n` for the biregular decomposition.
+
+Every remaining target needs genuinely new mathematics: induction and restriction
+(branching, Pieri, Littlewood--Richardson, Young's rule), the standard tableau
+basis, or hook-length combinatorics.
 
 ## Build coverage
 
@@ -30,7 +35,7 @@ Specht family and nothing else.
 were outside that graph — `CharacterProjectorAlgebra`, `CharacterProjectorReal`,
 `ElementDistinctness`, `PaddedDiagrams`, `PaddedHookBounds`,
 `SpechtCharacterReal`, `TwoStepBranchingBasis` — so "build green" was never full
-coverage of the tree. All 41 modules are now imported from the root, so the
+coverage of the tree. All 43 modules are now imported from the root, so the
 build checks everything.
 
 That gap had concealed a real regression. Making `spechtModule` a concrete
@@ -60,7 +65,7 @@ that drift fails loudly instead of silently:
   tree text to be the frozen signature followed by nothing but a `:=` body
   marker. It also rejects any conversion to a declaration form other than
   `theorem` or `noncomputable def`. The script was negative-tested: it catches
-  both an added hypothesis and an altered conclusion. Current status: 6/27
+  both an added hypothesis and an altered conclusion. Current status: 7/27
   converted, all 27 signatures preserved.
 - **Axiom closure.** `SymmetricGroupRep/AxiomAudit.lean` records the
   `#print axioms` closure of every converted target inside `#guard_msgs`, and is
@@ -296,18 +301,18 @@ layer. The audit script confirms 27 nodes, no directed cycle, and no edge with
 | 0 | `schurWeylMultiplicity_mul_hookProduct` | theorem | axiom |
 | 1 | `spechtModule_irreducible` | theorem | **verified** |
 | 1 | `spechtModule_singleRow` | theorem | **verified** |
-| 1 | `spechtModule_selfDual` | theorem | axiom |
+| 1 | `spechtModule_selfDual` | theorem | **verified** |
 | 1 | `exists_spechtTableauBasis` | theorem | axiom |
 | 1 | `twoRowKostkaIndexEquiv_shape` | theorem | **verified** |
 | 2 | `spechtModule_iso_iff_eq` | theorem | **verified** |
-| 3 | `exists_iso_spechtModule` | theorem | axiom |
-| 4 | `spechtModule_kronecker` | theorem | axiom |
-| 4 | `symmetricGroupLeftRegular_decomposition` | theorem | axiom |
-| 4 | `existsUnique_iso_spechtOuterTensor` | theorem | axiom |
+| 3 | `exists_iso_spechtModule` | theorem | **verified** |
+| 4 | `spechtModule_kronecker` | theorem | **verified** |
+| 4 | `symmetricGroupLeftRegular_decomposition` | theorem | **verified** |
+| 4 | `existsUnique_iso_spechtOuterTensor` | theorem | **verified** |
 | 4 | `spechtModule_tensor_sign` | theorem | axiom |
 | 4 | `spechtModule_branching` | theorem | axiom |
 | 4 | `youngsRule` | theorem | axiom |
-| 5 | `symmetricGroupBiregular_decomposition` | theorem | axiom |
+| 5 | `symmetricGroupBiregular_decomposition` | theorem | **verified** |
 | 5 | `spechtModule_littlewoodRichardson` | theorem | axiom |
 | 5 | `spechtModule_induction_branching` | theorem | axiom |
 | 5 | `tensorPower_schurWeyl` | theorem | axiom |
@@ -373,31 +378,37 @@ is itself a frozen target, so each is an ordinary supporting development:
 
 1. **Isotypic decomposition in `FDRep`** — **now proved locally**, in both the
    form mathlib's module theory hands over and the form the targets are stated
-   in. Mathlib has no `IsSemisimpleCategory` class and no theorem writing an
+   in, for an arbitrary finite group. Mathlib has no `IsSemisimpleCategory` class and no theorem writing an
    object of an abelian category as a biproduct of simples; the route taken was
    the module-level one
    (`IsSemisimpleModule.exists_linearEquiv_fin_dfinsupp`) transported across
-   `Representation.asModule`, giving
-   `SymmetricGroupRepresentation.exists_iso_biproduct_simples`, followed by
-   `SymmetricGroupRepresentation.exists_iso_biproduct_multiplicity`, which
-   regroups the repetitions into multiplicities. Needed by
+   `Representation.asModule`, giving `FDRep.exists_iso_biproduct_simples`,
+   followed by `FDRep.exists_iso_biproduct_multiplicity`, which regroups the
+   repetitions into multiplicities. Needed by
    `spechtModule_kronecker`, `youngsRule`, `spechtModule_littlewoodRichardson`,
    `spechtModule_branching`, `tensorPower_schurWeyl`, and both regular
    decompositions. This was the single largest piece of shared scaffolding.
-2. **Equal characters imply isomorphic**, for `FDRep ℂ G` with `G` finite. Only
-   the forward direction `FDRep.char_iso` exists. Needed by
-   `spechtModule_selfDual` and `spechtModule_tensor_sign`. Follows from item 1
-   plus `scalar_product_char_eq_finrank_equivariant` and
-   `finrank_hom_simple_simple`.
-3. **Number of simples equals number of conjugacy classes.** Absent; no
-   `ConjClasses` appears anywhere in mathlib's representation theory. Needed by
+2. **Equal characters imply isomorphic**, for `FDRep ℂ G` with `G` finite —
+   **now proved locally**. Only the forward direction `FDRep.char_iso` is in
+   mathlib. The real content is `FDRep.nonempty_iso_of_finrank_hom_eq`, which
+   matches two representations that contain each simple equally often;
+   `FDRep.nonempty_iso_of_character_eq_of_complete` derives the character form
+   from it through `scalar_product_char_eq_finrank_equivariant`, and
+   `SymmetricGroupRepresentation.nonempty_iso_of_character_eq` specialises that
+   to the Specht family. Used by `spechtModule_selfDual`; still available for
+   `spechtModule_tensor_sign`.
+3. **At most as many simples as conjugacy classes** — **now proved locally**, as
+   `FDRep.card_le_card_conjClasses` in `SimpleCount.lean`. Absent from mathlib;
+   no `ConjClasses` appears anywhere in its representation theory. Needed by
    `exists_iso_spechtModule`.
-4. **`ConjClasses (Equiv.Perm (Fin n)) ≃ Nat.Partition n`.** Both halves exist
-   separately — `partition_eq_of_isConj` for injectivity and
-   `exists_with_cycleType_iff` for surjectivity — but the bijection does not.
-5. **`YoungDiagramOfSize n ≃ Nat.Partition n`.** `YoungDiagram` and
-   `Nat.Partition` are never mentioned in the same mathlib file.
-   `YoungDiagram.equivListRowLens` is the natural starting point.
+4. **`ConjClasses (Equiv.Perm (Fin n)) ≃ Nat.Partition n`** — **now proved
+   locally**, as `SymmetricGroup.conjClassesEquivPartition` in `Partitions.lean`.
+   Both halves existed separately — `partition_eq_of_isConj` for injectivity and
+   `exists_with_cycleType_iff` for surjectivity — but not the bijection.
+5. **`YoungDiagramOfSize n ≃ Nat.Partition n`** — **now proved locally**, as
+   `YoungDiagramOfSize.equivPartition` in `Partitions.lean`. `YoungDiagram` and
+   `Nat.Partition` are never mentioned in the same mathlib file;
+   `YoungDiagram.equivListRowLens` was the starting point.
 6. **`(Vᘁ).character g = V.character g⁻¹` for the rigid dual** — **now proved
    locally** as `FDRep.char_rightDual` in `Semisimple.lean`. Mathlib states
    `FDRep.char_dual` only for `FDRep.of (Representation.dual V.ρ)` and its own
@@ -518,59 +529,28 @@ so adopting it is a port with base change and a categorical wrapper, not a copy 
 and every ported result still has to clear this project's own `#print axioms`
 audit.
 
-## Next step: completeness
+## Next step
 
-With distinctness proved, layer 3 is `exists_iso_spechtModule`, the last node
-below the branching and tensor layers. It is a counting argument, and the count
-is the problem: the distinct Specht modules give an injection from
-`YoungDiagramOfSize n` into the isomorphism classes of simples, and completeness
-is exactly the statement that this injection is onto, which needs an upper bound
-on the number of simples. Four pieces are missing, and a reconnaissance of both
-mathlib and the prior art puts the work well beyond any of the nodes closed so
-far.
+Layers 1 to 4 are closed apart from `exists_spechtTableauBasis`,
+`spechtModule_tensor_sign`, `spechtModule_branching` and `youngsRule`.
 
-1. **At most as many simples as conjugacy classes.** Absent from mathlib —
-   `ConjClasses` is never mentioned anywhere under
-   `Mathlib/RepresentationTheory/`. `TauCetiProject/TauCeti` does have
-   `card_simpleSubmoduleClasses_le_card_conjClasses`, but its 65 lines are a
-   two-line proof on top of two developments that are themselves absent from
-   mathlib: `finrank_center_monoidAlgebra` (the class sums are a basis of the
-   centre of `k[G]`, in their `CharacterTable/ClassSum/Basis.lean`) and
-   `card_isotypicComponents_le_finrank_center` (in their
-   `RingTheory/Semisimple/CenterDimension.lean`). Porting the pair is the bulk
-   of the node.
-2. **A small index for the simples.** `FDRep ℂ (S_n)` is a large type, so
-   "number of isomorphism classes of simples" cannot be `Nat.card` of a quotient
-   of it. TauCeti's answer is to count simple submodules of the regular module
-   instead; whichever route is taken, the count has to be moved back to
-   `FDRep ℂ (S_n)` objects, which is a further step this package has not built.
-3. **`ConjClasses (Equiv.Perm (Fin n)) ≃ Nat.Partition n`.** Mathlib has both
-   halves — `Equiv.Perm.partition_eq_of_isConj` and
-   `Equiv.Perm.exists_with_cycleType_iff` — but not the bijection.
-4. **`YoungDiagramOfSize n ≃ Nat.Partition n`.** `YoungDiagram` and
-   `Nat.Partition` never appear in the same mathlib file.
-   `YoungDiagram.equivListRowLens` is the natural start; the sorted-list to
-   multiset step is where the work is.
+Nothing further comes out of the decomposition engine on its own. Every remaining
+target names a multiplicity that the engine cannot compute from what is already
+proved: `youngsRule` needs Kostka numbers, `spechtModule_littlewoodRichardson`
+needs the Littlewood--Richardson rule, `spechtModule_branching` needs the
+branching rule, `tensorPower_schurWeyl` needs Schur--Weyl. Each of those is a
+theorem about induction and restriction, so item 7 of the missing-infrastructure
+list — the character of an induced representation, and `Rep.ind` along a
+finite-index inclusion — is now the critical path, and it feeds six targets.
 
-A character-theoretic route over `ℂ` would replace items 1 and 2 by "the
-irreducible characters span the class functions", using
-`FDRep.char_orthonormal`, which mathlib does have. That trades the ring theory
-for the dimension of the space of class functions, which mathlib does not have
-either, and still needs items 3 and 4. It also has the advantage of never
-needing "equal characters imply isomorphic": a nonzero coefficient
-`⟪χ_V, χ_μ⟫ = finrank (V ⟶ S^μ)` already produces a nonzero map between two
-simples, which Schur upgrades to an isomorphism.
+Three targets remain independent of that path and are the cheapest available:
 
-Completeness has also become the *only* thing missing for the decomposition
-targets. With `exists_iso_biproduct_multiplicity` proved, the Specht family
-already satisfies two of that lemma's three hypotheses —
-`spechtModule_irreducible` and `spechtModule_iso_iff_eq` — and the third is
-exactly `exists_iso_spechtModule`. Supplying it turns `spechtModule_kronecker`
-into a single application, checked by elaborating the specialisation against the
-axiom without landing it.
-
-`spechtModule_selfDual` and `standardYoungTableau_card_mul_hookProduct` remain
-independently available and are much smaller.
+- `spechtModule_tensor_sign`, which now has both of its prerequisites — the
+  classification and "equal characters imply isomorphic" — and reduces to
+  computing the sign-twisted Specht character.
+- `standardYoungTableau_card_mul_hookProduct` and
+  `schurWeylMultiplicity_mul_hookProduct`, self-contained combinatorics with no
+  representation theory in them.
 
 ## Resolved apparent cycles
 
@@ -859,3 +839,212 @@ the target is one application of the lemma to the Specht family — and the
 application was elaborated to confirm exactly that — but its completeness
 hypothesis can only come from `exists_iso_spechtModule`, which is still an axiom.
 Landing it now would close a frozen target through a project axiom.
+
+### Layer 3: `exists_iso_spechtModule`
+
+Completeness of the Specht list, the counting half of Sagan's Theorem 2.4.6, in
+the two new modules `SymmetricGroupRep/SimpleCount.lean` and
+`SymmetricGroupRep/Partitions.lean`. With `spechtModule_irreducible` and
+`spechtModule_iso_iff_eq` already converted, the Specht modules were known to be
+pairwise non-isomorphic simples indexed by `YoungDiagramOfSize n`; the missing
+ingredient was an upper bound on how many pairwise non-isomorphic simples there
+can be. The conversion is that bound applied to the Specht family with one
+hypothetical extra simple adjoined: if some simple `V` were isomorphic to no
+Specht module, the family indexed by `Option (YoungDiagramOfSize n)` would have
+one more member than `S_n` has conjugacy classes.
+
+Three pieces, none of them in mathlib, make up the bound.
+
+- **`FDRep.card_le_card_conjClasses`** in `SimpleCount.lean`: a family of
+  pairwise non-isomorphic simple objects of `FDRep ℂ G`, `G` finite, has at most
+  `Nat.card (ConjClasses G)` members. `FDRep.char_conj` makes a character
+  constant on conjugacy classes, so `FDRep.classCharacter` reads it as a
+  function on `ConjClasses G`; mathlib's `FDRep.char_orthonormal` then makes the
+  family orthonormal for the pairing `⅟|G| * ∑ g, χ_i g * χ_j g⁻¹`, and pairing
+  a vanishing linear combination against each `χ_j` returns its coefficient. The
+  characters are therefore linearly independent in `ConjClasses G → ℂ`, whose
+  dimension is `Nat.card (ConjClasses G)` by `Module.finrank_pi`.
+- **`SymmetricGroup.conjClassesEquivPartition`** in `Partitions.lean`:
+  `ConjClasses (S_n) ≃ n.Partition`. `Equiv.Perm.partition` lands in
+  `(Fintype.card (Fin n)).Partition`, so `SymmetricGroup.partition` restates it
+  at index `n`; `Equiv.Perm.partition_eq_of_isConj` gives both well-definedness
+  on classes and injectivity. Surjectivity is `SymmetricGroup.exists_partition_eq`:
+  the parts of `p` that are at least two are realised as a cycle type by
+  `Equiv.Perm.exists_with_cycleType_iff`, and the remaining parts are all `1` by
+  positivity, which is exactly the block of fixed points that
+  `Equiv.Perm.partition` appends.
+- **`YoungDiagramOfSize.equivPartition`** in `Partitions.lean`:
+  `YoungDiagramOfSize n ≃ n.Partition`, by row lengths. Forwards is
+  `YoungDiagram.rowLens` as a multiset, positive by
+  `YoungDiagram.pos_of_mem_rowLens` and summing to `n` by the package's own
+  `YoungDiagram.card_eq_rowLens_sum`. Backwards is `Multiset.sort (· ≥ ·)` fed to
+  `YoungDiagram.ofRowLens`. The two compose to the identity because a list is
+  determined by its multiset once it is sorted, which is
+  `List.Perm.eq_of_pairwise'`.
+
+Two shaping decisions are worth recording. The bound is stated for an arbitrary
+indexed family rather than for a type of isomorphism classes, which avoids
+quotienting the large type `FDRep ℂ (S_n)` — the step that the earlier
+reconnaissance recorded as a separate missing piece. And `IsConj.setoid` is a
+`local instance` in mathlib, so both new modules re-declare it locally in order
+to use `Quotient.lift` on `ConjClasses`.
+
+`TauCetiProject/TauCeti` (Apache-2.0) proves the corresponding bound as
+`card_simpleSubmoduleClasses_le_card_conjClasses` in
+`RepresentationTheory/CharacterTable/SimpleModuleCount.lean`, but over an
+arbitrary field with semisimple group algebra, via the dimension of the centre of
+`k[G]` and the class-sum basis. That route needs two developments this package
+does not have; the character-theoretic route above works only over `ℂ` but rests
+entirely on mathlib, so nothing here is adapted from it.
+
+Verification:
+
+- `#print axioms exists_iso_spechtModule`:
+  `[propext, Classical.choice, Quot.sound]`, recorded in `AxiomAudit.lean` under
+  `#guard_msgs`.
+- `lake build`: `Build completed successfully (3232 jobs)`, only the nine
+  pre-existing `TwoStepBranchingBasis.lean` lint hints.
+- `python3 docs/verify_frozen_signatures.py`: exit 0, 7/27 converted, all 27
+  signatures preserved.
+
+`existsUnique_iso_spechtModule`, the uniqueness wrapper that was already stated
+in `Classification.lean`, is now also free of project axioms. The note under the
+previous entry, that `spechtModule_kronecker` could not be landed because its
+completeness hypothesis was an axiom, no longer applies.
+
+### Layer 1: `spechtModule_selfDual`
+
+The dual character is `g ↦ χ(g⁻¹)` — `FDRep.char_rightDual`, proved earlier here —
+and every symmetric-group character is inversion-invariant, because
+`Equiv.Perm.cycleType_inv` makes `g` and `g⁻¹` conjugate. So `S^μ` and `(S^μ)ᘁ`
+have the same character, and the conversion is one application of the converse of
+`FDRep.char_iso`.
+
+That converse is item 2 of the missing-infrastructure list and is the reusable
+part of this step. It is proved in two stages in `Decomposition.lean`:
+
+- `FDRep.nonempty_iso_of_finrank_hom_eq`: two representations that contain each
+  member of a complete family of pairwise non-isomorphic simples equally often
+  are isomorphic. Both sides are expanded by
+  `FDRep.exists_iso_biproduct_multiplicity` and the resulting biproducts are
+  matched summand by summand with `biproduct.reindex (finCongr _)`.
+- `FDRep.nonempty_iso_of_character_eq_of_complete`: equal characters give equal
+  multiplicities, because
+  `FDRep.scalar_product_char_eq_finrank_equivariant` computes every multiplicity
+  as a scalar product of characters. `Nat.cast` is injective in `ℂ`, so the
+  equality of dimensions follows from the equality in `ℂ`.
+
+`SymmetricGroupRepresentation.nonempty_iso_of_character_eq` in
+`Classification.lean` specialises the second to the Specht family.
+
+Two existing declarations moved rather than being duplicated:
+`symmetricGroup_inverse_isConj` and `symmetricGroup_character_inv` came down from
+`CharacterProjectorReal.lean` into `Semisimple.lean`, which already hosts the
+other character facts about `FDRep ℂ (S_n)` that mathlib leaves to its callers.
+`CharacterProjectorReal.lean` sits above `YoungPermutation.lean` in the import
+order, so `SelfDuality.lean` could not have reached them where they were.
+
+Verification: `#print axioms spechtModule_selfDual` is
+`[propext, Classical.choice, Quot.sound]`, recorded under `#guard_msgs`;
+`lake build` green at 3232 jobs.
+
+### Layer 4: `spechtModule_kronecker`
+
+The one-line target the previous stage predicted. `kroneckerCoefficient μ ν ξ` is
+*defined* in `Kronecker.lean` as `finrank ℂ (S^ξ ⟶ S^μ ⊗ S^ν)`, which is exactly
+the multiplicity `FDRep.exists_iso_biproduct_multiplicity` produces, so the
+conversion is that lemma applied to the Specht family at `spechtInnerTensor μ ν`.
+The three hypotheses are `spechtModule_irreducible`, `spechtModule_iso_iff_eq`
+and `exists_iso_spechtModule`, all converted.
+
+Verification: `#print axioms spechtModule_kronecker` is
+`[propext, Classical.choice, Quot.sound]`, recorded under `#guard_msgs`.
+
+### Layer 4: `symmetricGroupLeftRegular_decomposition`
+
+The same application, at `symmetricGroupLeftRegular n`, plus the one computation
+it needs: `finrank_hom_symmetricGroupLeftRegular` in `Regular.lean`, that every
+representation occurs in `ℂ[S_n]` with multiplicity its own dimension.
+
+`symmetricGroupLeftRegular_character` computes the regular character by reading
+`LinearMap.trace` as a matrix trace in `Finsupp.basisSingleOne`: the matrix of
+left multiplication by `g` has diagonal entry `1` at `x` exactly when `g * x = x`,
+which by `mul_eq_right` happens for all `x` when `g = 1` and for no `x`
+otherwise. The character pairing then collapses to its single term at `g = 1`,
+where `FDRep.char_one` returns the dimension.
+
+The multiplicities that `exists_iso_biproduct_multiplicity` produces are Hom
+dimensions, while the frozen statement names `finrank ℂ (S^μ)`, so the two
+biproducts are matched with `biproduct.reindex (finCongr _)` as above.
+
+Verification: `#print axioms symmetricGroupLeftRegular_decomposition` is
+`[propext, Classical.choice, Quot.sound]`, recorded under `#guard_msgs`.
+
+### Layer 4: `existsUnique_iso_spechtOuterTensor`
+
+The classification for `S_m × S_n`, proved by the same counting argument as
+`exists_iso_spechtModule` and reusing `FDRep.card_le_card_conjClasses` unchanged,
+since that bound was already stated for an arbitrary finite group.
+
+Three pieces, all in `ProductClassification.lean`:
+
+- `FDRep.finrank_hom_outerTensor` in `OuterTensor.lean`: equivariant maps between
+  outer tensor products are counted factorwise,
+  `finrank (V ⊠ W ⟶ V' ⊠ W') = finrank (V ⟶ V') * finrank (W ⟶ W')`. The
+  character of an outer tensor product is a product, so the pairing over `G × H`
+  factors as the product of the pairings over `G` and over `H`.
+- `spechtOuterTensor_iso_iff_eq`, distinctness, is that formula read through
+  Schur's lemma: an isomorphism makes the left side `1`, so both factors on the
+  right are `1`, so both labels agree. This lemma previously existed in the file
+  but was derived *from* the axiom; it is now proved directly and moved above the
+  target, which consumes it.
+- `ConjClasses.prodEquiv`, with `isConj_prod_iff` under it: conjugacy in a
+  product group is componentwise, so the conjugacy classes of `S_m × S_n` are
+  pairs of conjugacy classes. Composed with the two equivalences from
+  `Partitions.lean`, that makes the number of pairs of Young diagrams equal to
+  the number of conjugacy classes, and one more simple would exceed the bound.
+
+Verification: `#print axioms existsUnique_iso_spechtOuterTensor` is
+`[propext, Classical.choice, Quot.sound]`, recorded under `#guard_msgs`.
+
+### Layer 5: `symmetricGroupBiregular_decomposition`
+
+Both sides are representations of `S_n × S_n`, so this is the first target that
+needs the decomposition engine over a group other than a symmetric group. The
+three lemmas in `Decomposition.lean` were therefore generalised from
+`SymmetricGroupRepresentation n` to `FDRep ℂ G` for `[Group G] [Finite G]
+[NeZero (Nat.card G : ℂ)]` and moved into the `FDRep` namespace. No proof changed
+— only the binders — and the `NeZero` and `Invertible` instances in
+`Semisimple.lean` were generalised from symmetric groups to finite groups for the
+same reason, which also removed their two special cases.
+
+The decomposition itself is proved by matching multiplicities rather than
+characters, which avoids needing the second orthogonality relation. Both sides
+contain `S^μ ⊠ S^ν` exactly `if μ = ν then 1 else 0` times:
+
+- `symmetricGroupBiregular_character`: the basis vector at `x` is fixed by
+  `(g, h)` exactly when `x⁻¹ * g * x = h`, so the character is a count of
+  conjugators. `finrank_hom_symmetricGroupBiregular` sums that count against the
+  Specht characters: the indicator collapses the sum over `h`, replacing `h` by
+  `x⁻¹ * g * x` for each `x`; `FDRep.char_conj` then makes every term independent
+  of `x`, leaving `Nat.card (S_n)` copies of the ordinary pairing of `χ_μ` with
+  `χ_ν`, which Schur's lemma evaluates. `symmetricGroup_character_inv` is what
+  turns the two inverse arguments produced by this route into the orientation the
+  pairing lemma wants.
+- `finrank_hom_spechtDualBiproduct`: Hom out of a fixed object is additive over a
+  biproduct (`FDRep.homFinrank_biproduct`), and the summand at `α` contributes
+  `finrank (S^μ ⟶ S^α) * finrank (S^ν ⟶ (S^α)ᘁ)` by
+  `FDRep.finrank_hom_outerTensor`. Self-duality makes `(S^α)ᘁ` simple
+  (`simple_spechtModule_rightDual`, in `SelfDuality.lean`) and isomorphic to
+  `S^α`, so the product is `1` only when `α` is both `μ` and `ν`.
+
+`FDRep.nonempty_iso_of_finrank_hom_eq`, applied to the family
+`(μ, ν) ↦ S^μ ⊠ S^ν` with `existsUnique_iso_spechtOuterTensor` supplying
+completeness, then closes the target.
+
+Verification: `#print axioms symmetricGroupBiregular_decomposition` is
+`[propext, Classical.choice, Quot.sound]`, recorded under `#guard_msgs`;
+`lake build` green at 3232 jobs with only the nine pre-existing
+`TwoStepBranchingBasis.lean` lint hints; `python3 docs/verify_frozen_signatures.py`
+exits 0 at 12/27 with all 27 signatures preserved.
+

@@ -2,21 +2,27 @@ import SymmetricGroupRep.Semisimple
 import Mathlib.RepresentationTheory.Irreducible
 import Mathlib.Analysis.Complex.Polynomial.Basic
 
-/-! # Decomposing a symmetric-group representation into simples
+/-! # Decomposing a representation of a finite group into simples
 
 Mathlib decomposes a semisimple module over a ring into finitely many simple submodules
 (`IsSemisimpleModule.exists_linearEquiv_fin_dfinsupp`), and Maschke makes every
-`Representation ℂ (S_n) V` semisimple as a module over the group algebra. What is missing is the
-translation back into `FDRep ℂ (S_n)`, where this package states its results. Mathlib does
+`Representation ℂ G V` semisimple as a module over the group algebra. What is missing is the
+translation back into `FDRep ℂ G`, where this package states its results. Mathlib does
 compare `FDRep` morphisms with intertwining maps, via `FDRep.forget₂HomLinearEquiv` and
 `Rep.homLinearEquiv`; what it does not have is a bridge from `Representation.IsIrreducible` to
-`CategoryTheory.Simple`, or between the `ℂ[S_n]`-module of a subrepresentation and the submodule
+`CategoryTheory.Simple`, or between the `ℂ[G]`-module of a subrepresentation and the submodule
 it comes from. The declarations below supply those, and `exists_iso_biproduct_simples` assembles
-the module-level decomposition into a biproduct in `FDRep ℂ (S_n)`.
+the module-level decomposition into a biproduct in `FDRep ℂ G`.
 
 That biproduct lists its simple summands with repetitions, whereas every consumer wants them
 grouped: `exists_iso_biproduct_multiplicity` regroups them along a fixed family of pairwise
 non-isomorphic simples, with each member repeated as often as its Hom-space dimension records.
+Two representations with the same multiplicities are then isomorphic, and equal characters are
+one way to know that they are.
+
+Everything here is stated for an arbitrary finite group rather than for a symmetric group, since
+the classification of the simples of `S_m × S_n` and the biregular decomposition both need it over
+a product.
 
 Statements about `Representation.asModule` need
 `set_option backward.isDefEq.respectTransparency false`, as they do throughout mathlib's own
@@ -140,27 +146,27 @@ theorem homFinrank_biproduct {G ι : Type}
 end FDRep
 
 set_option backward.isDefEq.respectTransparency false in
-/-- Complete reducibility: every finite-dimensional complex representation of a symmetric group
+/-- Complete reducibility: every finite-dimensional complex representation of a finite group
 is isomorphic to a finite biproduct of simple representations. -/
-theorem SymmetricGroupRepresentation.exists_iso_biproduct_simples {n : ℕ}
-    (V : SymmetricGroupRepresentation n) :
-    ∃ (k : ℕ) (S : Fin k → SymmetricGroupRepresentation n),
+theorem FDRep.exists_iso_biproduct_simples {G : Type} [Group G] [Finite G]
+    [NeZero (Nat.card G : ℂ)] (V : FDRep ℂ G) :
+    ∃ (k : ℕ) (S : Fin k → FDRep ℂ G),
       (∀ i, Simple (S i)) ∧ Nonempty (V ≅ ⨁ S) := by
   classical
-  let ρ : Representation ℂ (SymmetricGroup n) V := V.ρ
-  haveI : Module.Finite ℂ[SymmetricGroup n] ρ.asModule :=
+  let ρ : Representation ℂ G V := V.ρ
+  haveI : Module.Finite ℂ[G] ρ.asModule :=
     Module.Finite.of_restrictScalars_finite ℂ _ _
   obtain ⟨k, N, e, hN⟩ :=
-    IsSemisimpleModule.exists_linearEquiv_fin_dfinsupp ℂ[SymmetricGroup n] ρ.asModule
-  -- `N` is a family of simple `ℂ[S_n]`-submodules with `ρ.asModule ≃ ⨁ N i`; read it back as a
+    IsSemisimpleModule.exists_linearEquiv_fin_dfinsupp ℂ[G] ρ.asModule
+  -- `N` is a family of simple `ℂ[G]`-submodules with `ρ.asModule ≃ ⨁ N i`; read it back as a
   -- family of subrepresentations, and take the summands to be those subrepresentations.
   let W : Fin k → Subrepresentation ρ := fun i => Subrepresentation.ofSubmodule' (N i)
-  let S : Fin k → SymmetricGroupRepresentation n := fun i => FDRep.of (W i).toRepresentation
-  let toSubmodule : ∀ i, (W i).toRepresentation.asModule ≃ₗ[ℂ[SymmetricGroup n]] N i :=
+  let S : Fin k → FDRep ℂ G := fun i => FDRep.of (W i).toRepresentation
+  let toSubmodule : ∀ i, (W i).toRepresentation.asModule ≃ₗ[ℂ[G]] N i :=
     fun i => Subrepresentation.asModuleEquivOfSubmodule (N i)
-  let toSummand : ∀ i, ρ.asModule →ₗ[ℂ[SymmetricGroup n]] (W i).toRepresentation.asModule :=
+  let toSummand : ∀ i, ρ.asModule →ₗ[ℂ[G]] (W i).toRepresentation.asModule :=
     fun i => (toSubmodule i).symm.toLinearMap ∘ₗ DFinsupp.lapply i ∘ₗ e.toLinearMap
-  let fromSummand : ∀ i, (W i).toRepresentation.asModule →ₗ[ℂ[SymmetricGroup n]] ρ.asModule :=
+  let fromSummand : ∀ i, (W i).toRepresentation.asModule →ₗ[ℂ[G]] ρ.asModule :=
     fun i => e.symm.toLinearMap ∘ₗ DFinsupp.lsingle i ∘ₗ (toSubmodule i).toLinearMap
   let π : ∀ i, V ⟶ S i := fun i =>
     (FDRep.homEquivIntertwiningMap V (S i)).symm
@@ -171,7 +177,7 @@ theorem SymmetricGroupRepresentation.exists_iso_biproduct_simples {n : ℕ}
   have hsimple : ∀ i, Simple (S i) := by
     intro i
     haveI := hN i
-    haveI : IsSimpleModule ℂ[SymmetricGroup n] ((W i).toRepresentation.asModule) :=
+    haveI : IsSimpleModule ℂ[G] ((W i).toRepresentation.asModule) :=
       IsSimpleModule.congr (toSubmodule i)
     haveI : IsIrreducible (W i).toRepresentation :=
       (irreducible_iff_isSimpleModule_asModule _).mpr this
@@ -221,14 +227,15 @@ and every simple is isomorphic to one of them, then each `V` is the biproduct of
 `exists_iso_biproduct_simples` gives a biproduct of simples listed with repetitions; classifying
 each summand by the member of `S` it is isomorphic to regroups that list, and Schur's lemma
 counts each fibre as a Hom-space dimension. -/
-theorem SymmetricGroupRepresentation.exists_iso_biproduct_multiplicity {n : ℕ} {ι : Type}
-    [Finite ι] (S : ι → SymmetricGroupRepresentation n) (hsimple : ∀ i, Simple (S i))
+theorem FDRep.exists_iso_biproduct_multiplicity {G ι : Type} [Group G] [Finite G]
+    [NeZero (Nat.card G : ℂ)]
+    [Finite ι] (S : ι → FDRep ℂ G) (hsimple : ∀ i, Simple (S i))
     (hdistinct : ∀ i j, Nonempty (S i ≅ S j) → i = j)
-    (hcomplete : ∀ T : SymmetricGroupRepresentation n, Simple T → ∃ i, Nonempty (T ≅ S i))
-    (V : SymmetricGroupRepresentation n) :
+    (hcomplete : ∀ T : FDRep ℂ G, Simple T → ∃ i, Nonempty (T ≅ S i))
+    (V : FDRep ℂ G) :
     Nonempty (V ≅ ⨁ fun i => ⨁ fun _ : Fin (Module.finrank ℂ (S i ⟶ V)) => S i) := by
   classical
-  obtain ⟨k, T, hT, ⟨e⟩⟩ := SymmetricGroupRepresentation.exists_iso_biproduct_simples V
+  obtain ⟨k, T, hT, ⟨e⟩⟩ := FDRep.exists_iso_biproduct_simples V
   choose c hc using fun j => hcomplete (T j) (hT j)
   have hiff : ∀ i j, Nonempty (S i ≅ T j) ↔ c j = i := by
     intro i j
@@ -256,5 +263,38 @@ theorem SymmetricGroupRepresentation.exists_iso_biproduct_multiplicity {n : ℕ}
     fun i => biproduct.reindex (Finite.equivFinOfCardEq (hcard i)) fun _ => S i
   exact ⟨e ≪≫ biproduct.mapIso (fun j => Classical.choice (hc j)) ≪≫ reindex ≪≫ regroup.symm ≪≫
     biproduct.mapIso resize⟩
+
+/-- Representations that contain each simple equally often are isomorphic: the multiplicity
+decomposition writes both as the same biproduct. -/
+theorem FDRep.nonempty_iso_of_finrank_hom_eq {G ι : Type} [Group G] [Finite G]
+    [NeZero (Nat.card G : ℂ)]
+    [Finite ι] (S : ι → FDRep ℂ G) (hsimple : ∀ i, Simple (S i))
+    (hdistinct : ∀ i j, Nonempty (S i ≅ S j) → i = j)
+    (hcomplete : ∀ T : FDRep ℂ G, Simple T → ∃ i, Nonempty (T ≅ S i))
+    {V W : FDRep ℂ G}
+    (hmult : ∀ i, Module.finrank ℂ (S i ⟶ V) = Module.finrank ℂ (S i ⟶ W)) :
+    Nonempty (V ≅ W) := by
+  obtain ⟨eV⟩ := FDRep.exists_iso_biproduct_multiplicity S hsimple hdistinct hcomplete V
+  obtain ⟨eW⟩ := FDRep.exists_iso_biproduct_multiplicity S hsimple hdistinct hcomplete W
+  exact ⟨eV ≪≫ biproduct.mapIso
+    (fun i => biproduct.reindex (finCongr (hmult i)) fun _ => S i) ≪≫ eW.symm⟩
+
+/-- Representations with equal characters are isomorphic.
+
+Mathlib has only the forward direction, `FDRep.char_iso`. The converse reads the multiplicities
+through the character pairing: `scalar_product_char_eq_finrank_equivariant` computes each
+multiplicity as a scalar product of characters, so equal characters give equal multiplicities. -/
+theorem FDRep.nonempty_iso_of_character_eq_of_complete {G ι : Type} [Group G] [Finite G]
+    [NeZero (Nat.card G : ℂ)]
+    [Finite ι] (S : ι → FDRep ℂ G) (hsimple : ∀ i, Simple (S i))
+    (hdistinct : ∀ i j, Nonempty (S i ≅ S j) → i = j)
+    (hcomplete : ∀ T : FDRep ℂ G, Simple T → ∃ i, Nonempty (T ≅ S i))
+    {V W : FDRep ℂ G} (h : V.character = W.character) :
+    Nonempty (V ≅ W) := by
+  haveI := Fintype.ofFinite G
+  refine FDRep.nonempty_iso_of_finrank_hom_eq S hsimple hdistinct hcomplete fun i => ?_
+  have hV := FDRep.scalar_product_char_eq_finrank_equivariant (S i) V
+  rw [h] at hV
+  exact_mod_cast hV.symm.trans (FDRep.scalar_product_char_eq_finrank_equivariant (S i) W)
 
 end Decomposition

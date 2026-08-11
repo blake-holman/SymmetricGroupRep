@@ -15,5 +15,14 @@ book's standing algebraically-closed-field convention to `ℂ`: finite-dimension
 complex representations of a finite group are determined by their characters.
 Here `Vᘁ` is mathlib's right rigid dual, whose action is the linear dual of the
 action of `g⁻¹`. -/
-axiom spechtModule_selfDual {n : ℕ} (μ : YoungDiagramOfSize n) :
-  Nonempty (spechtModule μ ≅ (spechtModule μ)ᘁ)
+theorem spechtModule_selfDual {n : ℕ} (μ : YoungDiagramOfSize n) :
+  Nonempty (spechtModule μ ≅ (spechtModule μ)ᘁ) :=
+  SymmetricGroupRepresentation.nonempty_iso_of_character_eq <| funext fun g =>
+    ((FDRep.char_rightDual (spechtModule μ) g).trans
+      (symmetricGroup_character_inv (spechtModule μ) g)).symm
+
+/-- The rigid dual of a Specht module is simple, being isomorphic to it. -/
+theorem simple_spechtModule_rightDual {n : ℕ} (μ : YoungDiagramOfSize n) :
+    Simple ((spechtModule μ)ᘁ) := by
+  letI := spechtModule_irreducible μ
+  exact Simple.of_iso (Classical.choice (spechtModule_selfDual μ)).symm

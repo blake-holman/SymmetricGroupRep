@@ -73,4 +73,35 @@ theorem simple_outerTensor (V : FDRep k G) (W : FDRep k H) [Simple V] [Simple W]
 
 end Simple
 
+section Hom
+
+variable [Group G] [Group H] [Fintype G] [Fintype H] [CharZero k]
+  [Invertible (Fintype.card G : k)] [Invertible (Fintype.card H : k)]
+
+/-- Equivariant maps between outer tensor products are counted factorwise.
+
+The character pairing over `G × H` splits as the product of the pairing over `G` with the pairing
+over `H`, because the character of an outer tensor product does. -/
+theorem finrank_hom_outerTensor (V V' : FDRep k G) (W W' : FDRep k H) :
+    Module.finrank k (outerTensor V W ⟶ outerTensor V' W') =
+      Module.finrank k (V ⟶ V') * Module.finrank k (W ⟶ W') := by
+  haveI : Invertible (Fintype.card (G × H) : k) :=
+    invertibleOfNonzero (Nat.cast_ne_zero.mpr Fintype.card_ne_zero)
+  have hsum : ∑ p : G × H, (outerTensor V' W').character p * (outerTensor V W).character p⁻¹
+      = (∑ g : G, V'.character g * V.character g⁻¹) *
+        (∑ h : H, W'.character h * W.character h⁻¹) := by
+    rw [Finset.sum_mul_sum, Fintype.sum_prod_type]
+    refine Finset.sum_congr rfl fun g _ => Finset.sum_congr rfl fun h _ => ?_
+    rw [show ((g, h) : G × H)⁻¹ = (g⁻¹, h⁻¹) from rfl, outerTensor_character,
+      outerTensor_character]
+    ring
+  rw [← Nat.cast_inj (R := k), Nat.cast_mul,
+    ← scalar_product_char_eq_finrank_equivariant,
+    ← scalar_product_char_eq_finrank_equivariant,
+    ← scalar_product_char_eq_finrank_equivariant, hsum]
+  simp only [invOf_eq_inv, smul_eq_mul, Fintype.card_prod, Nat.cast_mul, mul_inv]
+  ring
+
+end Hom
+
 end FDRep

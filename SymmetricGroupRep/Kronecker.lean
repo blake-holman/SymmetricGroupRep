@@ -29,10 +29,13 @@ Orellana, *The Partition Algebra and the Kronecker Coefficients*
 and names its multiplicities the Kronecker coefficients. The Hom formula on
 page 4 computes the same multiplicity with the opposite Hom orientation;
 Schur's lemma identifies it with the source-first convention used here. -/
-axiom spechtModule_kronecker {n : ℕ} (μ ν : YoungDiagramOfSize n) :
+theorem spechtModule_kronecker {n : ℕ} (μ ν : YoungDiagramOfSize n) :
   Nonempty (spechtInnerTensor μ ν ≅
     ⨁ fun ξ : YoungDiagramOfSize n =>
-      ⨁ fun _ : Fin (kroneckerCoefficient μ ν ξ) => spechtModule ξ)
+      ⨁ fun _ : Fin (kroneckerCoefficient μ ν ξ) => spechtModule ξ) :=
+  FDRep.exists_iso_biproduct_multiplicity spechtModule
+    spechtModule_irreducible (fun α β => (spechtModule_iso_iff_eq α β).mp)
+    (fun T hT => @exists_iso_spechtModule n T hT) (spechtInnerTensor μ ν)
 
 /-- The one-row Young diagram `(n)`. -/
 def singleRowPartition (n : ℕ) : YoungDiagramOfSize n :=

@@ -15,8 +15,14 @@ This is Etingof et al., *Introduction to Representation Theory*, Theorem
 classification. The inner finite biproduct is indexed by a `Fin` type of cardinal
 `finrank ℂ (S^μ)`, so its number of copies records the stated multiplicity
 literally. -/
-axiom symmetricGroupLeftRegular_decomposition (n : ℕ) :
+theorem symmetricGroupLeftRegular_decomposition (n : ℕ) :
   Nonempty
     (symmetricGroupLeftRegular n ≅
       ⨁ fun μ : YoungDiagramOfSize n =>
-        ⨁ fun _ : Fin (Module.finrank ℂ (spechtModule μ)) => spechtModule μ)
+        ⨁ fun _ : Fin (Module.finrank ℂ (spechtModule μ)) => spechtModule μ) := by
+  obtain ⟨e⟩ := FDRep.exists_iso_biproduct_multiplicity spechtModule
+    spechtModule_irreducible (fun α β => (spechtModule_iso_iff_eq α β).mp)
+    (fun T hT => @exists_iso_spechtModule n T hT) (symmetricGroupLeftRegular n)
+  exact ⟨e ≪≫ biproduct.mapIso fun μ =>
+    biproduct.reindex (finCongr (finrank_hom_symmetricGroupLeftRegular n (spechtModule μ)))
+      fun _ => spechtModule μ⟩

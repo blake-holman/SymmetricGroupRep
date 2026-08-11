@@ -105,19 +105,6 @@ theorem characterProjectorLinear_eq_complexGroupAverage {G X : Type} [Group G] [
   push_cast
   norm_cast
 
-/-- Every symmetric-group element is conjugate to its inverse. -/
-theorem symmetricGroup_inverse_isConj {n : ℕ} (g : SymmetricGroup n) :
-    IsConj g⁻¹ g :=
-  Equiv.Perm.isConj_of_cycleType_eq (Equiv.Perm.cycleType_inv g)
-
-/-- A symmetric-group character is invariant under inversion. -/
-theorem symmetricGroup_character_inv {n : ℕ} (V : SymmetricGroupRepresentation n)
-    (g : SymmetricGroup n) : V.character (g⁻¹) = V.character g := by
-  obtain ⟨h, hh⟩ := (isConj_iff.1 (symmetricGroup_inverse_isConj g))
-  calc
-    V.character (g⁻¹) = V.character (h * g⁻¹ * h⁻¹) := (FDRep.char_conj V (g⁻¹) h).symm
-    _ = V.character g := by rw [hh]
-
 /-- The real weights of a symmetric-group character average are invariant under inversion. -/
 theorem symmetricGroup_characterProjectorRealWeight_inv {n : ℕ}
     (W : SymmetricGroupRepresentation n) (g : SymmetricGroup n) :

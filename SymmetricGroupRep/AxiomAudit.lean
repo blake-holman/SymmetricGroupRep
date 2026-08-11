@@ -1,7 +1,11 @@
+import SymmetricGroupRep.Biregular
 import SymmetricGroupRep.Kostka
 import SymmetricGroupRep.Classification
 import SymmetricGroupRep.Kronecker
 import SymmetricGroupRep.Decomposition
+import SymmetricGroupRep.ProductClassification
+import SymmetricGroupRep.RegularDecomposition
+import SymmetricGroupRep.SelfDuality
 
 /-! # Axiom-closure audit for converted targets
 
@@ -38,6 +42,37 @@ the standard kernel principles mathlib itself already relies on.
 #guard_msgs in
 #print axioms spechtModule_iso_iff_eq
 
+/-- info: 'exists_iso_spechtModule' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms exists_iso_spechtModule
+
+/-- info: 'spechtModule_selfDual' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms spechtModule_selfDual
+
+/-- info: 'spechtModule_kronecker' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms spechtModule_kronecker
+
+/--
+info: 'existsUnique_iso_spechtOuterTensor' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms existsUnique_iso_spechtOuterTensor
+
+/--
+info: 'symmetricGroupLeftRegular_decomposition' depends on axioms: [propext, Classical.choice,
+Quot.sound]
+-/
+#guard_msgs in
+#print axioms symmetricGroupLeftRegular_decomposition
+
+/--
+info: 'symmetricGroupBiregular_decomposition' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms symmetricGroupBiregular_decomposition
+
 /-! The shared infrastructure the remaining targets are built on is guarded here
 too, so that a regression in it fails the build rather than surfacing later as a
 mysteriously unprovable target. -/
@@ -51,17 +86,28 @@ mysteriously unprovable target. -/
 #print axioms FDRep.simple_of_isIrreducible
 
 /--
-info: 'SymmetricGroupRepresentation.exists_iso_biproduct_simples' depends on axioms: [propext,
+info: 'FDRep.exists_iso_biproduct_simples' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms FDRep.exists_iso_biproduct_simples
+
+/--
+info: 'FDRep.exists_iso_biproduct_multiplicity' depends on axioms: [propext, Classical.choice,
+Quot.sound]
+-/
+#guard_msgs in
+#print axioms FDRep.exists_iso_biproduct_multiplicity
+
+/--
+info: 'SymmetricGroupRepresentation.nonempty_iso_of_character_eq' depends on axioms: [propext,
 Classical.choice,
 Quot.sound]
 -/
 #guard_msgs in
-#print axioms SymmetricGroupRepresentation.exists_iso_biproduct_simples
+#print axioms SymmetricGroupRepresentation.nonempty_iso_of_character_eq
 
 /--
-info: 'SymmetricGroupRepresentation.exists_iso_biproduct_multiplicity' depends on axioms: [propext,
- Classical.choice,
- Quot.sound]
+info: 'FDRep.finrank_hom_outerTensor' depends on axioms: [propext, Classical.choice, Quot.sound]
 -/
 #guard_msgs in
-#print axioms SymmetricGroupRepresentation.exists_iso_biproduct_multiplicity
+#print axioms FDRep.finrank_hom_outerTensor

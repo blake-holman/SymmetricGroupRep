@@ -1,28 +1,37 @@
 import SymmetricGroupRep.Basic
+import Mathlib.GroupTheory.Perm.Cycle.Type
 import Mathlib.RepresentationTheory.Character
 import Mathlib.RepresentationTheory.FinGroupCharZero
 import Mathlib.RepresentationTheory.Maschke
 import Mathlib.RepresentationTheory.Subrepresentation
 
-/-! # Maschke semisimplicity for symmetric groups
+/-! # Maschke semisimplicity, and symmetric-group characters
 
 Mathlib's Maschke-derived instances — `IsSemisimpleModule` over the group
 algebra, and `Injective` and `Projective` in `FDRep` — are all gated on
 `NeZero (Nat.card G : k)`, which does not synthesise on its own. Supplying it
-once here makes complete reducibility available throughout the package.
+once here, for every finite group, makes complete reducibility available
+throughout the package; the symmetric groups and their products are both used.
 
-The character of the rigid dual is recorded here too, since it is the other
-fact about `FDRep ℂ (S_n)` that mathlib leaves to its callers.
+Two character facts about `FDRep ℂ (S_n)` that mathlib leaves to its callers are
+recorded here as well: the character of the rigid dual, and the invariance of
+every symmetric-group character under inversion.
 -/
 
 open CategoryTheory
 open scoped MonoidalCategory
 
-noncomputable instance symmetricGroupCardNeZero (n : ℕ) :
-    NeZero (Nat.card (SymmetricGroup n) : ℂ) := by
-  refine ⟨?_⟩
-  have hpos : 0 < Nat.card (SymmetricGroup n) := Nat.card_pos
-  exact_mod_cast Nat.cast_ne_zero.mpr (by omega : Nat.card (SymmetricGroup n) ≠ 0)
+/-- The order of a finite group is nonzero in `ℂ`, which is the hypothesis every Maschke-derived
+instance is gated on. -/
+noncomputable instance finiteGroupCardNeZero (G : Type) [Group G] [Finite G] :
+    NeZero (Nat.card G : ℂ) :=
+  ⟨Nat.cast_ne_zero.mpr Nat.card_pos.ne'⟩
+
+/-- The order of a finite group is invertible in `ℂ`, in the `Fintype.card` form that mathlib's
+character-pairing lemmas ask for. -/
+noncomputable instance finiteGroupCardInvertible (G : Type) [Group G] [Fintype G] :
+    Invertible (Fintype.card G : ℂ) :=
+  invertibleOfNonzero (Nat.cast_ne_zero.mpr Fintype.card_ne_zero)
 
 /-- Maschke's theorem in the form the isotypic decomposition needs: every
 subrepresentation of a finite-dimensional complex symmetric-group representation
@@ -78,3 +87,16 @@ theorem FDRep.char_rightDual {n : ℕ} (V : SymmetricGroupRepresentation n)
         (rightAdjointMate_comp_evaluation (Action.ρ V g⁻¹))
   simp only [FDRep.character, hρ]
   exact LinearMap.trace_transpose' (V.ρ g⁻¹)
+
+/-- Every symmetric-group element is conjugate to its inverse. -/
+theorem symmetricGroup_inverse_isConj {n : ℕ} (g : SymmetricGroup n) :
+    IsConj g⁻¹ g :=
+  Equiv.Perm.isConj_of_cycleType_eq (Equiv.Perm.cycleType_inv g)
+
+/-- A symmetric-group character is invariant under inversion. -/
+theorem symmetricGroup_character_inv {n : ℕ} (V : SymmetricGroupRepresentation n)
+    (g : SymmetricGroup n) : V.character (g⁻¹) = V.character g := by
+  obtain ⟨h, hh⟩ := (isConj_iff.1 (symmetricGroup_inverse_isConj g))
+  calc
+    V.character (g⁻¹) = V.character (h * g⁻¹ * h⁻¹) := (FDRep.char_conj V (g⁻¹) h).symm
+    _ = V.character g := by rw [hh]

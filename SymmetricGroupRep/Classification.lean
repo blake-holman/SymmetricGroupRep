@@ -1,5 +1,7 @@
 import SymmetricGroupRep.Decomposition
 import SymmetricGroupRep.Distinctness
+import SymmetricGroupRep.Partitions
+import SymmetricGroupRep.SimpleCount
 import SymmetricGroupRep.SubmoduleTheorem
 
 open CategoryTheory
@@ -28,8 +30,37 @@ theorem spechtModule_iso_iff_eq {n : ℕ} (μ ν : YoungDiagramOfSize n) :
 /-- Every irreducible complex representation of `S_n` is isomorphic to a Specht module.
 
 See Sagan, *The Symmetric Group*, 2nd ed., Theorem 2.4.6. -/
-axiom exists_iso_spechtModule {n : ℕ} (V : SymmetricGroupRepresentation n) [Simple V] :
-  ∃ μ : YoungDiagramOfSize n, Nonempty (V ≅ spechtModule μ)
+theorem exists_iso_spechtModule {n : ℕ} (V : SymmetricGroupRepresentation n) [Simple V] :
+  ∃ μ : YoungDiagramOfSize n, Nonempty (V ≅ spechtModule μ) := by
+  -- Were `V` isomorphic to no Specht module, adjoining it to the Specht family would give more
+  -- pairwise non-isomorphic simples than `S_n` has conjugacy classes.
+  by_contra hV
+  rw [not_exists] at hV
+  have hcard : Nat.card (Option (YoungDiagramOfSize n)) ≤
+      Nat.card (ConjClasses (SymmetricGroup n)) := by
+    refine FDRep.card_le_card_conjClasses (fun i => i.elim V spechtModule) ?_ ?_
+    · rintro (_ | μ)
+      · exact ‹Simple V›
+      · exact spechtModule_irreducible μ
+    · rintro (_ | μ) (_ | ν) h
+      · rfl
+      · exact absurd h (hV ν)
+      · exact absurd (h.map Iso.symm) (hV μ)
+      · exact congrArg some ((spechtModule_iso_iff_eq μ ν).mp h)
+  rw [Finite.card_option, Nat.card_congr (SymmetricGroup.conjClassesEquivPartition n),
+    ← Nat.card_congr (YoungDiagramOfSize.equivPartition n)] at hcard
+  omega
+
+/-- The Specht modules are a complete family of pairwise non-isomorphic simples, so a complex
+representation of `S_n` is determined up to isomorphism by its character.
+
+This is the converse of mathlib's `FDRep.char_iso`, which mathlib does not have. -/
+theorem SymmetricGroupRepresentation.nonempty_iso_of_character_eq {n : ℕ}
+    {V W : SymmetricGroupRepresentation n} (h : V.character = W.character) :
+    Nonempty (V ≅ W) :=
+  FDRep.nonempty_iso_of_character_eq_of_complete spechtModule
+    spechtModule_irreducible (fun μ ν => (spechtModule_iso_iff_eq μ ν).mp)
+    (fun T hT => @exists_iso_spechtModule n T hT) h
 
 /-- Every irreducible representation has a unique indexing Young diagram. -/
 theorem existsUnique_iso_spechtModule {n : ℕ} (V : SymmetricGroupRepresentation n) [Simple V] :

@@ -23,6 +23,7 @@ import SymmetricGroupRep.Orthogonal
 import SymmetricGroupRep.OuterTensor
 import SymmetricGroupRep.PaddedDiagrams
 import SymmetricGroupRep.PaddedHookBounds
+import SymmetricGroupRep.Partitions
 import SymmetricGroupRep.Pieri
 import SymmetricGroupRep.Polytabloid
 import SymmetricGroupRep.ProductClassification
@@ -31,6 +32,7 @@ import SymmetricGroupRep.RegularDecomposition
 import SymmetricGroupRep.SchurWeyl
 import SymmetricGroupRep.SelfDuality
 import SymmetricGroupRep.Semisimple
+import SymmetricGroupRep.SimpleCount
 import SymmetricGroupRep.SpechtCharacterReal
 import SymmetricGroupRep.SubmoduleTheorem
 import SymmetricGroupRep.Tableaux
