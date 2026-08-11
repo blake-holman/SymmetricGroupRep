@@ -11,6 +11,23 @@ Baseline `lake build`: succeeds (3210 jobs). Current: succeeds (3214 jobs).
 
 Progress: **4 of 27 verified**, 23 `axiom` declarations remain in the tree.
 
+## Mechanised completion checks
+
+Two of the completion checks are now enforced rather than inspected by hand, so
+that drift fails loudly instead of silently:
+
+- **Signature preservation.** `python3 docs/verify_frozen_signatures.py` extracts
+  each of the 27 targets from the frozen baseline and from the working tree,
+  strips the leading keyword, normalises whitespace, and requires the working
+  tree text to be the frozen signature followed by nothing but a `:=` body
+  marker. It also rejects any conversion to a declaration form other than
+  `theorem` or `noncomputable def`. The script was negative-tested: it catches
+  both an added hypothesis and an altered conclusion. Current status: 4/27
+  converted, all 27 signatures preserved.
+- **Axiom closure.** `SymmetricGroupRep/AxiomAudit.lean` records the
+  `#print axioms` closure of every converted target inside `#guard_msgs`, and is
+  imported from the root module, so `lake build` fails if any closure changes.
+
 ## Declaration forms
 
 Twenty-four targets are proposition-valued and become `theorem`. Three are
