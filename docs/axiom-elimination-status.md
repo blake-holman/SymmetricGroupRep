@@ -7,9 +7,9 @@ Independently confirmed target count: **27**. The inventory below was produced b
 scanning `rg -n '^\s*axiom\s+' --glob '*.lean' .` against the frozen baseline and
 extracting each declaration verbatim with `git show 5f00453:<file>`.
 
-Baseline `lake build`: succeeds (3210 jobs). Current: succeeds (3211 jobs).
+Baseline `lake build`: succeeds (3210 jobs). Current: succeeds (3214 jobs).
 
-Progress: **2 of 27 verified**, 25 `axiom` declarations remain in the tree.
+Progress: **3 of 27 verified**, 24 `axiom` declarations remain in the tree.
 
 ## Declaration forms
 
@@ -234,7 +234,7 @@ layer. The audit script confirms 27 nodes, no directed cycle, and no edge with
 
 | Layer | Target | Form | State |
 |---|---|---|---|
-| 0 | `spechtModule` | noncomputable def | axiom |
+| 0 | `spechtModule` | noncomputable def | **verified** |
 | 0 | `youngPermutationModule_twoRow_induction` | theorem | axiom |
 | 0 | `twoRowKostkaIndexEquiv` | noncomputable def | **verified** |
 | 0 | `standardYoungTableau_card_mul_hookProduct` | theorem | axiom |
@@ -403,24 +403,13 @@ either — the conjugate partition appears there only in the symmetric-function
 chapters. James 1978, equation (6.6) and Theorem 6.7 (printed p. 25), is the
 correct source, and the docstring already cites it.
 
-## Next step: the `spechtModule` construction
+## Next step: irreducibility
 
-This is the critical path. The concrete module plan, which preserves every
-existing name and type:
-
-1. New `SymmetricGroupRep/Basic.lean` holding `SymmetricGroup` and
-   `SymmetricGroupRepresentation`, moved out of `Classification.lean`.
-2. New `SymmetricGroupRep/Tabloids.lean` holding the tabloid development moved
-   down from `YoungPermutation.lean`: `Tabloid` with its `Finite` instance,
-   `Tabloid.nonempty`, the `MulAction`, `Tabloid.smul_rowOf`,
-   `youngPermutationModule`, `youngPermutationModule_rho_single`,
-   `FDRep.ofMulActionEquiv`, `YoungDiagram.card_cellsOfRowLens`,
-   `twoRowPartition`, and the two-row lemmas now beside it.
-3. `Classification.lean` imports `Tabloids.lean` and defines `spechtModule` as
-   the subrepresentation of `youngPermutationModule μ` spanned by the
-   polytabloids, following Sagan Definitions 2.3.2 and 2.3.4.
-4. `YoungPermutation.lean` imports `Tabloids.lean` in place of the moved
-   material, so every downstream module sees the same names at the same types.
+With `spechtModule` constructed, the next layer is `spechtModule_irreducible`
+via Sagan's submodule theorem: the tabloid-orthonormal bilinear form on `M^μ`,
+the Sign Lemma 2.4.1, Corollary 2.4.3 that the column antisymmetriser sends
+`M^μ` into the line spanned by `e_t`, and Theorem 2.4.4. `spechtModule_singleRow`
+and `spechtModule_selfDual` are also unblocked and are cheaper.
 
 ## Resolved apparent cycles
 
@@ -483,3 +472,42 @@ Verification:
   than only inspected once. The module is imported from `SymmetricGroupRep.lean`,
   so `lake build` fails if any recorded closure changes.
 - `lake build`: `Build completed successfully (3211 jobs)`, no warnings.
+
+### Layer 0: `spechtModule`
+
+The critical-path target, and one of the three data-valued ones, so it became a
+`noncomputable def`. Signature diffed against
+`git show 5f00453:SymmetricGroupRep/Classification.lean` and identical apart
+from the leading keyword.
+
+The import-order obstruction recorded above was resolved by splitting two new
+modules out *below* `Classification.lean`, preserving every existing name and
+type: `SymmetricGroupRep/Basic.lean` (`SymmetricGroup`,
+`SymmetricGroupRepresentation`) and `SymmetricGroupRep/Tabloids.lean` (the
+tabloid development moved down from `YoungPermutation.lean`).
+`Tabloid.nonempty` was refactored into a reusable `Tabloid.ofCellEquiv` rather
+than duplicating its counting proof.
+
+`SymmetricGroupRep/Polytabloid.lean` then carries the construction proper,
+following Sagan Section 2.3: `YoungTableau` as a bijective filling, the
+`columnGroup` of a tableau (Definition 2.3.1), `polytabloid` (Definition 2.3.2),
+and `spechtSubrepresentation` as the span of the polytabloids inside the Young
+permutation module (Definition 2.3.4). Invariance of that span is Sagan's Lemma
+2.3.3(4), proved as `YoungTableau.smul_polytabloid` by conjugating the column
+group, which is the only real content needed for the definition to typecheck as
+a subrepresentation.
+
+Because a wrong construction here would silently poison every downstream target,
+the module is also proved non-degenerate rather than merely well-typed:
+`YoungTableau.eq_one_of_mem_columnGroup_of_smul_tabloid_eq` shows a
+column-preserving relabelling fixing the tabloid is the identity, so
+`polytabloid_apply_tabloid` gives coefficient one on the tableau's own tabloid,
+and `polytabloid_ne_zero` with `spechtSubrepresentation_ne_bot` show the Specht
+module is nonzero.
+
+Verification:
+
+- `#print axioms spechtModule`: `[propext, Classical.choice, Quot.sound]`,
+  recorded in `AxiomAudit.lean` under `#guard_msgs`.
+- `lake build`: `Build completed successfully (3214 jobs)`, no warnings. The
+  whole downstream tree still compiles against the concrete definition.

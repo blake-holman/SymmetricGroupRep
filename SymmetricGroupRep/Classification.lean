@@ -1,20 +1,12 @@
-import SymmetricGroupRep.YoungDiagrams
-import Mathlib.Data.Complex.Basic
-import Mathlib.GroupTheory.Perm.Basic
-import Mathlib.RepresentationTheory.FDRep
+import SymmetricGroupRep.Polytabloid
 
 open CategoryTheory
 
-/-- The symmetric group on `n` elements. -/
-abbrev SymmetricGroup (n : ℕ) := Equiv.Perm (Fin n)
-
-/-- A finite-dimensional complex representation of the symmetric group on `n` elements. -/
-abbrev SymmetricGroupRepresentation (n : ℕ) := FDRep ℂ (SymmetricGroup n)
-
-/-- An abstract choice of the complex Specht module `S^μ`.
+/-- The complex Specht module `S^μ`.
 
 See Sagan, *The Symmetric Group*, 2nd ed., Section 2.3. -/
-axiom spechtModule {n : ℕ} (μ : YoungDiagramOfSize n) : SymmetricGroupRepresentation n
+noncomputable def spechtModule {n : ℕ} (μ : YoungDiagramOfSize n) : SymmetricGroupRepresentation n :=
+  FDRep.of (spechtSubrepresentation μ).toRepresentation
 
 /-- Every complex Specht module is irreducible.
 
