@@ -1,0 +1,1498 @@
+{
+  "format": "dependency-graph.v1",
+  "project": "SymmetricGroupRep",
+  "branch": "agent/complete-symmetric-group-roadmap",
+  "baseline_commit": "5f00453e209977aa0a6a8845e646e080b4a45676",
+  "target_count": 27,
+  "target_count_confirmed_by": "rg -n '^\\s*axiom\\s+' --glob '*.lean' . on the frozen baseline; 27 matches across 16 modules",
+  "edge_kinds": {
+    "explicit": "the prerequisite appears in the target's own Lean statement, or the cited source proves the target directly from the prerequisite",
+    "inferred": "the chosen Lean proof strategy needs the prerequisite, though the source may organise the argument differently",
+    "uncertain": "an alternative strategy may remove this edge; recorded so the cycle audit stays honest"
+  },
+  "nodes": [
+    {
+      "id": "youngPermutationModule_twoRow_induction",
+      "module": "SymmetricGroupRep/YoungPermutation.lean",
+      "line": 314,
+      "form": "theorem",
+      "layer": 0,
+      "statement_refs": [
+        "youngPermutationModule",
+        "twoRowPartition",
+        "SymmetricGroupRepresentation.youngSubgroupInduction"
+      ],
+      "mentions_axiom": false,
+      "strategy": "M^(a,b) is the permutation representation on tabloids; tabloids of shape (a,b) are in equivariant bijection with the coset space S_(a+b)/(S_a x S_b). Induction of the trivial representation along an injective homomorphism into a finite group is the permutation representation on cosets. Build the equivariant bijection explicitly and transport it with FDRep.ofMulActionEquiv, which the module already provides.",
+      "sources": [
+        {
+          "pdf": "tomczak-representation-theory-symmetric-groups.pdf",
+          "pdf_page_index": 8,
+          "printed_page": 8,
+          "label": "Lemma 2.1",
+          "note": "M^lambda is isomorphic to the trivial representation induced from the Young subgroup; proved from Lemma 1.5 by computing the stabiliser of a tabloid"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 71,
+          "printed_page": 57,
+          "label": "Theorem 2.1.12"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 71,
+          "printed_page": 57,
+          "label": "Proposition 2.1.11"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "twoRowKostkaIndexEquiv",
+      "module": "SymmetricGroupRep/Kostka.lean",
+      "line": 102,
+      "form": "noncomputable def",
+      "layer": 0,
+      "statement_refs": [
+        "kostkaNumber",
+        "twoRowWeight"
+      ],
+      "mentions_axiom": false,
+      "strategy": "Pure combinatorics, no representation theory. Write r = min k (n-k). For the weight (n-r, r) a semistandard tableau has only the entries 0 and 1; strict columns put at most one 0 above one 1 in each column, and weak rows force row 0 to be 0^a 1^b and row 1 to be all 1s. Hence K_(shape,(n-r,r)) = 1 when shape = (n-i, i) with i <= r and 0 otherwise. Recover i from a shape as shape.rowLen 1 to define the forward map, and send i to the unique tableau of shape (n-i, i) for the inverse.",
+      "sources": [
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 99,
+          "printed_page": 85,
+          "label": "Definition 2.11.1"
+        },
+        {
+          "pdf": "tomczak-representation-theory-symmetric-groups.pdf",
+          "pdf_page_index": 45,
+          "printed_page": 45,
+          "label": "Corollary 3.19"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "twoRowKostkaIndexEquiv_shape",
+      "module": "SymmetricGroupRep/Kostka.lean",
+      "line": 110,
+      "form": "theorem",
+      "layer": 1,
+      "statement_refs": [
+        "kostkaNumber",
+        "twoRowWeight",
+        "twoRowShape",
+        "twoRowKostkaIndexEquiv"
+      ],
+      "mentions_axiom": false,
+      "strategy": "Immediate from the construction of twoRowKostkaIndexEquiv once its forward map is defined as shape.rowLen 1, because twoRowShape n k hk i is twoRowPartition n i and a two-row shape is determined by its second row length.",
+      "sources": [
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 99,
+          "printed_page": 85,
+          "label": "Definition 2.11.1"
+        },
+        {
+          "pdf": "tomczak-representation-theory-symmetric-groups.pdf",
+          "pdf_page_index": 45,
+          "printed_page": 45,
+          "label": "Corollary 3.19"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "standardYoungTableau_card_mul_hookProduct",
+      "module": "SymmetricGroupRep/HookLength.lean",
+      "line": 37,
+      "form": "theorem",
+      "layer": 0,
+      "statement_refs": [
+        "StandardYoungTableau",
+        "YoungDiagram.hookProduct"
+      ],
+      "mentions_axiom": false,
+      "strategy": "Pure combinatorics. Introduce the first-column hook lengths l_i = mu.rowLen i + (m - 1 - i) for a row bound m. Prove that the hook lengths in row i are exactly {1,...,l_i} minus {l_i - l_j : j > i}, giving hookProduct = prod l_i! / prod_(i<j) (l_i - l_j). Prove independently that the number of standard tableaux satisfies the corner recursion f(mu) = sum over corners of f(mu - c), and that n! * prod (l_i - l_j) / prod l_i! satisfies the same recursion, which reduces to a Vandermonde-style polynomial identity. Conclude by induction on n.",
+      "sources": [
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 137,
+          "printed_page": 124,
+          "label": "Definition 3.10.1"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 137,
+          "printed_page": 124,
+          "label": "Theorem 3.10.2",
+          "note": "Sagan proves it by the Novelli-Pak-Stoyanovskii bijection, citing no earlier numbered theorem"
+        },
+        {
+          "pdf": "frame-robinson-thrall-hook-graphs.pdf",
+          "pdf_page_index": 1,
+          "printed_page": 316,
+          "label": "equation (1.1)"
+        },
+        {
+          "pdf": "frame-robinson-thrall-hook-graphs.pdf",
+          "pdf_page_index": 3,
+          "printed_page": 318,
+          "label": "Theorem 1",
+          "note": "derived from Lemma 1 and the Frobenius degree formula 2.2"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "schurWeylMultiplicity_mul_hookProduct",
+      "module": "SymmetricGroupRep/SchurWeyl.lean",
+      "line": 97,
+      "form": "theorem",
+      "layer": 0,
+      "statement_refs": [
+        "schurWeylMultiplicity",
+        "YoungDiagram.hookProduct",
+        "YoungDiagram.schurContentProduct"
+      ],
+      "mentions_axiom": false,
+      "strategy": "Pure combinatorics: the hook-content formula counting semistandard tableaux with entries bounded by q. Independent of every other target, including the hook-length formula, though it shares the first-column-coordinate machinery with it. Degenerate cases q = 0 and the empty shape are handled separately as the docstring records.",
+      "sources": [
+        {
+          "pdf": "magee-2022-random-unitary-representations.pdf",
+          "pdf_page_index": 13,
+          "printed_page": 131,
+          "label": "equation (2.5)",
+          "note": "hook-content formula, cited to Stanley Corollary 7.21.4"
+        },
+        {
+          "pdf": "magee-2022-random-unitary-representations.pdf",
+          "pdf_page_index": 15,
+          "printed_page": 133,
+          "label": "Gelfand-Tsetlin basis, equations (2.8)-(2.10) and Lemma 2.5",
+          "note": "identifies the dimension with bounded semistandard tableaux"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "spechtModule",
+      "module": "SymmetricGroupRep/Classification.lean",
+      "line": 17,
+      "form": "noncomputable def",
+      "layer": 0,
+      "statement_refs": [
+        "YoungDiagramOfSize",
+        "SymmetricGroupRepresentation"
+      ],
+      "mentions_axiom": false,
+      "strategy": "Construct the complex Specht module concretely as the subrepresentation of the tabloid permutation module M^mu spanned by the polytabloids e_t. This requires moving the tabloid construction into a module below Classification.lean, since YoungPermutation.lean currently sits above it in the import order. Signature and universe behaviour are unchanged: the result is still an FDRep C (Equiv.Perm (Fin n)).",
+      "sources": [
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 70,
+          "printed_page": 56,
+          "label": "Definition 2.1.5"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 75,
+          "printed_page": 61,
+          "label": "Definition 2.3.2"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 76,
+          "printed_page": 62,
+          "label": "Definition 2.3.4"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 76,
+          "printed_page": 62,
+          "label": "Proposition 2.3.5"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "spechtModule_irreducible",
+      "module": "SymmetricGroupRep/Classification.lean",
+      "line": 22,
+      "form": "theorem",
+      "layer": 1,
+      "statement_refs": [
+        "spechtModule",
+        "CategoryTheory.Simple"
+      ],
+      "mentions_axiom": true,
+      "strategy": "Sagan's submodule theorem. Put the tabloid-orthonormal bilinear form on M^mu, prove the sign lemma and the fact that the column antisymmetriser kappa_t sends any element of M^mu into the line spanned by e_t, deduce that a submodule of M^mu either contains S^mu or lies in its orthogonal complement, and use that the form is nonzero on S^mu in characteristic zero.",
+      "sources": [
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 78,
+          "printed_page": 64,
+          "label": "equation (2.3)",
+          "note": "the tabloid-orthonormal form"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 78,
+          "printed_page": 64,
+          "label": "Lemma 2.4.1 (Sign Lemma)"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 78,
+          "printed_page": 64,
+          "label": "Corollary 2.4.2"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 79,
+          "printed_page": 65,
+          "label": "Corollary 2.4.3"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 79,
+          "printed_page": 65,
+          "label": "Theorem 2.4.4 (Submodule Theorem)"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 80,
+          "printed_page": 66,
+          "label": "Theorem 2.4.6"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "spechtModule_singleRow",
+      "module": "SymmetricGroupRep/Kronecker.lean",
+      "line": 46,
+      "form": "theorem",
+      "layer": 1,
+      "statement_refs": [
+        "spechtModule",
+        "singleRowPartition"
+      ],
+      "mentions_axiom": true,
+      "strategy": "For the one-row shape there is exactly one tabloid, so M^(n) is one dimensional with trivial action and equals its own Specht submodule. Reads off directly from the spechtModule construction; needs no classification result.",
+      "sources": [
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 76,
+          "printed_page": 62,
+          "label": "Example 2.3.6",
+          "note": "S^(n) carries the trivial representation"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 70,
+          "printed_page": 56,
+          "label": "Example 2.1.6"
+        },
+        {
+          "pdf": "rosmanis-2014-thesis.pdf",
+          "pdf_page_index": 37,
+          "printed_page": 24,
+          "label": "Section 1.4.2",
+          "note": "see source_pack_issues: the bundled PDF is not this document"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "spechtModule_selfDual",
+      "module": "SymmetricGroupRep/SelfDuality.lean",
+      "line": 18,
+      "form": "theorem",
+      "layer": 1,
+      "statement_refs": [
+        "spechtModule",
+        "rigid dual"
+      ],
+      "mentions_axiom": true,
+      "strategy": "The character of the rigid dual is g -> chi(g inverse). The project already proves symmetricGroup_character_inv, that every symmetric-group character is inversion invariant, from Equiv.Perm.cycleType_inv. Combining that with the theorem that finite-dimensional complex representations of a finite group with equal characters are isomorphic gives the isomorphism. Needs no irreducibility, only that spechtModule is a genuine representation.",
+      "sources": [
+        {
+          "pdf": "etingof-et-al-introduction-representation-theory.pdf",
+          "pdf_page_index": 35,
+          "printed_page": 35,
+          "label": "Corollary 3.7",
+          "note": "flat-numbered draft; the published edition numbers this 4.2.4"
+        },
+        {
+          "pdf": "james-1978-representation-theory-symmetric-groups.pdf",
+          "pdf_page_index": 30,
+          "printed_page": 25,
+          "label": "remark following Theorem 6.7",
+          "note": "records that S^lambda is self-dual"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "exists_spechtTableauBasis",
+      "module": "SymmetricGroupRep/Tableaux.lean",
+      "line": 34,
+      "form": "theorem",
+      "layer": 1,
+      "statement_refs": [
+        "spechtModule",
+        "StandardYoungTableau"
+      ],
+      "mentions_axiom": true,
+      "strategy": "The standard basis theorem: the polytabloids e_t for standard t form a basis of S^mu. Proved from Garnir relations and the straightening algorithm on the polytabloid module. This is the classical resolution of the apparent circularity with the branching rule: Sagan establishes the standard basis theorem first and uses it to prove branching, so the edge runs from here to spechtModule_branching and not back.",
+      "sources": [
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 81,
+          "printed_page": 67,
+          "label": "Theorem 2.5.2 (Standard Basis Theorem)"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 84,
+          "printed_page": 70,
+          "label": "Definition 2.6.1 (Garnir element)"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 86,
+          "printed_page": 72,
+          "label": "Proposition 2.6.3"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 87,
+          "printed_page": 73,
+          "label": "Theorem 2.6.4"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 88,
+          "printed_page": 74,
+          "label": "Theorem 2.6.5"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "spechtModule_iso_iff_eq",
+      "module": "SymmetricGroupRep/Classification.lean",
+      "line": 27,
+      "form": "theorem",
+      "layer": 2,
+      "statement_refs": [
+        "spechtModule"
+      ],
+      "mentions_axiom": true,
+      "strategy": "Define the dominance order on Young diagrams and prove that a nonzero homomorphism S^lambda -> M^mu forces lambda to dominate mu. Since S^mu embeds in M^mu, an isomorphism S^lambda = S^mu gives dominance both ways, hence equality. The converse direction is definitional.",
+      "sources": [
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 79,
+          "printed_page": 65,
+          "label": "Proposition 2.4.5"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 80,
+          "printed_page": 66,
+          "label": "Theorem 2.4.6"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 80,
+          "printed_page": 66,
+          "label": "Corollary 2.4.7"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "exists_iso_spechtModule",
+      "module": "SymmetricGroupRep/Classification.lean",
+      "line": 33,
+      "form": "theorem",
+      "layer": 3,
+      "statement_refs": [
+        "spechtModule",
+        "SymmetricGroupRepresentation",
+        "CategoryTheory.Simple"
+      ],
+      "mentions_axiom": true,
+      "strategy": "Completeness by counting. The Specht modules are pairwise non-isomorphic simples indexed by YoungDiagramOfSize n. Over C the number of isomorphism classes of simple representations of a finite group equals the number of conjugacy classes, and conjugacy classes of Equiv.Perm (Fin n) are classified by cycle type, hence by partitions of n. A bijection YoungDiagramOfSize n = Nat.Partition n then forces the Specht list to be exhaustive.",
+      "sources": [
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 80,
+          "printed_page": 66,
+          "label": "Theorem 2.4.6"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 67,
+          "printed_page": 53,
+          "label": "Proposition 1.10.1",
+          "note": "cited in the chapter introduction for the count of irreducibles against conjugacy classes"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "spechtModule_kronecker",
+      "module": "SymmetricGroupRep/Kronecker.lean",
+      "line": 32,
+      "form": "theorem",
+      "layer": 4,
+      "statement_refs": [
+        "spechtInnerTensor",
+        "kroneckerCoefficient",
+        "spechtModule"
+      ],
+      "mentions_axiom": true,
+      "strategy": "kroneckerCoefficient is defined in this repository as finrank (S^xi -> S^mu tensor S^nu), so the statement is exactly the general semisimple isotypic decomposition specialised to the Specht classification. Needs Maschke semisimplicity of FDRep C (S_n), the classification of simples, and Schur's lemma to identify the multiplicity with the Hom dimension.",
+      "sources": [
+        {
+          "pdf": "bowman-de-visscher-orellana-kronecker.pdf",
+          "pdf_page_index": 3,
+          "printed_page": 3,
+          "label": "Section 1.2 unnumbered display",
+          "note": "defines the Kronecker coefficients"
+        },
+        {
+          "pdf": "bowman-de-visscher-orellana-kronecker.pdf",
+          "pdf_page_index": 4,
+          "printed_page": 4,
+          "label": "Section 1.2 Hom formula",
+          "note": "the opposite Hom orientation"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "symmetricGroupLeftRegular_decomposition",
+      "module": "SymmetricGroupRep/RegularDecomposition.lean",
+      "line": 18,
+      "form": "theorem",
+      "layer": 4,
+      "statement_refs": [
+        "symmetricGroupLeftRegular",
+        "spechtModule"
+      ],
+      "mentions_axiom": true,
+      "strategy": "The multiplicity of a simple V in the left regular representation is dim V. Combine that with the Specht classification and the same isotypic-decomposition machinery used for the Kronecker node.",
+      "sources": [
+        {
+          "pdf": "etingof-et-al-introduction-representation-theory.pdf",
+          "pdf_page_index": 33,
+          "printed_page": 33,
+          "label": "Theorem 3.1(ii) (Maschke)",
+          "note": "flat-numbered draft; the published edition numbers this 4.1.1(ii)"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "existsUnique_iso_spechtOuterTensor",
+      "module": "SymmetricGroupRep/ProductClassification.lean",
+      "line": 29,
+      "form": "theorem",
+      "layer": 4,
+      "statement_refs": [
+        "spechtOuterTensor",
+        "CategoryTheory.Simple"
+      ],
+      "mentions_axiom": true,
+      "strategy": "Every simple representation of a product of finite groups over an algebraically closed field is an outer tensor product of simples, and the pair of factors is unique. The repository already proves the simplicity half as spechtOuterTensor_irreducible from FDRep.simple_outerTensor. Combine that with exists_iso_spechtModule and spechtModule_iso_iff_eq applied to each factor.",
+      "sources": [
+        {
+          "pdf": "kowalski-representation-theory.pdf",
+          "pdf_page_index": 54,
+          "printed_page": 50,
+          "label": "Proposition 2.3.23",
+          "note": "statement; proof at pdf pages 87-89, printed 83-85"
+        },
+        {
+          "pdf": "etingof-et-al-introduction-representation-theory.pdf",
+          "pdf_page_index": 54,
+          "printed_page": 54,
+          "label": "Theorem 4.25",
+          "note": "flat-numbered draft; the published edition numbers this 3.10.2"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "spechtModule_tensor_sign",
+      "module": "SymmetricGroupRep/Kronecker.lean",
+      "line": 65,
+      "form": "theorem",
+      "layer": 4,
+      "statement_refs": [
+        "spechtModule",
+        "YoungDiagramOfSize.transpose",
+        "SymmetricGroupRepresentation.sign"
+      ],
+      "mentions_axiom": true,
+      "strategy": "Tensoring with the sign representation permutes the simples, and the conjugate-partition identity identifies the permutation with transposition of Young diagrams. Over C the dual that James carries in the statement disappears by self-duality, so this node also uses spechtModule_selfDual.",
+      "sources": [
+        {
+          "pdf": "james-1978-representation-theory-symmetric-groups.pdf",
+          "pdf_page_index": 30,
+          "printed_page": 25,
+          "label": "equation (6.6)"
+        },
+        {
+          "pdf": "james-1978-representation-theory-symmetric-groups.pdf",
+          "pdf_page_index": 30,
+          "printed_page": 25,
+          "label": "Theorem 6.7",
+          "note": "S^lambda tensor sign is the dual of S^(lambda transpose); the self-duality remark removes the dual"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "symmetricGroupBiregular_decomposition",
+      "module": "SymmetricGroupRep/Biregular.lean",
+      "line": 51,
+      "form": "theorem",
+      "layer": 5,
+      "statement_refs": [
+        "symmetricGroupBiregular",
+        "FDRep.outerTensor",
+        "spechtModule",
+        "rigid dual"
+      ],
+      "mentions_axiom": true,
+      "strategy": "Peter-Weyl for a finite group: the group algebra with its two-sided action decomposes as the sum over simples of V outer-tensor V dual. Substituting the Specht classification indexes the sum by Young diagrams. Uses the product classification to see that the summands are pairwise non-isomorphic simples of S_n x S_n.",
+      "sources": [
+        {
+          "pdf": "etingof-et-al-introduction-representation-theory.pdf",
+          "pdf_page_index": 68,
+          "printed_page": 68,
+          "label": "unnumbered Peter-Weyl remark",
+          "note": "the only finite-group G x G statement in this draft; there is no Theorem 4.5.4 in it"
+        },
+        {
+          "pdf": "etingof-et-al-introduction-representation-theory.pdf",
+          "pdf_page_index": 33,
+          "printed_page": 33,
+          "label": "Theorem 3.1(ii)"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "spechtModule_branching",
+      "module": "SymmetricGroupRep/Branching.lean",
+      "line": 71,
+      "form": "theorem",
+      "layer": 4,
+      "statement_refs": [
+        "SymmetricGroupRepresentation.restriction",
+        "spechtModule",
+        "OneBoxRemoval"
+      ],
+      "mentions_axiom": true,
+      "strategy": "Filter the restriction of S^mu by the standard basis grouped according to which corner carries the largest entry, and identify the successive quotients with the Specht modules of the one-box removals. Uses the standard basis theorem and the classification to split the filtration by semisimplicity.",
+      "sources": [
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 90,
+          "printed_page": 76,
+          "label": "Definition 2.8.1"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 91,
+          "printed_page": 77,
+          "label": "Lemma 2.8.2"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 91,
+          "printed_page": 77,
+          "label": "Theorem 2.8.3 (Branching Rule), part 1",
+          "note": "proof uses the standard basis and the filtration (2.11)"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "youngsRule",
+      "module": "SymmetricGroupRep/Kostka.lean",
+      "line": 74,
+      "form": "theorem",
+      "layer": 4,
+      "statement_refs": [
+        "youngPermutationModule",
+        "kostkaNumber",
+        "spechtModule"
+      ],
+      "mentions_axiom": true,
+      "strategy": "Young's rule. Build the semistandard homomorphism basis of Hom(S^shape, M^weight) indexed by semistandard tableaux of that shape and content, then convert Hom dimensions into multiplicities using semisimplicity and the classification.",
+      "sources": [
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 99,
+          "printed_page": 85,
+          "label": "Theorem 2.11.2 (Young's Rule)"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 99,
+          "printed_page": 85,
+          "label": "Definition 2.11.1"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 96,
+          "printed_page": 82,
+          "label": "Theorem 2.10.1 (semistandard basis theorem)",
+          "note": "the semistandard homomorphisms are a basis of Hom(S^lambda, M^mu)"
+        },
+        {
+          "pdf": "tomczak-representation-theory-symmetric-groups.pdf",
+          "pdf_page_index": 45,
+          "printed_page": 45,
+          "label": "Corollary 3.19"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "spechtModule_littlewoodRichardson",
+      "module": "SymmetricGroupRep/LittlewoodRichardson.lean",
+      "line": 72,
+      "form": "theorem",
+      "layer": 5,
+      "statement_refs": [
+        "SymmetricGroupRepresentation.youngSubgroupInduction",
+        "spechtOuterTensor",
+        "littlewoodRichardsonCoefficient",
+        "spechtModule"
+      ],
+      "mentions_axiom": true,
+      "strategy": "The Littlewood-Richardson rule for induction from a Young subgroup, with multiplicities counted by Littlewood-Richardson tableaux of skew shape and given content.",
+      "sources": [
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 188,
+          "printed_page": 175,
+          "label": "equation (4.26)"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 190,
+          "printed_page": 177,
+          "label": "Theorem 4.9.4 (Littlewood-Richardson Rule)"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "spechtModule_induction_branching",
+      "module": "SymmetricGroupRep/Branching.lean",
+      "line": 79,
+      "form": "theorem",
+      "layer": 5,
+      "statement_refs": [
+        "SymmetricGroupRepresentation.induction",
+        "spechtModule",
+        "OneBoxAddition"
+      ],
+      "mentions_axiom": true,
+      "strategy": "Dual to the restriction branching rule. Frobenius reciprocity turns the multiplicity of S^nu in the induction of S^mu into the multiplicity of S^mu in the restriction of S^nu, which spechtModule_branching computes; semisimplicity and the classification assemble the isomorphism.",
+      "sources": [
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 91,
+          "printed_page": 77,
+          "label": "Theorem 2.8.3 (Branching Rule), part 2",
+          "note": "derived from part 1 by Frobenius reciprocity, Theorem 1.12.6"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "spechtModule_pieri_horizontal",
+      "module": "SymmetricGroupRep/Pieri.lean",
+      "line": 27,
+      "form": "theorem",
+      "layer": 6,
+      "statement_refs": [
+        "SymmetricGroupRepresentation.youngSubgroupInduction",
+        "FDRep.outerTensor",
+        "spechtModule",
+        "HorizontalTwoStrip"
+      ],
+      "mentions_axiom": true,
+      "strategy": "Specialise the Littlewood-Richardson rule to the second factor being the trivial representation of S_2, which is the Specht module of the one-row shape (2). The Littlewood-Richardson coefficients for content (2) are 1 exactly on horizontal two-strips, so the sum collapses to the multiplicity-free form.",
+      "sources": [
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 190,
+          "printed_page": 177,
+          "label": "Theorem 4.9.4 specialised to a one-row second factor",
+          "note": "see source_pack_issues: Pieri is not named anywhere in Sagan 2e"
+        },
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 187,
+          "printed_page": 174,
+          "label": "equation (4.25)"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "spechtModule_pieri_vertical",
+      "module": "SymmetricGroupRep/Pieri.lean",
+      "line": 35,
+      "form": "theorem",
+      "layer": 6,
+      "statement_refs": [
+        "SymmetricGroupRepresentation.youngSubgroupInduction",
+        "FDRep.outerTensor",
+        "spechtModule",
+        "SymmetricGroupRepresentation.sign",
+        "VerticalTwoStrip"
+      ],
+      "mentions_axiom": true,
+      "strategy": "As for the horizontal case, with the second factor the sign representation of S_2, which is the Specht module of the column shape (1,1). Littlewood-Richardson coefficients for that content are 1 exactly on vertical two-strips.",
+      "sources": [
+        {
+          "pdf": "sagan-the-symmetric-group-2e.pdf",
+          "pdf_page_index": 190,
+          "printed_page": 177,
+          "label": "Theorem 4.9.4 specialised to a one-column second factor",
+          "note": "see source_pack_issues: Pieri is not named anywhere in Sagan 2e"
+        },
+        {
+          "pdf": "james-1978-representation-theory-symmetric-groups.pdf",
+          "pdf_page_index": 30,
+          "printed_page": 25,
+          "label": "Theorem 6.7",
+          "note": "identifies the sign representation with the Specht module of the column shape"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "tensorPower_schurWeyl",
+      "module": "SymmetricGroupRep/SchurWeyl.lean",
+      "line": 76,
+      "form": "theorem",
+      "layer": 5,
+      "statement_refs": [
+        "tensorPowerPermutationRepresentation",
+        "schurWeylMultiplicity",
+        "spechtModule"
+      ],
+      "mentions_axiom": true,
+      "strategy": "The permutation representation on q-letter words of length n is the direct sum over compositions of the Young permutation modules of the corresponding weights, so Young's rule turns its multiplicities into sums of Kostka numbers; that sum counts semistandard tableaux with entries bounded by q, which is schurWeylMultiplicity.",
+      "sources": [
+        {
+          "pdf": "magee-2022-random-unitary-representations.pdf",
+          "pdf_page_index": 15,
+          "printed_page": 133,
+          "label": "Proposition 2.4 (Schur-Weyl duality)",
+          "note": "cited without proof to Weyl 1939 Chapter IV"
+        },
+        {
+          "pdf": "magee-2022-random-unitary-representations.pdf",
+          "pdf_page_index": 15,
+          "printed_page": 133,
+          "label": "Gelfand-Tsetlin basis, equations (2.8)-(2.10)"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "spechtBranchingBasisData",
+      "module": "SymmetricGroupRep/BranchingBasis.lean",
+      "line": 166,
+      "form": "noncomputable def",
+      "layer": 5,
+      "statement_refs": [
+        "SpechtBranchingBasisData",
+        "spechtModule",
+        "StandardYoungTableau",
+        "SymmetricGroupRepresentation.restriction",
+        "OneBoxRemoval"
+      ],
+      "mentions_axiom": true,
+      "strategy": "Construct the branching-coherent Gelfand-Tsetlin basis by recursion on n: choose the branching isomorphism first, then define the basis so that deleting the largest tableau entry lands in the matching summand, rescaling each chosen path vector so the branching coefficient is one. Bundles the tableau basis and the branching isomorphism, so it depends on both.",
+      "sources": [
+        {
+          "pdf": "vershik-okounkov-new-approach-ii.pdf",
+          "pdf_page_index": 6,
+          "printed_page": 6,
+          "label": "Section 1, Propositions 1.1 and 1.4"
+        },
+        {
+          "pdf": "vershik-okounkov-new-approach-ii.pdf",
+          "pdf_page_index": 22,
+          "printed_page": 22,
+          "label": "Theorem 5.8"
+        },
+        {
+          "pdf": "geetha-prasad-gelfand-tsetlin-bases.pdf",
+          "pdf_page_index": 3,
+          "printed_page": 3,
+          "label": "Section 2, equation (1)"
+        },
+        {
+          "pdf": "geetha-prasad-gelfand-tsetlin-bases.pdf",
+          "pdf_page_index": 6,
+          "printed_page": 6,
+          "label": "Section 2, equations (3) and (4)",
+          "note": "the coherent embedding V_mu into the restriction of V_lambda"
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "twoRowKroneckerCoefficient_eq_roundTrip_sub",
+      "module": "SymmetricGroupRep/Kronecker.lean",
+      "line": 93,
+      "form": "theorem",
+      "layer": 6,
+      "statement_refs": [
+        "kroneckerCoefficient",
+        "twoRowPartition",
+        "youngSubgroupRoundTripMultiplicity",
+        "littlewoodRichardsonCoefficient"
+      ],
+      "mentions_axiom": true,
+      "strategy": "Rosmanis's two-row reduction. The two-row permutation module decomposes as the sum of Specht modules of shapes (n-i, i) for i at most the given bound, so the Specht module of (n-i, i) is the difference of two such permutation modules; tensoring and taking multiplicities turns the Kronecker coefficient into a difference of restrict-then-induce multiplicities, which Frobenius reciprocity and Littlewood-Richardson evaluate.",
+      "sources": [
+        {
+          "pdf": "rosmanis-2014-thesis.pdf",
+          "pdf_page_index": 43,
+          "printed_page": 30,
+          "label": "Lemma 1.12",
+          "note": "STATED WITHOUT PROOF in the source; see source_pack_issues. Its Corollary 1.13 is proved from the branching rule."
+        }
+      ],
+      "state": "axiom"
+    },
+    {
+      "id": "spechtOrthogonalBasis_adjacentTransposition",
+      "module": "SymmetricGroupRep/Orthogonal.lean",
+      "line": 97,
+      "form": "theorem",
+      "layer": 6,
+      "statement_refs": [
+        "spechtModule",
+        "SymmetricGroup.adjacentTransposition",
+        "spechtOrthogonalBasis",
+        "StandardYoungTableau.axialDistance",
+        "swappedOrthogonalBasisVector"
+      ],
+      "mentions_axiom": true,
+      "strategy": "Young's orthogonal form. spechtOrthogonalBasis is defined from spechtBranchingBasisData, so the coherent basis must exist first. The two-dimensional analysis of the subgroup generated by an adjacent transposition on each pair of branching paths gives the displayed matrix entries.",
+      "sources": [
+        {
+          "pdf": "armon-halverson-transition-matrices.pdf",
+          "pdf_page_index": 8,
+          "printed_page": 8,
+          "label": "Section 3.1, equations (3.1) and (3.2)",
+          "note": "content and axial distance"
+        },
+        {
+          "pdf": "armon-halverson-transition-matrices.pdf",
+          "pdf_page_index": 9,
+          "printed_page": 9,
+          "label": "Section 3.3, equation (3.4)",
+          "note": "Young's orthogonal action"
+        },
+        {
+          "pdf": "geetha-prasad-gelfand-tsetlin-bases.pdf",
+          "pdf_page_index": 5,
+          "printed_page": 5,
+          "label": "Section 2, equation (2)",
+          "note": "Young's orthogonal form"
+        }
+      ],
+      "state": "axiom"
+    }
+  ],
+  "edges": [
+    {
+      "from": "twoRowKostkaIndexEquiv",
+      "to": "twoRowKostkaIndexEquiv_shape",
+      "kind": "explicit",
+      "reason": "the statement of the shape lemma applies the equivalence"
+    },
+    {
+      "from": "spechtModule",
+      "to": "spechtModule_irreducible",
+      "kind": "explicit",
+      "reason": "statement mentions spechtModule"
+    },
+    {
+      "from": "spechtModule",
+      "to": "spechtModule_singleRow",
+      "kind": "explicit",
+      "reason": "statement mentions spechtModule"
+    },
+    {
+      "from": "spechtModule",
+      "to": "spechtModule_selfDual",
+      "kind": "explicit",
+      "reason": "statement mentions spechtModule"
+    },
+    {
+      "from": "spechtModule",
+      "to": "exists_spechtTableauBasis",
+      "kind": "explicit",
+      "reason": "statement mentions spechtModule"
+    },
+    {
+      "from": "spechtModule",
+      "to": "spechtModule_iso_iff_eq",
+      "kind": "explicit",
+      "reason": "statement mentions spechtModule"
+    },
+    {
+      "from": "spechtModule",
+      "to": "exists_iso_spechtModule",
+      "kind": "explicit",
+      "reason": "statement mentions spechtModule"
+    },
+    {
+      "from": "spechtModule_irreducible",
+      "to": "exists_iso_spechtModule",
+      "kind": "explicit",
+      "reason": "completeness by counting needs the Specht modules to be simple"
+    },
+    {
+      "from": "spechtModule_iso_iff_eq",
+      "to": "exists_iso_spechtModule",
+      "kind": "explicit",
+      "reason": "completeness by counting needs them pairwise non-isomorphic"
+    },
+    {
+      "from": "spechtModule_irreducible",
+      "to": "spechtModule_iso_iff_eq",
+      "kind": "uncertain",
+      "reason": "the dominance argument does not need simplicity, but a Schur-lemma proof would; recorded so the audit stays honest"
+    },
+    {
+      "from": "spechtModule_irreducible",
+      "to": "spechtModule_kronecker",
+      "kind": "explicit",
+      "reason": "isotypic decomposition over the simple Specht modules"
+    },
+    {
+      "from": "spechtModule_iso_iff_eq",
+      "to": "spechtModule_kronecker",
+      "kind": "explicit",
+      "reason": "distinct labels give distinct isotypic components"
+    },
+    {
+      "from": "exists_iso_spechtModule",
+      "to": "spechtModule_kronecker",
+      "kind": "explicit",
+      "reason": "the sum must run over every simple summand"
+    },
+    {
+      "from": "spechtModule_irreducible",
+      "to": "symmetricGroupLeftRegular_decomposition",
+      "kind": "explicit",
+      "reason": "same isotypic machinery"
+    },
+    {
+      "from": "spechtModule_iso_iff_eq",
+      "to": "symmetricGroupLeftRegular_decomposition",
+      "kind": "explicit",
+      "reason": "same isotypic machinery"
+    },
+    {
+      "from": "exists_iso_spechtModule",
+      "to": "symmetricGroupLeftRegular_decomposition",
+      "kind": "explicit",
+      "reason": "the regular representation contains every simple"
+    },
+    {
+      "from": "spechtModule_irreducible",
+      "to": "existsUnique_iso_spechtOuterTensor",
+      "kind": "explicit",
+      "reason": "spechtOuterTensor_irreducible is derived from it"
+    },
+    {
+      "from": "spechtModule_iso_iff_eq",
+      "to": "existsUnique_iso_spechtOuterTensor",
+      "kind": "explicit",
+      "reason": "uniqueness of the label pair reduces to uniqueness on each factor"
+    },
+    {
+      "from": "exists_iso_spechtModule",
+      "to": "existsUnique_iso_spechtOuterTensor",
+      "kind": "explicit",
+      "reason": "existence of the label pair reduces to existence on each factor"
+    },
+    {
+      "from": "spechtModule_irreducible",
+      "to": "spechtModule_tensor_sign",
+      "kind": "inferred",
+      "reason": "twisting by sign permutes simples, so both sides must be known simple"
+    },
+    {
+      "from": "exists_iso_spechtModule",
+      "to": "spechtModule_tensor_sign",
+      "kind": "inferred",
+      "reason": "the twist of a Specht module must be identified with some Specht module"
+    },
+    {
+      "from": "spechtModule_selfDual",
+      "to": "spechtModule_tensor_sign",
+      "kind": "inferred",
+      "reason": "removes the dual that the cited source carries in its statement"
+    },
+    {
+      "from": "exists_iso_spechtModule",
+      "to": "symmetricGroupBiregular_decomposition",
+      "kind": "explicit",
+      "reason": "the Peter-Weyl sum runs over all simples"
+    },
+    {
+      "from": "spechtModule_iso_iff_eq",
+      "to": "symmetricGroupBiregular_decomposition",
+      "kind": "explicit",
+      "reason": "distinctness of the summands"
+    },
+    {
+      "from": "existsUnique_iso_spechtOuterTensor",
+      "to": "symmetricGroupBiregular_decomposition",
+      "kind": "inferred",
+      "reason": "the summands are simple representations of the product group and must be identified as such"
+    },
+    {
+      "from": "exists_spechtTableauBasis",
+      "to": "spechtModule_branching",
+      "kind": "inferred",
+      "reason": "the branching filtration is built from the standard polytabloid basis; this is the direction that breaks the apparent cycle"
+    },
+    {
+      "from": "exists_iso_spechtModule",
+      "to": "spechtModule_branching",
+      "kind": "explicit",
+      "reason": "the summands must be identified with Specht modules"
+    },
+    {
+      "from": "spechtModule_irreducible",
+      "to": "spechtModule_branching",
+      "kind": "explicit",
+      "reason": "semisimple splitting of the filtration"
+    },
+    {
+      "from": "spechtModule_iso_iff_eq",
+      "to": "spechtModule_branching",
+      "kind": "explicit",
+      "reason": "multiplicity-freeness needs distinct labels"
+    },
+    {
+      "from": "spechtModule_branching",
+      "to": "spechtModule_induction_branching",
+      "kind": "explicit",
+      "reason": "Frobenius reciprocity converts one into the other"
+    },
+    {
+      "from": "exists_iso_spechtModule",
+      "to": "spechtModule_induction_branching",
+      "kind": "explicit",
+      "reason": "the induced module must decompose over Specht labels"
+    },
+    {
+      "from": "youngPermutationModule_twoRow_induction",
+      "to": "youngsRule",
+      "kind": "uncertain",
+      "reason": "only if the Young's rule proof routes through the induced-module description of permutation modules"
+    },
+    {
+      "from": "exists_iso_spechtModule",
+      "to": "youngsRule",
+      "kind": "explicit",
+      "reason": "the permutation module must decompose over Specht labels"
+    },
+    {
+      "from": "spechtModule_irreducible",
+      "to": "youngsRule",
+      "kind": "explicit",
+      "reason": "isotypic multiplicities require simplicity"
+    },
+    {
+      "from": "spechtModule_iso_iff_eq",
+      "to": "youngsRule",
+      "kind": "explicit",
+      "reason": "distinct labels give distinct components"
+    },
+    {
+      "from": "exists_spechtTableauBasis",
+      "to": "youngsRule",
+      "kind": "inferred",
+      "reason": "the semistandard homomorphism basis is built on the standard polytabloid basis"
+    },
+    {
+      "from": "exists_iso_spechtModule",
+      "to": "spechtModule_littlewoodRichardson",
+      "kind": "explicit",
+      "reason": "the induced module must decompose over Specht labels"
+    },
+    {
+      "from": "spechtModule_irreducible",
+      "to": "spechtModule_littlewoodRichardson",
+      "kind": "explicit",
+      "reason": "isotypic multiplicities require simplicity"
+    },
+    {
+      "from": "spechtModule_iso_iff_eq",
+      "to": "spechtModule_littlewoodRichardson",
+      "kind": "explicit",
+      "reason": "distinct labels give distinct components"
+    },
+    {
+      "from": "existsUnique_iso_spechtOuterTensor",
+      "to": "spechtModule_littlewoodRichardson",
+      "kind": "inferred",
+      "reason": "the induced object is built from an outer tensor product of Specht modules"
+    },
+    {
+      "from": "youngsRule",
+      "to": "spechtModule_littlewoodRichardson",
+      "kind": "uncertain",
+      "reason": "the classical proof factors through Young's rule and the semistandard basis, but a direct argument would drop this edge"
+    },
+    {
+      "from": "spechtModule_littlewoodRichardson",
+      "to": "spechtModule_pieri_horizontal",
+      "kind": "explicit",
+      "reason": "Pieri is the specialisation to a one-row second factor"
+    },
+    {
+      "from": "spechtModule_singleRow",
+      "to": "spechtModule_pieri_horizontal",
+      "kind": "explicit",
+      "reason": "identifies the trivial representation of S_2 with the Specht module of the shape (2)"
+    },
+    {
+      "from": "spechtModule_littlewoodRichardson",
+      "to": "spechtModule_pieri_vertical",
+      "kind": "explicit",
+      "reason": "Pieri is the specialisation to a one-column second factor"
+    },
+    {
+      "from": "spechtModule_tensor_sign",
+      "to": "spechtModule_pieri_vertical",
+      "kind": "inferred",
+      "reason": "identifies the sign representation of S_2 with the Specht module of the shape (1,1)"
+    },
+    {
+      "from": "spechtModule_singleRow",
+      "to": "spechtModule_pieri_vertical",
+      "kind": "inferred",
+      "reason": "used together with the sign twist to name the second factor"
+    },
+    {
+      "from": "youngsRule",
+      "to": "tensorPower_schurWeyl",
+      "kind": "explicit",
+      "reason": "word space is a sum of Young permutation modules, whose multiplicities Young's rule computes"
+    },
+    {
+      "from": "exists_iso_spechtModule",
+      "to": "tensorPower_schurWeyl",
+      "kind": "explicit",
+      "reason": "the decomposition runs over Specht labels"
+    },
+    {
+      "from": "exists_spechtTableauBasis",
+      "to": "spechtBranchingBasisData",
+      "kind": "explicit",
+      "reason": "the bundled field is a tableau-indexed basis"
+    },
+    {
+      "from": "spechtModule_branching",
+      "to": "spechtBranchingBasisData",
+      "kind": "explicit",
+      "reason": "the bundled field is a branching isomorphism"
+    },
+    {
+      "from": "spechtBranchingBasisData",
+      "to": "spechtOrthogonalBasis_adjacentTransposition",
+      "kind": "explicit",
+      "reason": "spechtOrthogonalBasis is defined from this data"
+    },
+    {
+      "from": "spechtModule_kronecker",
+      "to": "twoRowKroneckerCoefficient_eq_roundTrip_sub",
+      "kind": "explicit",
+      "reason": "the left-hand side is a Kronecker multiplicity"
+    },
+    {
+      "from": "spechtModule_littlewoodRichardson",
+      "to": "twoRowKroneckerCoefficient_eq_roundTrip_sub",
+      "kind": "explicit",
+      "reason": "the right-hand side is built from Littlewood-Richardson coefficients"
+    },
+    {
+      "from": "youngPermutationModule_twoRow_induction",
+      "to": "twoRowKroneckerCoefficient_eq_roundTrip_sub",
+      "kind": "inferred",
+      "reason": "the reduction expresses a two-row Specht module as a difference of induced permutation modules"
+    },
+    {
+      "from": "twoRowKostkaIndexEquiv",
+      "to": "twoRowKroneckerCoefficient_eq_roundTrip_sub",
+      "kind": "inferred",
+      "reason": "the two-row permutation module decomposition supplies the telescoping difference"
+    },
+    {
+      "from": "youngsRule",
+      "to": "twoRowKroneckerCoefficient_eq_roundTrip_sub",
+      "kind": "inferred",
+      "reason": "supplies the two-row multiplicity-free decomposition"
+    }
+  ],
+  "topological_order": [
+    "schurWeylMultiplicity_mul_hookProduct",
+    "spechtModule",
+    "standardYoungTableau_card_mul_hookProduct",
+    "twoRowKostkaIndexEquiv",
+    "youngPermutationModule_twoRow_induction",
+    "exists_spechtTableauBasis",
+    "spechtModule_irreducible",
+    "spechtModule_selfDual",
+    "spechtModule_singleRow",
+    "twoRowKostkaIndexEquiv_shape",
+    "spechtModule_iso_iff_eq",
+    "exists_iso_spechtModule",
+    "existsUnique_iso_spechtOuterTensor",
+    "spechtModule_branching",
+    "spechtModule_kronecker",
+    "spechtModule_tensor_sign",
+    "symmetricGroupLeftRegular_decomposition",
+    "youngsRule",
+    "spechtBranchingBasisData",
+    "spechtModule_induction_branching",
+    "spechtModule_littlewoodRichardson",
+    "symmetricGroupBiregular_decomposition",
+    "tensorPower_schurWeyl",
+    "spechtModule_pieri_horizontal",
+    "spechtModule_pieri_vertical",
+    "spechtOrthogonalBasis_adjacentTransposition",
+    "twoRowKroneckerCoefficient_eq_roundTrip_sub"
+  ],
+  "cycle_audit": {
+    "cycles_found": [],
+    "apparent_cycles_resolved": [
+      {
+        "between": [
+          "exists_spechtTableauBasis",
+          "spechtModule_branching"
+        ],
+        "problem": "dim S^mu = number of standard tableaux follows quickly from the branching rule, while the classical proof of the branching rule uses the standard basis.",
+        "resolution": "Break it at the common lower-level construction: the Garnir relations and the straightening algorithm on the polytabloid module prove the standard basis theorem directly from the layer-1 construction, with no branching input. The graph therefore carries only the edge exists_spechtTableauBasis -> spechtModule_branching."
+      },
+      {
+        "between": [
+          "spechtModule_irreducible",
+          "spechtModule_iso_iff_eq",
+          "exists_iso_spechtModule"
+        ],
+        "problem": "completeness of the Specht list can be argued from branching by induction, which would make the classification depend on results that themselves need the classification.",
+        "resolution": "Prove completeness by the independent count of conjugacy classes of Equiv.Perm (Fin n) against partitions of n, so nothing in layers 2 to 4 uses branching."
+      },
+      {
+        "between": [
+          "youngsRule",
+          "spechtModule_littlewoodRichardson",
+          "twoRowKroneckerCoefficient_eq_roundTrip_sub"
+        ],
+        "problem": "Rosmanis's reduction and the Littlewood-Richardson rule both talk about restrict-then-induce multiplicities.",
+        "resolution": "Littlewood-Richardson is proved from the semistandard basis and Young's rule; the Rosmanis reduction consumes it. Edges run one way only."
+      }
+    ]
+  },
+  "layers": {
+    "0": [
+      "schurWeylMultiplicity_mul_hookProduct",
+      "spechtModule",
+      "standardYoungTableau_card_mul_hookProduct",
+      "twoRowKostkaIndexEquiv",
+      "youngPermutationModule_twoRow_induction"
+    ],
+    "1": [
+      "exists_spechtTableauBasis",
+      "spechtModule_irreducible",
+      "spechtModule_selfDual",
+      "spechtModule_singleRow",
+      "twoRowKostkaIndexEquiv_shape"
+    ],
+    "2": [
+      "spechtModule_iso_iff_eq"
+    ],
+    "3": [
+      "exists_iso_spechtModule"
+    ],
+    "4": [
+      "existsUnique_iso_spechtOuterTensor",
+      "spechtModule_branching",
+      "spechtModule_kronecker",
+      "spechtModule_tensor_sign",
+      "symmetricGroupLeftRegular_decomposition",
+      "youngsRule"
+    ],
+    "5": [
+      "spechtBranchingBasisData",
+      "spechtModule_induction_branching",
+      "spechtModule_littlewoodRichardson",
+      "symmetricGroupBiregular_decomposition",
+      "tensorPower_schurWeyl"
+    ],
+    "6": [
+      "spechtModule_pieri_horizontal",
+      "spechtModule_pieri_vertical",
+      "spechtOrthogonalBasis_adjacentTransposition",
+      "twoRowKroneckerCoefficient_eq_roundTrip_sub"
+    ]
+  },
+  "layer_definition": "layer(v) is the length of the longest prerequisite chain ending at v, so every edge strictly increases the layer. Verified: no edge has layer(from) >= layer(to), and no directed cycle exists.",
+  "mathlib_revision": "5e932f97dd25535344f80f9dd8da3aab83df0fe6 (leanprover/lean4:v4.29.1)",
+  "shared_infrastructure": [
+    {
+      "id": "fdrep_isotypic_decomposition",
+      "exists_in_mathlib": false,
+      "note": "No IsSemisimpleCategory class and no biproduct-of-simples decomposition for an abelian category. Route: IsSemisimpleModule.exists_sSupIndep_sSup_simples_eq_top and RingTheory/SimpleModule/Isotypic.lean, transported across Representation.asModule.",
+      "needed_by": [
+        "spechtModule_kronecker",
+        "youngsRule",
+        "spechtModule_littlewoodRichardson",
+        "spechtModule_branching",
+        "tensorPower_schurWeyl",
+        "symmetricGroupLeftRegular_decomposition",
+        "symmetricGroupBiregular_decomposition",
+        "spechtModule_induction_branching"
+      ]
+    },
+    {
+      "id": "equal_characters_imply_iso",
+      "exists_in_mathlib": false,
+      "note": "Only the forward direction FDRep.char_iso exists. Follows from fdrep_isotypic_decomposition plus FDRep.scalar_product_char_eq_finrank_equivariant and FDRep.finrank_hom_simple_simple.",
+      "needed_by": [
+        "spechtModule_selfDual",
+        "spechtModule_tensor_sign"
+      ]
+    },
+    {
+      "id": "card_simples_eq_card_conjClasses",
+      "exists_in_mathlib": false,
+      "note": "ConjClasses never appears in Mathlib/RepresentationTheory.",
+      "needed_by": [
+        "exists_iso_spechtModule"
+      ]
+    },
+    {
+      "id": "conjClasses_perm_equiv_partition",
+      "exists_in_mathlib": false,
+      "note": "Equiv.Perm.partition_eq_of_isConj gives injectivity and Equiv.Perm.exists_with_cycleType_iff gives surjectivity, but the bijection is not assembled.",
+      "needed_by": [
+        "exists_iso_spechtModule"
+      ]
+    },
+    {
+      "id": "youngDiagramOfSize_equiv_partition",
+      "exists_in_mathlib": false,
+      "note": "YoungDiagram and Nat.Partition are never mentioned in the same mathlib file. Start from YoungDiagram.equivListRowLens.",
+      "needed_by": [
+        "exists_iso_spechtModule"
+      ]
+    },
+    {
+      "id": "rigid_dual_character",
+      "exists_in_mathlib": false,
+      "note": "FDRep.char_dual is stated for FDRep.of (Representation.dual V.rho), not for the rigid dual. Action.rightDual_rho supplies the bridge; mathlib's own TODO records the gap.",
+      "needed_by": [
+        "spechtModule_selfDual",
+        "symmetricGroupBiregular_decomposition"
+      ]
+    },
+    {
+      "id": "induced_representation_character_and_coset_sum",
+      "exists_in_mathlib": false,
+      "note": "No character formula for an induced representation and no coset-indexed direct sum decomposition of Rep.ind. Rep.coindToInd is defined as a sum over right cosets and is the closest starting point.",
+      "needed_by": [
+        "youngPermutationModule_twoRow_induction",
+        "spechtModule_pieri_horizontal",
+        "spechtModule_pieri_vertical",
+        "spechtModule_littlewoodRichardson"
+      ]
+    },
+    {
+      "id": "specht_and_tableau_combinatorics",
+      "exists_in_mathlib": false,
+      "note": "Searching mathlib for Specht, youngSymmetrizer, polytabloid, tabloid returns nothing; no StandardYoungTableau, no hook length, no hook-length formula.",
+      "needed_by": [
+        "spechtModule",
+        "spechtModule_irreducible",
+        "exists_spechtTableauBasis",
+        "standardYoungTableau_card_mul_hookProduct",
+        "schurWeylMultiplicity_mul_hookProduct"
+      ]
+    }
+  ],
+  "instance_constraints": [
+    "HasFiniteBiproducts (FDRep k G) is not a global instance; Limits.HasFiniteBiproducts.of_hasFiniteProducts and Abelian.hasFiniteBiproducts are theorems. The existing attribute [local instance] lines are required.",
+    "NeZero (Nat.card G : C) does not synthesize automatically and gates every Maschke-derived instance; it must be supplied explicitly for SymmetricGroup n."
+  ],
+  "source_pack_issues": [
+    {
+      "pdf": "rosmanis-2014-thesis.pdf",
+      "issue": "The bundled file is the 22-page arXiv:1401.3826v3 paper 'Quantum Adversary Lower Bound for Element Distinctness with Small Range', not the 181-page thesis that .claude/reference-pdfs/README.md describes. It contains no Section 1.4.2 and no Lemma 1.12.",
+      "affects": [
+        "spechtModule_singleRow",
+        "twoRowKroneckerCoefficient_eq_roundTrip_sub"
+      ],
+      "resolution": "Both cited passages were verified against a correct copy of the thesis found elsewhere on this machine. Page references recorded here are for the real thesis (pdf page = printed page + 13). The Lean docstrings need no change; the reference pack does."
+    },
+    {
+      "pdf": "etingof-et-al-introduction-representation-theory.pdf",
+      "issue": "The bundled copy is the 10 January 2011 draft, which uses flat per-chapter numbering (Theorem 3.1, Corollary 3.7, Theorem 4.25). The Lean docstrings cite the published edition's numbering (4.1.1, 4.2.4, 4.5.4, 3.10.2), which does not resolve in this file.",
+      "affects": [
+        "symmetricGroupLeftRegular_decomposition",
+        "symmetricGroupBiregular_decomposition",
+        "spechtModule_selfDual",
+        "existsUnique_iso_spechtOuterTensor"
+      ],
+      "resolution": "Mapping recorded per node: 4.1.1(ii) is Theorem 3.1(ii) p.33; 4.2.4 is Corollary 3.7 p.35; 3.10.2 (products) is Theorem 4.25 p.54; there is no analogue of 4.5.4, only an unnumbered Peter-Weyl remark on p.68. Docstrings are left untouched because they cite the published edition correctly."
+    },
+    {
+      "pdf": "sagan-the-symmetric-group-2e.pdf",
+      "issue": "Pieri is never named in Sagan 2e; a full-text search over all 254 pages returns zero hits, and there is no horizontal-strip or vertical-strip exercise in Section 4.11.",
+      "affects": [
+        "spechtModule_pieri_horizontal",
+        "spechtModule_pieri_vertical"
+      ],
+      "resolution": "Both Pieri nodes are derived as the one-row and one-column specialisations of Theorem 4.9.4, which is exactly how the dependency graph already routes them."
+    },
+    {
+      "pdf": "rosmanis-2014-thesis.pdf",
+      "issue": "Rosmanis Lemma 1.12 is stated without proof. The thesis explicitly declines to introduce the determinantal form of the irreducibles or the general Littlewood-Richardson rule, which is what a proof would need.",
+      "affects": [
+        "twoRowKroneckerCoefficient_eq_roundTrip_sub"
+      ],
+      "resolution": "This target has no proof in its cited source, so it must be proved here from the Littlewood-Richardson rule and the branching rule. The thesis's Corollary 1.13, a special case, is proved from the branching rule and is the model to follow. Recorded as the highest-risk node."
+    }
+  ]
+}
