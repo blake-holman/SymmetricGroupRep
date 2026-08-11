@@ -420,6 +420,54 @@ either — the conjugate partition appears there only in the symmetric-function
 chapters. James 1978, equation (6.6) and Theorem 6.7 (printed p. 25), is the
 correct source, and the docstring already cites it.
 
+## Source hunt outcome
+
+A 14-agent hunt over the 12 recorded source gaps fetched 36 candidate documents;
+18 were promoted into `.claude/reference-pdfs/` (added alongside the originals,
+never overwriting). A completeness critic then re-verified every claimed download
+and spot-checked page references. Full details live in
+`docs/axiom-dependency-graph.json` under `source_pack_issues`, `prior_art` and
+`strategy_revisions`. The consequential outcomes:
+
+**Repairs.** The published Etingof edition resolves all four previously
+unresolvable docstring labels. The real 181-page Rosmanis thesis makes six
+citation sites across four modules resolvable. Both were added without
+overwriting anything.
+
+**One recommendation was wrong, and the critic caught it.** The hunt proposed
+Ballantine–Orellana Theorem 2.1 as a proved replacement for the unproved Rosmanis
+Lemma 1.12, claiming it holds for an arbitrary second partition. It does not: it
+assumes `λ₁ − λ₂ ≥ 2p`, which the Lean target's hypotheses do not imply
+(`i = j = ⌊n/2⌋ − 1` satisfies the target and violates the theorem). The proposed
+replacement is *strictly narrower* than the statement it was meant to support, so
+`twoRowKroneckerCoefficient_eq_roundTrip_sub` **regresses to unsourced** and must
+be proved here. Two further cited page references were also shown to be
+mislabelled, and one — Sagan Theorem 3.11.1 for the shared hook lemma — was shown
+to be **circular**, since Sagan derives the determinantal formula *from* the hook
+formula.
+
+**A structural finding.** All 23 remaining targets are `Nonempty (X ≅ Y)` in
+`FDRep ℂ`, but every recommended source for Pieri, Young's rule and
+Littlewood–Richardson states a *character* or symmetric-function identity, and
+mathlib has only the forward direction `FDRep.char_iso`. So "equal characters ⇒
+isomorphic" is not an optional convenience; it is a **hard prerequisite** without
+which those sources discharge no axiom at all. It is now recorded as revision R2
+and sits ahead of seven targets.
+
+**Prior art, verified independently.** `TauCetiProject/TauCeti` is Apache-2.0,
+Lean 4 on mathlib, and I confirmed directly — not by relay — that the cited files
+exist at the claimed sizes with zero `sorry`: the submodule theorem and
+irreducibility (273 lines), distinctness, completeness, absolute irreducibility,
+Kostka unitriangularity (331 lines), corner theory, bounded-SSYT interlacing, the
+Weyl dimension formula, Frobenius reciprocity and Mackey, and a
+`Comparison.lean` identifying the polytabloid Specht module with the
+Young-symmetrizer ideal. It also has
+`card_simpleSubmoduleClasses_le_card_conjClasses`, filling a genuine mathlib gap.
+It is developed over `ℚ` in `Representation`/`Submodule` rather than `FDRep ℂ`,
+so adopting it is a port with base change and a categorical wrapper, not a copy —
+and every ported result still has to clear this project's own `#print axioms`
+audit.
+
 ## Next step: irreducibility
 
 With `spechtModule` constructed, the next layer is `spechtModule_irreducible`

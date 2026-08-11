@@ -1527,11 +1527,142 @@
         "twoRowKroneckerCoefficient_eq_roundTrip_sub"
       ],
       "resolution": "This target has no proof in its cited source, so it must be proved here from the Littlewood-Richardson rule and the branching rule. The thesis's Corollary 1.13, a special case, is proved from the branching rule and is the model to follow. Recorded as the highest-risk node."
+    },
+    {
+      "pdf": "ballantine-orellana-ejc-v12i1r28.pdf",
+      "issue": "A source hunt recommended Ballantine-Orellana Theorem 2.1 as a proved replacement for Rosmanis Lemma 1.12, claiming it holds for an arbitrary second partition. That is false. Theorem 2.1 assumes lambda_1 - lambda_2 >= 2p, and the hypothesis is load-bearing in the proof. Instantiating it at lambda = (n-j, j) needs n - 2j >= 2i, which the Lean target's hypotheses (2i < n, 2j < n) do not imply: i = j = floor(n/2) - 1 satisfies the target and violates Ballantine-Orellana. The theorem is strictly narrower than the Lean statement, not more general.",
+      "affects": [
+        "twoRowKroneckerCoefficient_eq_roundTrip_sub"
+      ],
+      "resolution": "Target stays UNSOURCED and must be proved here. The usable fragment is an intermediate display in the proof on printed page 17, s_(n-p,p) * s_lambda = sum over mu of size p of s_mu * s_(lambda/mu) minus the same sum over mu of size p-1, which carries no hypothesis on lambda. Its own inputs are cited to Macdonald and Stanley EC2 and are not proved in Ballantine-Orellana, so that display is itself 'states but does not prove'. Planned route: two-row Young's rule gives M^(m-k,k) as the sum of S^(m-j,j) for j <= k with all two-row Kostka numbers equal to one, which is the already-converted twoRowKostkaIndexEquiv; the determinantal identity then telescopes without Jacobi-Trudi."
     }
   ],
   "progress": {
     "verified": 4,
     "remaining": 23,
     "remaining_axiom_declarations_in_tree": 23
-  }
+  },
+  "prior_art": {
+    "note": "Verified independently in this session, not relayed: TauCetiProject/TauCeti is Apache-2.0 licensed, Lean 4 on mathlib, and the cited files exist at the claimed sizes with zero occurrences of sorry. It develops the Specht theory over Q using Representation and Submodule rather than FDRep C, so adopting it is a port with a base-change and categorical-wrapper step, not a copy.",
+    "license": "Apache-2.0",
+    "verified": [
+      "RepresentationTheory/Symmetric/Specht/SubmoduleTheorem.lean (273 lines, 0 sorry)",
+      "RepresentationTheory/Symmetric/Specht/Comparison.lean (236 lines, 0 sorry)",
+      "RepresentationTheory/CharacterTable/SimpleModuleCount.lean (65 lines, 0 sorry)",
+      "Combinatorics/Young/Kostka.lean (331 lines, 0 sorry)"
+    ],
+    "relevance": {
+      "spechtModule_irreducible": "Specht/SubmoduleTheorem.lean proves the submodule theorem and irreducibility",
+      "spechtModule_iso_iff_eq": "Specht/Distinctness.lean",
+      "exists_iso_spechtModule": "Specht/Completeness.lean plus CharacterTable/SimpleModuleCount.lean, which supplies the count of simples against conjugacy classes that mathlib lacks",
+      "exists_spechtTableauBasis": "Specht/StandardBasis.lean proves only linear independence and standardCount <= finrank, the easy half; the spanning half still needs either Garnir or the dimension count",
+      "schurWeylMultiplicity_mul_hookProduct": "Combinatorics/Young/Interlacing.lean has BoundedSSYT and the interlacing recursion; ClassicalGroups/WeylDimension.lean has the Weyl dimension product",
+      "standardYoungTableau_card_mul_hookProduct": "Combinatorics/Young/HookLength.lean and the Corner files pre-build the corner recursion scaffolding",
+      "youngsRule": "Combinatorics/Young/Kostka.lean already has Kostka unitriangularity",
+      "spechtModule_littlewoodRichardson": "RepresentationTheory/Induction/ has Frobenius reciprocity, Mackey and transitivity"
+    },
+    "caveat": "Zero-sorry counts were checked per file, not across the whole import tree. Any port must be re-verified here by #print axioms, which the AxiomAudit module enforces."
+  },
+  "strategy_revisions": [
+    {
+      "id": "R1",
+      "targets": [
+        "spechtModule_irreducible",
+        "spechtModule_iso_iff_eq",
+        "exists_iso_spechtModule"
+      ],
+      "old": "prove Sagan's submodule theorem, dominance and conjugacy-class counting from scratch",
+      "new": "port the corresponding TauCeti developments, adding base change from Q to C",
+      "evidence": "TauCeti Specht/{SubmoduleTheorem,Distinctness,Completeness,AbsoluteIrreducibility}.lean, verified Apache-2.0 and sorry-free. AbsoluteIrreducibility is exactly the base-change bridge.",
+      "status": "adopted"
+    },
+    {
+      "id": "R2",
+      "targets": [
+        "spechtModule_selfDual",
+        "spechtModule_branching",
+        "spechtModule_induction_branching",
+        "spechtModule_pieri_horizontal",
+        "spechtModule_pieri_vertical",
+        "spechtModule_littlewoodRichardson",
+        "youngsRule"
+      ],
+      "old": "prove each as a direct FDRep isomorphism",
+      "new": "first build the shared upgrade lemma 'equal characters imply isomorphic in FDRep C for a finite group', then prove each target as a character identity. The critic reclassified this from optional to a hard prerequisite: every recommended source for Pieri, Young's rule and Littlewood-Richardson states a character or symmetric-function identity, so without the upgrade lemma those sources discharge no axiom at all.",
+      "evidence": "mathlib has FDRep.char_iso only in the forward direction; Hivert's CPP 2025 paper reports that Coq-Combi proves Young's rule, Littlewood-Richardson, Pieri and Murnaghan-Nakayama at character level and never constructs a Specht module.",
+      "status": "adopted"
+    },
+    {
+      "id": "R3",
+      "targets": [
+        "exists_spechtTableauBasis"
+      ],
+      "old": "Garnir relations and the straightening algorithm",
+      "new": "linear independence of standard polytabloids plus the dimension count from the hook-length target; spanning then follows by counting, and no Garnir element is ever constructed",
+      "evidence": "TauCeti Specht/StandardBasis.lean already proves the independence half. Reverses one graph edge: the basis now depends on standardYoungTableau_card_mul_hookProduct rather than the other way round.",
+      "status": "adopted, requires re-deriving the layering"
+    },
+    {
+      "id": "R4",
+      "targets": [
+        "standardYoungTableau_card_mul_hookProduct"
+      ],
+      "old": "first-column coordinates, corner recursion, and an unproved Vandermonde-style identity",
+      "new": "same route, with Bandlow's equations (2) to (5) supplying the missing identity algebraically",
+      "evidence": "The graph's recorded route was already right; only its hardest step was unsourced. Two alternatives were rejected on evidence: Greene-Nijenhuis-Wilf needs a probability library (Coq-Combi's hook.v is 1409 lines plus ALEA), and Novelli-Pak-Stoyanovskii needs an algorithm with termination and an inverse.",
+      "status": "adopted"
+    },
+    {
+      "id": "R5",
+      "targets": [
+        "standardYoungTableau_card_mul_hookProduct",
+        "schurWeylMultiplicity_mul_hookProduct"
+      ],
+      "old": "two independent combinatorial nodes",
+      "new": "one shared work item factoring through hookProduct(l) * prod_(i<j)(l_i - l_j) = prod l_i!",
+      "evidence": "The synthesis cited Sagan Theorem 3.11.1 for the shared lemma; the critic showed that citation is circular, since Sagan's section 3.11 derives the determinantal formula FROM the hook formula and only remarks that the reverse is possible. The shared-lemma idea survives, its cited proof does not.",
+      "status": "adopted with the citation withdrawn"
+    },
+    {
+      "id": "R6",
+      "targets": [
+        "symmetricGroupBiregular_decomposition"
+      ],
+      "old": "treated as unsourced, with the docstring citing a Theorem 4.5.4 that does not exist in the bundled draft",
+      "new": "Etingof Theorem 4.1.1(ii) in the published edition states that k[G] -> the sum of End V_i is an isomorphism of ALGEBRAS, which is automatically G x G equivariant for x -> g x h inverse, and on End V that action is V outer-tensor V dual. Two lines from a numbered proved theorem.",
+      "evidence": "published Etingof edition, verified; the only docstring change needed is deleting the 'proof of Theorem 4.5.4' clause",
+      "status": "adopted"
+    },
+    {
+      "id": "R7",
+      "targets": [
+        "spechtModule_kronecker"
+      ],
+      "old": "listed as needing a Kronecker source",
+      "new": "no source needed. kroneckerCoefficient is defined in this repository as finrank of the Hom space, so the target is literally the isotypic decomposition of an FDRep against the complete irreducible list, downstream of the classification plus Maschke.",
+      "evidence": "Kronecker.lean definition; confirmed by the critic",
+      "status": "adopted"
+    },
+    {
+      "id": "R8",
+      "targets": [
+        "twoRowKroneckerCoefficient_eq_roundTrip_sub"
+      ],
+      "old": "cite Rosmanis Lemma 1.12",
+      "new": "prove unaided from two-row Young's rule and the telescoping determinantal identity, reusing twoRowKostkaIndexEquiv",
+      "evidence": "see source_pack_issues: Rosmanis states it without proof, and the proposed Ballantine-Orellana replacement is strictly narrower than the Lean statement",
+      "status": "adopted; highest-risk node, unchanged"
+    },
+    {
+      "id": "R9",
+      "targets": [
+        "spechtBranchingBasisData",
+        "spechtOrthogonalBasis_adjacentTransposition"
+      ],
+      "old": "pure Vershik-Okounkov, or choose branching isomorphisms then prove coherence",
+      "new": "hybrid: take branching from Sagan Theorem 2.8.3, which speaks about the polytabloid module directly, then import only Srinivasan sections 2, 5 and 7 for the canonical Gelfand-Tsetlin line and the orthogonal form. Coherence becomes definitional rather than a proof obligation.",
+      "evidence": "Srinivasan is the only free source that proves Young's orthogonal form. WARNING verified twice: his content convention is row minus column, the opposite of Armon-Halverson and of this project, so every diagram must be conjugated when transcribing. Anchor signs on his convention-free Theorem 5.3(ii).",
+      "status": "adopted with a convention warning"
+    }
+  ]
 }
