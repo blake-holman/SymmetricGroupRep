@@ -34,6 +34,14 @@ noncomputable instance (n : ℕ) : Finite (YoungDiagramOfSize n) := by
     apply Subtype.ext
     exact YoungDiagram.ext (congrArg Subtype.val h)
 
+/-- A Young diagram is determined by its row lengths. -/
+theorem YoungDiagram.ext_of_rowLen {μ ν : YoungDiagram}
+    (h : ∀ row, μ.rowLen row = ν.rowLen row) : μ = ν := by
+  apply YoungDiagram.ext
+  ext ⟨row, column⟩
+  rw [YoungDiagram.mem_cells, YoungDiagram.mem_cells,
+    YoungDiagram.mem_iff_lt_rowLen, YoungDiagram.mem_iff_lt_rowLen, h]
+
 /-- `ν` is obtained from `μ` by removing one box.
 
 Because their sizes are already `n` and `n + 1`, containment is enough to express this. -/

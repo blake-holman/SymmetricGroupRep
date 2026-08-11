@@ -166,6 +166,32 @@ theorem twoRowPartition_rowLen (n r : ℕ) (h : 2 * r ≤ n) (row : ℕ) :
   · simp
   simp
 
+/-- The cells of a two-row partition, split by row. -/
+theorem twoRowPartition_cells (n r : ℕ) (h : 2 * r ≤ n) :
+    (twoRowPartition n r h).val.cells =
+      ({0} ×ˢ Finset.range (n - r)) ∪ ({1} ×ˢ Finset.range r) := by
+  ext ⟨row, column⟩
+  rw [YoungDiagram.mem_cells, YoungDiagram.mem_iff_lt_rowLen, twoRowPartition_rowLen]
+  match row with
+  | 0 => simp
+  | 1 => simp
+  | (row + 2) => simp
+
+/-- A fixed-size shape whose row lengths match a two-row partition is that partition. -/
+theorem YoungDiagramOfSize.eq_twoRowPartition {n r : ℕ} (h : 2 * r ≤ n)
+    (shape : YoungDiagramOfSize n)
+    (h0 : shape.val.rowLen 0 = n - r) (h1 : shape.val.rowLen 1 = r)
+    (h2 : ∀ row, 2 ≤ row → shape.val.rowLen row = 0) :
+    shape = twoRowPartition n r h := by
+  apply Subtype.ext
+  apply YoungDiagram.ext_of_rowLen
+  intro row
+  rw [twoRowPartition_rowLen]
+  match row with
+  | 0 => simpa using h0
+  | 1 => simpa using h1
+  | (row + 2) => simpa using h2 (row + 2) (by omega)
+
 namespace Tabloid
 
 /-- The labels in the second row of a two-row tabloid. -/

@@ -7,7 +7,9 @@ Independently confirmed target count: **27**. The inventory below was produced b
 scanning `rg -n '^\s*axiom\s+' --glob '*.lean' .` against the frozen baseline and
 extracting each declaration verbatim with `git show 5f00453:<file>`.
 
-Baseline `lake build`: succeeds (3210 jobs).
+Baseline `lake build`: succeeds (3210 jobs). Current: succeeds (3211 jobs).
+
+Progress: **2 of 27 verified**, 25 `axiom` declarations remain in the tree.
 
 ## Declaration forms
 
@@ -234,14 +236,14 @@ layer. The audit script confirms 27 nodes, no directed cycle, and no edge with
 |---|---|---|---|
 | 0 | `spechtModule` | noncomputable def | axiom |
 | 0 | `youngPermutationModule_twoRow_induction` | theorem | axiom |
-| 0 | `twoRowKostkaIndexEquiv` | noncomputable def | axiom |
+| 0 | `twoRowKostkaIndexEquiv` | noncomputable def | **verified** |
 | 0 | `standardYoungTableau_card_mul_hookProduct` | theorem | axiom |
 | 0 | `schurWeylMultiplicity_mul_hookProduct` | theorem | axiom |
 | 1 | `spechtModule_irreducible` | theorem | axiom |
 | 1 | `spechtModule_singleRow` | theorem | axiom |
 | 1 | `spechtModule_selfDual` | theorem | axiom |
 | 1 | `exists_spechtTableauBasis` | theorem | axiom |
-| 1 | `twoRowKostkaIndexEquiv_shape` | theorem | axiom |
+| 1 | `twoRowKostkaIndexEquiv_shape` | theorem | **verified** |
 | 2 | `spechtModule_iso_iff_eq` | theorem | axiom |
 | 3 | `exists_iso_spechtModule` | theorem | axiom |
 | 4 | `spechtModule_kronecker` | theorem | axiom |
@@ -420,3 +422,45 @@ construction rather than letting one target justify another:
    restrict-then-induce multiplicities. Broken by deriving
    Littlewood--Richardson from the semistandard basis and Young's rule, and
    letting Rosmanis's reduction consume both.
+
+## Verification log
+
+### Layer 0 and 1: `twoRowKostkaIndexEquiv`, `twoRowKostkaIndexEquiv_shape`
+
+Converted together, since the second is the shape component of the first.
+`twoRowKostkaIndexEquiv` is one of the three data-valued targets and became a
+`noncomputable def`; `twoRowKostkaIndexEquiv_shape` became a `theorem`. Both
+signatures were diffed against `git show 5f00453:SymmetricGroupRep/Kostka.lean`
+and are identical apart from the leading keyword.
+
+The mathematics, following Sagan Definition 2.11.1 and Theorem 2.11.2 with the
+conventions cross-checked against Tomczak Corollary 3.19, is purely
+combinatorial and touches no representation theory. For the weight `(n - r, r)`
+the content condition forces every entry to be `0` or `1`, column strictness
+then caps the shape at two rows, and the second row is forced to be all ones
+sitting under zeros. Counting zeros pins the shape to `(n - i, i)` with
+`i ≤ r` and makes the filling unique, so each such shape contributes exactly one
+Kostka copy and no other shape contributes any. The equivalence sends a copy to
+the length of its shape's second row.
+
+Supporting material added:
+
+- `YoungDiagram.ext_of_rowLen` in `YoungDiagrams.lean`: a Young diagram is
+  determined by its row lengths.
+- `twoRowPartition_cells` and `YoungDiagramOfSize.eq_twoRowPartition` in
+  `YoungPermutation.lean`, next to the existing `twoRowPartition_rowLen`.
+- A `WeightedSemistandardTableau` section in `Kostka.lean` proving the structure
+  facts above, an explicit witness tableau (kept `private`, since it exists only
+  to prove the count), and the four public Kostka lemmas
+  `kostkaNumber_twoRow_eq_one`, `kostkaNumber_twoRow_eq_one_of_pos`,
+  `eq_twoRowPartition_of_kostkaNumber_pos`, and `shape_eq_of_rowLen_one_eq`.
+
+Verification:
+
+- `#print axioms` for both targets: `[propext, Classical.choice, Quot.sound]`.
+  No project axiom, no `sorryAx`.
+- Recorded in `SymmetricGroupRep/AxiomAudit.lean`, which wraps each
+  `#print axioms` in `#guard_msgs` so the closure is checked by the build rather
+  than only inspected once. The module is imported from `SymmetricGroupRep.lean`,
+  so `lake build` fails if any recorded closure changes.
+- `lake build`: `Build completed successfully (3211 jobs)`, no warnings.

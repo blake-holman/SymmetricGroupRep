@@ -73,7 +73,15 @@
           "label": "Corollary 3.19"
         }
       ],
-      "state": "axiom"
+      "state": "verified",
+      "verification": {
+        "declaration_form": "noncomputable def",
+        "signature_preserved": "compared against git show 5f00453:SymmetricGroupRep/Kostka.lean; identical apart from the leading keyword",
+        "print_axioms": "[propext, Classical.choice, Quot.sound]",
+        "audit_file": "SymmetricGroupRep/AxiomAudit.lean (enforced with #guard_msgs, built by lake build)",
+        "build_command": "lake build",
+        "build_result": "Build completed successfully (3211 jobs)"
+      }
     },
     {
       "id": "twoRowKostkaIndexEquiv_shape",
@@ -103,7 +111,15 @@
           "label": "Corollary 3.19"
         }
       ],
-      "state": "axiom"
+      "state": "verified",
+      "verification": {
+        "declaration_form": "theorem",
+        "signature_preserved": "compared against git show 5f00453:SymmetricGroupRep/Kostka.lean; identical apart from the leading keyword",
+        "print_axioms": "[propext, Classical.choice, Quot.sound]",
+        "audit_file": "SymmetricGroupRep/AxiomAudit.lean (enforced with #guard_msgs, built by lake build)",
+        "build_command": "lake build",
+        "build_result": "Build completed successfully (3211 jobs)"
+      }
     },
     {
       "id": "standardYoungTableau_card_mul_hookProduct",
@@ -1494,5 +1510,10 @@
       ],
       "resolution": "This target has no proof in its cited source, so it must be proved here from the Littlewood-Richardson rule and the branching rule. The thesis's Corollary 1.13, a special case, is proved from the branching rule and is the model to follow. Recorded as the highest-risk node."
     }
-  ]
+  ],
+  "progress": {
+    "verified": 2,
+    "remaining": 25,
+    "remaining_axiom_declarations_in_tree": 25
+  }
 }
