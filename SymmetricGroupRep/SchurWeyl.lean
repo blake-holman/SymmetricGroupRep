@@ -65,12 +65,14 @@ noncomputable def tensorPowerPermutationRepresentation (q n : ℕ) :
 /-- Schur-Weyl duality, restricted to the symmetric-group action on tensor
 space.
 
-The full commuting `U(q) × S_n` decomposition is Theorem 1.14 on page 30 of
-Rosmanis, *Lower Bounds on Quantum Query and Learning Graph Complexities*
-(2014 thesis). The theorem assumes positive tensor degree, recorded by `hn`.
-After forgetting the `U(q)` action, the unnumbered tableau basis statement
-preceding equation (9) in Section 8.1 of Fulton, *Young Tableaux*, identifies
-the multiplicity with bounded semistandard tableaux. -/
+Magee, *Random Unitary Representations of Surface Groups I: Asymptotic
+Expansions*, Proposition 2.4 on page 133, gives the full commuting
+`U(q) × S_n` decomposition. The Gelfand--Tsetlin construction on page 134
+indexes a basis of its `U(q)` factor by semistandard tableaux with entries in
+`1, ..., q`. Shifting these entries down to `Fin q` and forgetting the `U(q)`
+action gives the displayed multiplicity. When `q = 0`, `hn` makes both the word
+basis and every bounded-tableau index set empty. The source is bundled as
+`refs/magee-2022-random-unitary-representations.pdf`. -/
 axiom tensorPower_schurWeyl (q n : ℕ) (hn : 0 < n) :
   Nonempty (tensorPowerPermutationRepresentation q n ≅
     ⨁ fun shape : YoungDiagramOfSize n =>
@@ -83,8 +85,15 @@ def YoungDiagram.schurContentProduct (q : ℕ) (μ : YoungDiagram) : ℤ :=
 
 /-- The hook-content dimension formula in multiplicative form.
 
-See Fulton, *Young Tableaux*, Section 8.1, equation (9). The multiplicative
-form avoids division and remains valid when the shape has more than `q` rows. -/
+Magee, *Random Unitary Representations of Surface Groups I: Asymptotic
+Expansions*, equation (2.5) on page 131, gives the hook-content formula for the
+dimension of the `U(q)` factor. Its Gelfand--Tsetlin basis on page 134 identifies
+that dimension with bounded semistandard tableaux. Clearing the hook-product
+denominator gives this statement; the paper's one-based content `j - i` equals
+the zero-based `cell.2 - cell.1` used here. For `q = 0`, the empty shape gives
+`1 = 1`, while every nonempty shape has no bounded tableaux and its top-left
+cell makes the content product zero. The source is bundled as
+`refs/magee-2022-random-unitary-representations.pdf`. -/
 axiom schurWeylMultiplicity_mul_hookProduct {n : ℕ}
     (q : ℕ) (shape : YoungDiagramOfSize n) :
   (schurWeylMultiplicity q shape : ℤ) * shape.val.hookProduct =

@@ -57,8 +57,11 @@ def YoungDiagramOfSize.transpose {n : ℕ}
 /-- Tensoring a Specht module with the sign representation transposes its
 Young diagram.
 
-See James and Kerber, *The Representation Theory of the Symmetric Group*,
-Theorem 2.1.8. -/
+James, *The Representation Theory of the Symmetric Groups*, Lecture Notes in
+Mathematics 682 (1978), equation (6.6) and Theorem 6.7 on page 25, gives the
+conjugate-partition identity after base change to `ℂ`; the self-duality remark
+following the theorem removes the displayed dual. The source is indexed in
+`refs/README.md`. -/
 axiom spechtModule_tensor_sign {n : ℕ} (μ : YoungDiagramOfSize n) :
   Nonempty (spechtModule (YoungDiagramOfSize.transpose μ) ≅
     spechtModule μ ⊗ SymmetricGroupRepresentation.sign n)

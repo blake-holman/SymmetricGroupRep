@@ -1,0 +1,21 @@
+{
+  "downloads": [
+    {
+      "source_url": "https://link.springer.com/article/10.1007/s00220-021-04295-5",
+      "discovered_url": "https://link.springer.com/content/pdf/10.1007/s00220-021-04295-5.pdf",
+      "filename": "magee-2022-random-unitary-representations.pdf",
+      "method": "direct HTTP GET with redirects",
+      "status": "downloaded and parsed",
+      "bytes": 753030,
+      "sha256": "C70E8603A1361B2942E1901C50A84602D9348C0DC64D836CD281BCA113549B4E"
+    }
+  ],
+  "external_references": [
+    {
+      "source_url": "https://www-users.cse.umn.edu/~webb/oldteaching/Year2010-11/the-representation-theory-of-the-symmetric-groups-SLN.pdf",
+      "title": "The Representation Theory of the Symmetric Groups",
+      "status": "linked from README",
+      "sha256": "E339CA5FB1FF9D78874C21C0DD6F7CE609EF94CC805D9921D824424C0712BABC"
+    }
+  ]
+}
