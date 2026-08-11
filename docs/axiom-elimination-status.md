@@ -403,6 +403,25 @@ either — the conjugate partition appears there only in the symmetric-function
 chapters. James 1978, equation (6.6) and Theorem 6.7 (printed p. 25), is the
 correct source, and the docstring already cites it.
 
+## Next step: the `spechtModule` construction
+
+This is the critical path. The concrete module plan, which preserves every
+existing name and type:
+
+1. New `SymmetricGroupRep/Basic.lean` holding `SymmetricGroup` and
+   `SymmetricGroupRepresentation`, moved out of `Classification.lean`.
+2. New `SymmetricGroupRep/Tabloids.lean` holding the tabloid development moved
+   down from `YoungPermutation.lean`: `Tabloid` with its `Finite` instance,
+   `Tabloid.nonempty`, the `MulAction`, `Tabloid.smul_rowOf`,
+   `youngPermutationModule`, `youngPermutationModule_rho_single`,
+   `FDRep.ofMulActionEquiv`, `YoungDiagram.card_cellsOfRowLens`,
+   `twoRowPartition`, and the two-row lemmas now beside it.
+3. `Classification.lean` imports `Tabloids.lean` and defines `spechtModule` as
+   the subrepresentation of `youngPermutationModule μ` spanned by the
+   polytabloids, following Sagan Definitions 2.3.2 and 2.3.4.
+4. `YoungPermutation.lean` imports `Tabloids.lean` in place of the moved
+   material, so every downstream module sees the same names at the same types.
+
 ## Resolved apparent cycles
 
 The cycle audit in the graph records three, all broken by naming a lower-level
