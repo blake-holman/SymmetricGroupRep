@@ -1,6 +1,7 @@
 import SymmetricGroupRep.Basic
 import Mathlib.RepresentationTheory.FinGroupCharZero
 import Mathlib.RepresentationTheory.Maschke
+import Mathlib.RepresentationTheory.Subrepresentation
 
 /-! # Maschke semisimplicity for symmetric groups
 
@@ -30,3 +31,29 @@ theorem SymmetricGroupRepresentation.exists_retraction {n : ℕ}
 noncomputable instance {n : ℕ} {W V : SymmetricGroupRepresentation n}
     (f : W ⟶ V) [Mono f] : IsSplitMono f :=
   IsSplitMono.mk' ⟨Injective.factorThru (𝟙 W) f, Injective.comp_factorThru (𝟙 W) f⟩
+
+/-- The inclusion of a subrepresentation, as a morphism of finite-dimensional
+representations.
+
+This is the bridge between the submodule level, where mathlib's semisimplicity
+API lives, and the `FDRep` level, where this package's statements live. -/
+noncomputable def Subrepresentation.toFDRepHom {n : ℕ}
+    (V : SymmetricGroupRepresentation n) (W : Subrepresentation V.ρ) :
+    FDRep.of W.toRepresentation ⟶ V :=
+  Action.Hom.mk (FGModuleCat.ofHom W.toSubmodule.subtype) (by
+    intro g
+    apply FGModuleCat.hom_ext
+    ext w
+    rfl)
+
+instance {n : ℕ} (V : SymmetricGroupRepresentation n) (W : Subrepresentation V.ρ) :
+    Mono (Subrepresentation.toFDRepHom V W) :=
+  ConcreteCategory.mono_of_injective _ Subtype.val_injective
+
+/-- Every subrepresentation is a direct summand: Maschke applied through the
+inclusion. -/
+theorem Subrepresentation.exists_retraction_toFDRepHom {n : ℕ}
+    (V : SymmetricGroupRepresentation n) (W : Subrepresentation V.ρ) :
+    ∃ r : V ⟶ FDRep.of W.toRepresentation,
+      Subrepresentation.toFDRepHom V W ≫ r = 𝟙 _ :=
+  SymmetricGroupRepresentation.exists_retraction _
