@@ -1469,7 +1469,8 @@
       "needed_by": [
         "spechtModule_selfDual",
         "symmetricGroupBiregular_decomposition"
-      ]
+      ],
+      "attempt_notes": "Attempted this session, not yet closed. The mathematical content is settled: Action.rightDual_ρ gives Xᘁ.ρ h = (X.ρ h⁻¹)ᘁ, and LinearMap.trace_transpose' gives that a transpose has the same trace, so the lemma is two rewrites deep. The obstruction is purely a coercion mismatch: FDRep.character is stated via FDRep.ρ, which unfolds to endRingEquiv composed with InducedCategory.endEquiv composed with the Action-level ρ, so the Action.rightDual_ρ pattern does not match the goal syntactically and simp reports it as an unused argument. Next attempt should first capture the goal after `simp only [FDRep.character, FDRep.ρ]` and rewrite with an explicitly instantiated Action.rightDual_ρ, supplying LinearMap.trace_transpose' with explicit arguments rather than an underscore, which currently leaves Module.Finite metavariables stuck."
     },
     {
       "id": "induced_representation_character_and_coset_sum",
