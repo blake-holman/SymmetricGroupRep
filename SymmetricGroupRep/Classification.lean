@@ -1,4 +1,5 @@
 import SymmetricGroupRep.Polytabloid
+import SymmetricGroupRep.Semisimple
 
 open CategoryTheory
 

@@ -1426,7 +1426,8 @@
         "corroboration": "This is also what TauCeti does: its development lives in Representation/Submodule rather than FDRep, which is independent evidence that the module level is the tractable one.",
         "splitting": "Maschke as a splitting is available categorically without the Artinian route: mathlib provides `instance [NeZero (Nat.card G : k)] (V : FDRep k G) : Injective V`, and Injective.factorThru retracts any mono into V. Useful for the final assembly even if the induction happens at module level.",
         "target_shape": "Every consuming target wants the same shape: V is isomorphic to the biproduct over i of the biproduct over Fin (finrank (S i -> V)) of S i. Proving one general lemma in that shape discharges the decomposition half of spechtModule_kronecker, symmetricGroupLeftRegular_decomposition, symmetricGroupBiregular_decomposition, youngsRule, spechtModule_littlewoodRichardson, spechtModule_branching, spechtModule_induction_branching and tensorPower_schurWeyl."
-      }
+      },
+      "progress": "SymmetricGroupRep/Semisimple.lean now supplies the foundation. The NeZero (Nat.card (SymmetricGroup n) : C) instance that mathlib requires but does not synthesise is proved there, and with it three mathlib instances were confirmed to fire for this project's types: Injective V and Projective V in FDRep, and IsSemisimpleModule over the group algebra. Maschke is packaged as SymmetricGroupRepresentation.exists_retraction (every mono retracts) plus an IsSplitMono instance, which is the splitting step the decomposition induction needs. Closures are [propext, Classical.choice, Quot.sound]. Remaining: the induction itself and the regrouping into the biproduct-of-isotypic-blocks shape the targets use."
     },
     {
       "id": "equal_characters_imply_iso",
