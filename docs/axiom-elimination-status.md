@@ -9,7 +9,7 @@ extracting each declaration verbatim with `git show 5f00453:<file>`.
 
 Baseline `lake build`: succeeds (3210 jobs). Current: succeeds (3214 jobs).
 
-Progress: **3 of 27 verified**, 24 `axiom` declarations remain in the tree.
+Progress: **4 of 27 verified**, 23 `axiom` declarations remain in the tree.
 
 ## Declaration forms
 
@@ -240,7 +240,7 @@ layer. The audit script confirms 27 nodes, no directed cycle, and no edge with
 | 0 | `standardYoungTableau_card_mul_hookProduct` | theorem | axiom |
 | 0 | `schurWeylMultiplicity_mul_hookProduct` | theorem | axiom |
 | 1 | `spechtModule_irreducible` | theorem | axiom |
-| 1 | `spechtModule_singleRow` | theorem | axiom |
+| 1 | `spechtModule_singleRow` | theorem | **verified** |
 | 1 | `spechtModule_selfDual` | theorem | axiom |
 | 1 | `exists_spechtTableauBasis` | theorem | axiom |
 | 1 | `twoRowKostkaIndexEquiv_shape` | theorem | **verified** |
@@ -403,27 +403,6 @@ either — the conjugate partition appears there only in the symmetric-function
 chapters. James 1978, equation (6.6) and Theorem 6.7 (printed p. 25), is the
 correct source, and the docstring already cites it.
 
-## Reconnaissance for `spechtModule_singleRow`
-
-Verified in Lean but not yet committed, recorded so the next pass is quick:
-
-- `𝟙_ (SymmetricGroupRepresentation n)` has carrier `ℂ` and `ρ g = 1`, both by
-  `rfl`. So the target reduces to exhibiting the one-row Specht module as the
-  trivial one-dimensional representation.
-- For the one-row shape, `row_nonempty` forces every label into row `0`, so
-  `Tabloid (singleRowPartition n)` is a subsingleton, and it is nonempty by
-  `Tabloid.nonempty`; hence `Unique`.
-- Mathlib already has the matching bridge:
-  `Representation.ofMulActionSubsingletonEquivTrivial`, which sends
-  `ofMulAction k G H` for subsingleton `H` to `Representation.trivial k G k` via
-  `Finsupp.LinearEquiv.finsuppUnique`. It is stated with a `MulOneClass H`
-  hypothesis that `Tabloid` does not satisfy, but its two-line proof transfers
-  directly.
-- The remaining step is `(spechtSubrepresentation (singleRowPartition n)).toSubmodule = ⊤`.
-  Since the tabloid type is `Unique`, the ambient module is one dimensional, and
-  `polytabloid_apply_tabloid` already gives a vector with coefficient one, so the
-  polytabloid equals `Finsupp.single` on the unique tabloid and spans.
-
 ## Next step: irreducibility
 
 With `spechtModule` constructed, the next layer is `spechtModule_irreducible`
@@ -532,3 +511,22 @@ Verification:
   recorded in `AxiomAudit.lean` under `#guard_msgs`.
 - `lake build`: `Build completed successfully (3214 jobs)`, no warnings. The
   whole downstream tree still compiles against the concrete definition.
+
+### Layer 1: `spechtModule_singleRow`
+
+The one-row shape has `rowLen 0 = n` and every other row empty, so a tabloid's
+`row_nonempty` field forces every label into row zero: the tabloid type is a
+subsingleton, and `Tabloid.nonempty` makes it `Unique`. The permutation module is
+therefore one dimensional and carries the trivial action.
+
+`spechtSubrepresentation_singleRow_eq_top` shows the Specht submodule is all of
+it, reusing `YoungTableau.polytabloid_apply_tabloid` from the construction layer:
+with a unique tabloid the polytabloid is exactly `Finsupp.single default 1`, so
+every vector is a scalar multiple of it. The last step is free —
+`FDRep.of (Representation.trivial ℂ G ℂ)` is *definitionally* the monoidal unit
+`𝟙_`, checked by `rfl`, so `Action.mkIso` on the resulting `Representation.Equiv`
+closes the goal.
+
+Verification: `#print axioms spechtModule_singleRow` is
+`[propext, Classical.choice, Quot.sound]`, recorded under `#guard_msgs`;
+`lake build` green at 3214 jobs with no warnings.

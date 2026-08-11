@@ -1,5 +1,6 @@
 import SymmetricGroupRep.Kostka
 import SymmetricGroupRep.Classification
+import SymmetricGroupRep.Kronecker
 
 /-! # Axiom-closure audit for converted targets
 
@@ -23,3 +24,7 @@ the standard kernel principles mathlib itself already relies on.
 /-- info: 'twoRowKostkaIndexEquiv_shape' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms twoRowKostkaIndexEquiv_shape
+
+/-- info: 'spechtModule_singleRow' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms spechtModule_singleRow

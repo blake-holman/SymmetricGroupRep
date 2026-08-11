@@ -38,14 +38,93 @@ axiom spechtModule_kronecker {n : ℕ} (μ ν : YoungDiagramOfSize n) :
 def singleRowPartition (n : ℕ) : YoungDiagramOfSize n :=
   twoRowPartition n 0 (by omega)
 
+/-- For the one-row shape every label sits in row zero. -/
+theorem Tabloid.rowOf_singleRow (n : ℕ) (T : Tabloid (singleRowPartition n)) (i : Fin n) :
+    (T.rowOf i : ℕ) = 0 := by
+  by_contra hne
+  have hpos := T.row_nonempty i
+  have hlen : (singleRowPartition n).val.rowLen (T.rowOf i) =
+      if (T.rowOf i : ℕ) = 0 then n - 0 else if (T.rowOf i : ℕ) = 1 then 0 else 0 :=
+    twoRowPartition_rowLen n 0 (by omega) _
+  rw [hlen, if_neg hne] at hpos
+  split at hpos <;> omega
+
+instance (n : ℕ) : Subsingleton (Tabloid (singleRowPartition n)) := by
+  refine ⟨fun T U => ?_⟩
+  apply Tabloid.ext
+  funext i
+  apply Fin.ext
+  rw [Tabloid.rowOf_singleRow, Tabloid.rowOf_singleRow]
+
+noncomputable instance (n : ℕ) : Unique (Tabloid (singleRowPartition n)) :=
+  uniqueOfSubsingleton (Classical.choice (Tabloid.nonempty _))
+
+/-- The one-row permutation module carries the trivial action, since it has only
+one tabloid. -/
+theorem ofMulAction_singleRow_apply (n : ℕ) (g : SymmetricGroup n)
+    (v : Tabloid (singleRowPartition n) →₀ ℂ) :
+    Representation.ofMulAction ℂ (SymmetricGroup n) (Tabloid (singleRowPartition n)) g v = v := by
+  induction v using Finsupp.induction_linear with
+  | zero => simp
+  | add x y hx hy => rw [map_add, hx, hy]
+  | single T c =>
+      rw [Representation.ofMulAction_single, Subsingleton.elim (g • T) T]
+
+/-- The one-row Specht module fills the whole one-row permutation module. -/
+theorem spechtSubrepresentation_singleRow_eq_top (n : ℕ) :
+    (spechtSubrepresentation (singleRowPartition n)).toSubmodule = ⊤ := by
+  obtain ⟨t⟩ := YoungTableau.nonempty (singleRowPartition n)
+  have hpoly : YoungTableau.polytabloid t = Finsupp.single default 1 := by
+    apply Finsupp.ext
+    intro T
+    have hT : T = default := Subsingleton.elim T default
+    subst hT
+    rw [Finsupp.single_eq_same,
+      show (default : Tabloid (singleRowPartition n)) = t.tabloid from Subsingleton.elim _ _]
+    exact YoungTableau.polytabloid_apply_tabloid t
+  rw [eq_top_iff]
+  intro v _
+  have hv : v = (v default) • YoungTableau.polytabloid t := by
+    rw [hpoly]
+    apply Finsupp.ext
+    intro T
+    have hT : T = default := Subsingleton.elim T default
+    subst hT
+    simp
+  rw [hv]
+  exact Submodule.smul_mem _ _ (Submodule.subset_span ⟨t, rfl⟩)
+
+/-- The one-row Specht module is one dimensional. -/
+private noncomputable def spechtSingleRowLinearEquiv (n : ℕ) :
+    ↥(spechtSubrepresentation (singleRowPartition n)).toSubmodule ≃ₗ[ℂ] ℂ :=
+  (LinearEquiv.ofEq _ _ (spechtSubrepresentation_singleRow_eq_top n)).trans <|
+    Submodule.topEquiv.trans (Finsupp.LinearEquiv.finsuppUnique ℂ ℂ _)
+
+/-- The one-row Specht module is the trivial one-dimensional representation. -/
+private noncomputable def spechtSingleRowEquivTrivial (n : ℕ) :
+    (spechtSubrepresentation (singleRowPartition n)).toRepresentation.Equiv
+      (Representation.trivial ℂ (SymmetricGroup n) ℂ) :=
+  Representation.Equiv.mk (spechtSingleRowLinearEquiv n) fun g => by
+    ext v
+    show spechtSingleRowLinearEquiv n
+        ((spechtSubrepresentation (singleRowPartition n)).toRepresentation g v) =
+      spechtSingleRowLinearEquiv n v
+    congr 1
+    apply Subtype.ext
+    exact ofMulAction_singleRow_apply n g v.1
+
 /-- The Specht module indexed by `(n)` is the trivial representation.
 
 The first bullet in the one-dimensional-representations paragraph of Section
 1.4.2 on page 24 of Rosmanis states explicitly that `S^(n)` is the trivial
 representation. -/
-axiom spechtModule_singleRow (n : ℕ) :
+theorem spechtModule_singleRow (n : ℕ) :
   Nonempty (spechtModule (singleRowPartition n) ≅
-    𝟙_ (SymmetricGroupRepresentation n))
+    𝟙_ (SymmetricGroupRepresentation n)) := by
+  let E := spechtSingleRowEquivTrivial n
+  exact ⟨Action.mkIso E.toLinearEquiv.toFGModuleCatIso fun g => by
+    apply FGModuleCat.hom_ext
+    exact E.toIntertwiningMap.2 g⟩
 
 /-- Transpose a fixed-size Young diagram. -/
 def YoungDiagramOfSize.transpose {n : ℕ}
