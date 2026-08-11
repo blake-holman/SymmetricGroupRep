@@ -294,7 +294,7 @@
           "label": "Theorem 2.4.6"
         }
       ],
-      "state": "axiom"
+      "state": "verified"
     },
     {
       "id": "spechtModule_singleRow",
@@ -448,7 +448,16 @@
           "label": "Corollary 2.4.7"
         }
       ],
-      "state": "axiom"
+      "state": "verified",
+      "verification": {
+        "declaration_form": "theorem",
+        "signature_preserved": "compared against git show 5f00453:SymmetricGroupRep/Classification.lean; identical apart from the leading keyword",
+        "print_axioms": "[propext, Classical.choice, Quot.sound]",
+        "audit_file": "SymmetricGroupRep/AxiomAudit.lean (enforced with #guard_msgs)",
+        "build_command": "lake build",
+        "build_result": "Build completed successfully (3218 jobs)",
+        "note": "Proved in SymmetricGroupRep/Distinctness.lean. YoungDiagram.Dominates and its antisymmetry were added next to YoungDiagramOfSize. The dominance lemma counts labels: the first j rows of a nu-tabloid hold sum over i < j of nu.rowLen i labels, each column c of a mu-tableau holds at most min (mu.colLen c) j of them, and summing that bound over columns counts the cells of mu in its first j rows. The hypothesis of the counting lemma is supplied by the sign eigenvector property, which an isomorphism transports from Sagan's Lemma 2.3.3(4) on the source polytabloid."
+      }
     },
     {
       "id": "exists_iso_spechtModule",
@@ -492,7 +501,7 @@
         "spechtModule"
       ],
       "mentions_axiom": true,
-      "strategy": "kroneckerCoefficient is defined in this repository as finrank (S^xi -> S^mu tensor S^nu), so the statement is exactly the general semisimple isotypic decomposition specialised to the Specht classification. Needs Maschke semisimplicity of FDRep C (S_n), the classification of simples, and Schur's lemma to identify the multiplicity with the Hom dimension.",
+      "strategy": "kroneckerCoefficient is defined in this repository as finrank (S^xi -> S^mu tensor S^nu), so the statement is exactly the general semisimple isotypic decomposition specialised to the Specht classification. Needs Maschke semisimplicity of FDRep C (S_n), the classification of simples, and Schur's lemma to identify the multiplicity with the Hom dimension. STATUS: the general lemma this needs, SymmetricGroupRepresentation.exists_iso_biproduct_multiplicity, is now proved in SymmetricGroupRep/Decomposition.lean, and the specialisation to the Specht family typechecks: this target is one application of it, blocked only on exists_iso_spechtModule (still an axiom, so landing it now would poison the closure).",
       "sources": [
         {
           "pdf": "bowman-de-visscher-orellana-kronecker.pdf",
@@ -1428,8 +1437,8 @@
         "target_shape": "Every consuming target wants the same shape: V is isomorphic to the biproduct over i of the biproduct over Fin (finrank (S i -> V)) of S i. Proving one general lemma in that shape discharges the decomposition half of spechtModule_kronecker, symmetricGroupLeftRegular_decomposition, symmetricGroupBiregular_decomposition, youngsRule, spechtModule_littlewoodRichardson, spechtModule_branching, spechtModule_induction_branching and tensorPower_schurWeyl."
       },
       "progress": "SymmetricGroupRep/Semisimple.lean now supplies the foundation. The NeZero (Nat.card (SymmetricGroup n) : C) instance that mathlib requires but does not synthesise is proved there, and with it three mathlib instances were confirmed to fire for this project's types: Injective V and Projective V in FDRep, and IsSemisimpleModule over the group algebra. Maschke is packaged as SymmetricGroupRepresentation.exists_retraction (every mono retracts) plus an IsSplitMono instance, which is the splitting step the decomposition induction needs. Closures are [propext, Classical.choice, Quot.sound]. Remaining: the induction itself and the regrouping into the biproduct-of-isotypic-blocks shape the targets use.",
-      "status": "MAIN THEOREM PROVED as SymmetricGroupRepresentation.exists_iso_biproduct_simples in SymmetricGroupRep/Decomposition.lean: every finite-dimensional complex representation of a symmetric group is isomorphic to a finite biproduct of simples. Route was the recorded module-level one: IsSemisimpleModule.exists_linearEquiv_fin_dfinsupp on rho.asModule, then a Limits.Bicone fed to isBilimitOfTotal and biproduct.uniqueUpToIso, so the concrete shape of the biproduct is never needed.",
-      "remaining": "The decomposition is into simples with repetitions, indexed by Fin k; it is not yet grouped by isomorphism class. Deriving the shape the targets use still needs: (a) finrank (S -> sum of T) = sum of finrank (S -> T j), (b) mathlib FDRep.finrank_hom_simple_simple to turn that sum into a count, and (c) biproduct.reindex along Equiv.sigmaFiberEquiv of the classifying map - the same pattern already used in SymmetricGroupRep/Branching.lean lines 174 to 179.",
+      "status": "MAIN THEOREM PROVED as SymmetricGroupRepresentation.exists_iso_biproduct_simples in SymmetricGroupRep/Decomposition.lean: every finite-dimensional complex representation of a symmetric group is isomorphic to a finite biproduct of simples. Route was the recorded module-level one: IsSemisimpleModule.exists_linearEquiv_fin_dfinsupp on rho.asModule, then a Limits.Bicone fed to isBilimitOfTotal and biproduct.uniqueUpToIso, so the concrete shape of the biproduct is never needed. MULTIPLICITY FORM ALSO PROVED, as SymmetricGroupRepresentation.exists_iso_biproduct_multiplicity in the same module: for a family S of pairwise non-isomorphic simples that exhausts the simples, every V is the biproduct over i of finrank (S i -> V) copies of S i. Route was exactly the recorded (a)+(b)+(c).",
+      "remaining": "Nothing on the decomposition side. The multiplicity form is the shape the targets use, and it was checked against one of them: spechtModule_kronecker follows from it by a single application to the Specht family (kroneckerCoefficient is definitionally the Hom dimension it produces), with spechtModule_irreducible and spechtModule_iso_iff_eq supplying two of the three hypotheses. The one missing input is completeness, exists_iso_spechtModule, which is still an axiom; that gap is now the sole obstacle for every decomposition target rather than a missing decomposition theorem.",
       "traps_recorded": [
         "Module k[G] rho.asModule does not synthesise once an AddCommGroup on rho.asModule is fixed, because asModule derives its own AddCommMonoid which is only non-reducibly equal to the one from AddCommGroup. Every statement mentioning rho.asModule under IsSemisimpleModule, IsSimpleModule or exists_linearEquiv_fin_dfinsupp needs set_option backward.isDefEq.respectTransparency false, exactly as mathlib does in twelve of its own RepresentationTheory files. This affects elaborator defeq only; the kernel still checks the term, which the audit confirmed by control experiment.",
         "asSubmodule (ofSubmodule' P) = P holds by rfl but not reducibly, so simp lemmas about DFinsupp.lapply and lsingle silently never fire if a summand is stated via asSubmodule. State such lemmas with target type literally P instead."
@@ -1556,9 +1565,9 @@
     }
   ],
   "progress": {
-    "verified": 4,
-    "remaining": 23,
-    "remaining_axiom_declarations_in_tree": 23
+    "verified": 6,
+    "remaining": 21,
+    "remaining_axiom_declarations_in_tree": 21
   },
   "prior_art": {
     "note": "Verified independently in this session, not relayed: TauCetiProject/TauCeti is Apache-2.0 licensed, Lean 4 on mathlib, and the cited files exist at the claimed sizes with zero occurrences of sorry. It develops the Specht theory over Q using Representation and Submodule rather than FDRep C, so adopting it is a port with a base-change and categorical-wrapper step, not a copy.",

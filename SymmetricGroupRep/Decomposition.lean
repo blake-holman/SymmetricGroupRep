@@ -14,6 +14,10 @@ compare `FDRep` morphisms with intertwining maps, via `FDRep.forget₂HomLinearE
 it comes from. The declarations below supply those, and `exists_iso_biproduct_simples` assembles
 the module-level decomposition into a biproduct in `FDRep ℂ (S_n)`.
 
+That biproduct lists its simple summands with repetitions, whereas every consumer wants them
+grouped: `exists_iso_biproduct_multiplicity` regroups them along a fixed family of pairwise
+non-isomorphic simples, with each member repeated as often as its Hom-space dimension records.
+
 Statements about `Representation.asModule` need
 `set_option backward.isDefEq.respectTransparency false`, as they do throughout mathlib's own
 representation theory files: the `AddCommMonoid` carried by `ρ.asModule` and the one obtained from
@@ -85,6 +89,55 @@ section Decomposition
 open scoped MonoidAlgebra
 
 attribute [local instance] Limits.HasFiniteBiproducts.of_hasFiniteProducts
+
+namespace FDRep
+
+/-- Postcomposition with an isomorphism identifies equivariant Hom spaces. -/
+noncomputable def homCongrTarget {G : Type} [Monoid G] (W : FDRep ℂ G)
+    {V V' : FDRep ℂ G} (e : V ≅ V') :
+    (W ⟶ V) ≃ₗ[ℂ] (W ⟶ V') where
+  toFun f := f ≫ e.hom
+  invFun f := f ≫ e.inv
+  left_inv f := by simp
+  right_inv f := by simp
+  map_add' f g := by simp
+  map_smul' c f := by simp
+
+/-- Maps into a finite biproduct are freely specified componentwise. -/
+noncomputable def homBiproductLinearEquiv {G ι : Type} [Monoid G] [Fintype ι]
+    (W : FDRep ℂ G) (V : ι → FDRep ℂ G) :
+    (W ⟶ ⨁ V) ≃ₗ[ℂ] (∀ i, W ⟶ V i) where
+  toFun f i := f ≫ biproduct.π V i
+  invFun f := biproduct.lift f
+  left_inv f := by
+    ext i
+    simp
+  right_inv f := by
+    funext i
+    simp
+  map_add' f g := by
+    funext i
+    simp
+  map_smul' c f := by
+    funext i
+    simp
+
+/-- Dimension of an equivariant Hom space, kept local to the representation package. -/
+noncomputable def homFinrank {G : Type} [Monoid G] (W V : FDRep ℂ G) : Nat :=
+  Module.finrank ℂ (W ⟶ V)
+
+theorem homFinrank_iso_target {G : Type} [Monoid G]
+    (W : FDRep ℂ G) {V V' : FDRep ℂ G} (e : V ≅ V') :
+    homFinrank W V = homFinrank W V' := by
+  exact (homCongrTarget W e).finrank_eq
+
+theorem homFinrank_biproduct {G ι : Type}
+    [Group G] [Fintype ι] (W : FDRep ℂ G) (V : ι → FDRep ℂ G) :
+    homFinrank W (⨁ V) = ∑ i, homFinrank W (V i) := by
+  unfold homFinrank
+  rw [(homBiproductLinearEquiv W V).finrank_eq, Module.finrank_pi_fintype]
+
+end FDRep
 
 set_option backward.isDefEq.respectTransparency false in
 /-- Complete reducibility: every finite-dimensional complex representation of a symmetric group
@@ -160,5 +213,48 @@ theorem SymmetricGroupRepresentation.exists_iso_biproduct_simples {n : ℕ}
     rw [← map_sum, hsingle, LinearEquiv.symm_apply_apply]
     rfl
   exact ⟨k, S, hsimple, ⟨biproduct.uniqueUpToIso S (isBilimitOfTotal b htotal)⟩⟩
+
+/-- Complete reducibility in multiplicity form: if the `S i` are pairwise non-isomorphic simples
+and every simple is isomorphic to one of them, then each `V` is the biproduct of
+`finrank ℂ (S i ⟶ V)` copies of `S i`.
+
+`exists_iso_biproduct_simples` gives a biproduct of simples listed with repetitions; classifying
+each summand by the member of `S` it is isomorphic to regroups that list, and Schur's lemma
+counts each fibre as a Hom-space dimension. -/
+theorem SymmetricGroupRepresentation.exists_iso_biproduct_multiplicity {n : ℕ} {ι : Type}
+    [Finite ι] (S : ι → SymmetricGroupRepresentation n) (hsimple : ∀ i, Simple (S i))
+    (hdistinct : ∀ i j, Nonempty (S i ≅ S j) → i = j)
+    (hcomplete : ∀ T : SymmetricGroupRepresentation n, Simple T → ∃ i, Nonempty (T ≅ S i))
+    (V : SymmetricGroupRepresentation n) :
+    Nonempty (V ≅ ⨁ fun i => ⨁ fun _ : Fin (Module.finrank ℂ (S i ⟶ V)) => S i) := by
+  classical
+  obtain ⟨k, T, hT, ⟨e⟩⟩ := SymmetricGroupRepresentation.exists_iso_biproduct_simples V
+  choose c hc using fun j => hcomplete (T j) (hT j)
+  have hiff : ∀ i j, Nonempty (S i ≅ T j) ↔ c j = i := by
+    intro i j
+    refine ⟨fun ⟨f⟩ => hdistinct (c j) i ⟨(Classical.choice (hc j)).symm ≪≫ f.symm⟩, ?_⟩
+    rintro rfl
+    exact ⟨(Classical.choice (hc j)).symm⟩
+  have hcard : ∀ i, Nat.card {j // c j = i} = Module.finrank ℂ (S i ⟶ V) := by
+    intro i
+    haveI := hsimple i
+    rw [(FDRep.homCongrTarget (S i) e).finrank_eq,
+      (FDRep.homBiproductLinearEquiv (S i) T).finrank_eq, Module.finrank_pi_fintype]
+    have hterm : ∀ j, Module.finrank ℂ (S i ⟶ T j) = if c j = i then 1 else 0 := by
+      intro j
+      haveI := hT j
+      rw [FDRep.finrank_hom_simple_simple, if_congr (hiff i j) rfl rfl]
+    rw [Finset.sum_congr rfl fun j _ => hterm j, Finset.sum_boole]
+    simp [Nat.card_eq_fintype_card, Fintype.card_subtype]
+  let fiber : ι → Type := fun i => {j // c j = i}
+  let reindex : (⨁ fun j => S (c j)) ≅ ⨁ fun q : Σ i, fiber i => S q.1 :=
+    biproduct.reindex (Equiv.sigmaFiberEquiv c).symm fun q : Σ i, fiber i => S q.1
+  let regroup : (⨁ fun i => ⨁ fun _ : fiber i => S i) ≅ ⨁ fun q : Σ i, fiber i => S q.1 :=
+    biproductBiproductIso fiber fun i _ => S i
+  let resize : ∀ i, (⨁ fun _ : fiber i => S i) ≅
+      ⨁ fun _ : Fin (Module.finrank ℂ (S i ⟶ V)) => S i :=
+    fun i => biproduct.reindex (Finite.equivFinOfCardEq (hcard i)) fun _ => S i
+  exact ⟨e ≪≫ biproduct.mapIso (fun j => Classical.choice (hc j)) ≪≫ reindex ≪≫ regroup.symm ≪≫
+    biproduct.mapIso resize⟩
 
 end Decomposition

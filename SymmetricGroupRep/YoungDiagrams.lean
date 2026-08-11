@@ -1,3 +1,4 @@
+import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 import Mathlib.Combinatorics.Young.YoungDiagram
 import Mathlib.Data.Finset.Powerset
 
@@ -16,7 +17,8 @@ private theorem YoungDiagram.cell_fst_lt_card
     rw [YoungDiagram.colLen_eq_card]
     exact Finset.card_le_card (Finset.filter_subset _ _)
 
-private theorem YoungDiagram.cell_snd_lt_card
+/-- A column index of a cell is below the number of cells. -/
+theorem YoungDiagram.cell_snd_lt_card
     (μ : YoungDiagram) {c : ℕ × ℕ} (hc : c ∈ μ.cells) : c.2 < μ.card := by
   exact (YoungDiagram.mem_iff_lt_rowLen.mp hc).trans_le <| by
     rw [YoungDiagram.rowLen_eq_card]
@@ -41,6 +43,23 @@ theorem YoungDiagram.ext_of_rowLen {μ ν : YoungDiagram}
   ext ⟨row, column⟩
   rw [YoungDiagram.mem_cells, YoungDiagram.mem_cells,
     YoungDiagram.mem_iff_lt_rowLen, YoungDiagram.mem_iff_lt_rowLen, h]
+
+/-- The dominance order: `μ` dominates `ν` when every partial sum of the row lengths of `μ` is at
+least the corresponding partial sum for `ν`.
+
+See Sagan, *The Symmetric Group*, 2nd ed., Definition 2.2.2. -/
+def YoungDiagram.Dominates (μ ν : YoungDiagram) : Prop :=
+  ∀ j, ∑ i ∈ Finset.range j, ν.rowLen i ≤ ∑ i ∈ Finset.range j, μ.rowLen i
+
+/-- Dominance is antisymmetric: equal partial sums force equal row lengths. -/
+theorem YoungDiagram.Dominates.antisymm {μ ν : YoungDiagram}
+    (h : μ.Dominates ν) (h' : ν.Dominates μ) : μ = ν := by
+  refine YoungDiagram.ext_of_rowLen fun row => ?_
+  have hsum : ∀ j, ∑ i ∈ Finset.range j, μ.rowLen i = ∑ i ∈ Finset.range j, ν.rowLen i :=
+    fun j => le_antisymm (h' j) (h j)
+  have hstep := hsum (row + 1)
+  rw [Finset.sum_range_succ, Finset.sum_range_succ, hsum row] at hstep
+  omega
 
 /-- `ν` is obtained from `μ` by removing one box.
 

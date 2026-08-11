@@ -7,14 +7,22 @@ Independently confirmed target count: **27**. The inventory below was produced b
 scanning `rg -n '^\s*axiom\s+' --glob '*.lean' .` against the frozen baseline and
 extracting each declaration verbatim with `git show 5f00453:<file>`.
 
-Baseline `lake build`: succeeds (3210 jobs). Current: succeeds (3214 jobs).
+Baseline `lake build`: succeeds (3210 jobs). Current: succeeds (3218 jobs).
 
-Progress: **4 of 27 verified**, 23 `axiom` declarations remain in the tree.
+Progress: **6 of 27 verified**, 21 `axiom` declarations remain in the tree.
 
 The two pieces of shared scaffolding that gate most of the remainder — the
 isotypic decomposition and the rigid-dual character — are now proved, and
-`FDRep.simple_of_isIrreducible` reduces `spechtModule_irreducible` to a
-submodule-level statement with no category theory in it.
+`FDRep.simple_of_isIrreducible` reduced `spechtModule_irreducible` to a
+submodule-level statement with no category theory in it, which is now proved.
+Distinctness follows it: layer 2 is closed, so the only open node below the
+branching and tensor layers is completeness.
+
+The isotypic decomposition is now available in the multiplicity form the targets
+are stated in, as `SymmetricGroupRepresentation.exists_iso_biproduct_multiplicity`.
+That makes completeness the sole remaining obstacle for the decomposition
+targets: `spechtModule_kronecker`, for instance, is one application of it to the
+Specht family and nothing else.
 
 ## Mechanised completion checks
 
@@ -27,7 +35,7 @@ that drift fails loudly instead of silently:
   tree text to be the frozen signature followed by nothing but a `:=` body
   marker. It also rejects any conversion to a declaration form other than
   `theorem` or `noncomputable def`. The script was negative-tested: it catches
-  both an added hypothesis and an altered conclusion. Current status: 4/27
+  both an added hypothesis and an altered conclusion. Current status: 6/27
   converted, all 27 signatures preserved.
 - **Axiom closure.** `SymmetricGroupRep/AxiomAudit.lean` records the
   `#print axioms` closure of every converted target inside `#guard_msgs`, and is
@@ -261,12 +269,12 @@ layer. The audit script confirms 27 nodes, no directed cycle, and no edge with
 | 0 | `twoRowKostkaIndexEquiv` | noncomputable def | **verified** |
 | 0 | `standardYoungTableau_card_mul_hookProduct` | theorem | axiom |
 | 0 | `schurWeylMultiplicity_mul_hookProduct` | theorem | axiom |
-| 1 | `spechtModule_irreducible` | theorem | axiom |
+| 1 | `spechtModule_irreducible` | theorem | **verified** |
 | 1 | `spechtModule_singleRow` | theorem | **verified** |
 | 1 | `spechtModule_selfDual` | theorem | axiom |
 | 1 | `exists_spechtTableauBasis` | theorem | axiom |
 | 1 | `twoRowKostkaIndexEquiv_shape` | theorem | **verified** |
-| 2 | `spechtModule_iso_iff_eq` | theorem | axiom |
+| 2 | `spechtModule_iso_iff_eq` | theorem | **verified** |
 | 3 | `exists_iso_spechtModule` | theorem | axiom |
 | 4 | `spechtModule_kronecker` | theorem | axiom |
 | 4 | `symmetricGroupLeftRegular_decomposition` | theorem | axiom |
@@ -285,6 +293,10 @@ layer. The audit script confirms 27 nodes, no directed cycle, and no edge with
 | 6 | `spechtOrthogonalBasis_adjacentTransposition` | theorem | axiom |
 
 ## Global blocker
+
+Resolved: `spechtModule` is now a checked `noncomputable def`, so the 20 targets
+that mention it in their statements are no longer blocked by it. The record of
+why it was the critical path is kept below.
 
 `spechtModule` is data-valued and appears in the statement of 20 of the other 26
 targets. While it remains an `axiom`, every one of those 20 has a `#print axioms`
@@ -334,15 +346,19 @@ What mathlib already gives us, and which nodes it serves:
 What does **not** exist and must be built as shared infrastructure. None of these
 is itself a frozen target, so each is an ordinary supporting development:
 
-1. **Isotypic decomposition in `FDRep`.** Mathlib has no `IsSemisimpleCategory`
-   class and no theorem writing an object of an abelian category as a biproduct
-   of simples. The module-level results
-   (`IsSemisimpleModule.exists_sSupIndep_sSup_simples_eq_top`,
-   `Mathlib/RingTheory/SimpleModule/Isotypic.lean`) are the realistic route, then
-   transported across `Representation.asModule`. Needed by
+1. **Isotypic decomposition in `FDRep`** — **now proved locally**, in both the
+   form mathlib's module theory hands over and the form the targets are stated
+   in. Mathlib has no `IsSemisimpleCategory` class and no theorem writing an
+   object of an abelian category as a biproduct of simples; the route taken was
+   the module-level one
+   (`IsSemisimpleModule.exists_linearEquiv_fin_dfinsupp`) transported across
+   `Representation.asModule`, giving
+   `SymmetricGroupRepresentation.exists_iso_biproduct_simples`, followed by
+   `SymmetricGroupRepresentation.exists_iso_biproduct_multiplicity`, which
+   regroups the repetitions into multiplicities. Needed by
    `spechtModule_kronecker`, `youngsRule`, `spechtModule_littlewoodRichardson`,
    `spechtModule_branching`, `tensorPower_schurWeyl`, and both regular
-   decompositions. This is the single largest piece of shared scaffolding.
+   decompositions. This was the single largest piece of shared scaffolding.
 2. **Equal characters imply isomorphic**, for `FDRep ℂ G` with `G` finite. Only
    the forward direction `FDRep.char_iso` exists. Needed by
    `spechtModule_selfDual` and `spechtModule_tensor_sign`. Follows from item 1
@@ -477,13 +493,59 @@ so adopting it is a port with base change and a categorical wrapper, not a copy 
 and every ported result still has to clear this project's own `#print axioms`
 audit.
 
-## Next step: irreducibility
+## Next step: completeness
 
-With `spechtModule` constructed, the next layer is `spechtModule_irreducible`
-via Sagan's submodule theorem: the tabloid-orthonormal bilinear form on `M^μ`,
-the Sign Lemma 2.4.1, Corollary 2.4.3 that the column antisymmetriser sends
-`M^μ` into the line spanned by `e_t`, and Theorem 2.4.4. `spechtModule_singleRow`
-and `spechtModule_selfDual` are also unblocked and are cheaper.
+With distinctness proved, layer 3 is `exists_iso_spechtModule`, the last node
+below the branching and tensor layers. It is a counting argument, and the count
+is the problem: the distinct Specht modules give an injection from
+`YoungDiagramOfSize n` into the isomorphism classes of simples, and completeness
+is exactly the statement that this injection is onto, which needs an upper bound
+on the number of simples. Four pieces are missing, and a reconnaissance of both
+mathlib and the prior art puts the work well beyond any of the nodes closed so
+far.
+
+1. **At most as many simples as conjugacy classes.** Absent from mathlib —
+   `ConjClasses` is never mentioned anywhere under
+   `Mathlib/RepresentationTheory/`. `TauCetiProject/TauCeti` does have
+   `card_simpleSubmoduleClasses_le_card_conjClasses`, but its 65 lines are a
+   two-line proof on top of two developments that are themselves absent from
+   mathlib: `finrank_center_monoidAlgebra` (the class sums are a basis of the
+   centre of `k[G]`, in their `CharacterTable/ClassSum/Basis.lean`) and
+   `card_isotypicComponents_le_finrank_center` (in their
+   `RingTheory/Semisimple/CenterDimension.lean`). Porting the pair is the bulk
+   of the node.
+2. **A small index for the simples.** `FDRep ℂ (S_n)` is a large type, so
+   "number of isomorphism classes of simples" cannot be `Nat.card` of a quotient
+   of it. TauCeti's answer is to count simple submodules of the regular module
+   instead; whichever route is taken, the count has to be moved back to
+   `FDRep ℂ (S_n)` objects, which is a further step this package has not built.
+3. **`ConjClasses (Equiv.Perm (Fin n)) ≃ Nat.Partition n`.** Mathlib has both
+   halves — `Equiv.Perm.partition_eq_of_isConj` and
+   `Equiv.Perm.exists_with_cycleType_iff` — but not the bijection.
+4. **`YoungDiagramOfSize n ≃ Nat.Partition n`.** `YoungDiagram` and
+   `Nat.Partition` never appear in the same mathlib file.
+   `YoungDiagram.equivListRowLens` is the natural start; the sorted-list to
+   multiset step is where the work is.
+
+A character-theoretic route over `ℂ` would replace items 1 and 2 by "the
+irreducible characters span the class functions", using
+`FDRep.char_orthonormal`, which mathlib does have. That trades the ring theory
+for the dimension of the space of class functions, which mathlib does not have
+either, and still needs items 3 and 4. It also has the advantage of never
+needing "equal characters imply isomorphic": a nonzero coefficient
+`⟪χ_V, χ_μ⟫ = finrank (V ⟶ S^μ)` already produces a nonzero map between two
+simples, which Schur upgrades to an isomorphism.
+
+Completeness has also become the *only* thing missing for the decomposition
+targets. With `exists_iso_biproduct_multiplicity` proved, the Specht family
+already satisfies two of that lemma's three hypotheses —
+`spechtModule_irreducible` and `spechtModule_iso_iff_eq` — and the third is
+exactly `exists_iso_spechtModule`. Supplying it turns `spechtModule_kronecker`
+into a single application, checked by elaborating the specialisation against the
+axiom without landing it.
+
+`spechtModule_selfDual` and `standardYoungTableau_card_mul_hookProduct` remain
+independently available and are much smaller.
 
 ## Resolved apparent cycles
 
@@ -604,3 +666,171 @@ closes the goal.
 Verification: `#print axioms spechtModule_singleRow` is
 `[propext, Classical.choice, Quot.sound]`, recorded under `#guard_msgs`;
 `lake build` green at 3214 jobs with no warnings.
+
+### Layer 1: `spechtModule_irreducible`
+
+Sagan's Submodule Theorem 2.4.4 and Theorem 2.4.6, over `ℂ`, in the new module
+`SymmetricGroupRep/SubmoduleTheorem.lean`. `FDRep.simple_of_isIrreducible`
+reduces the target to `Representation.IsIrreducible` of
+`(spechtSubrepresentation μ).toRepresentation`, so the whole proof lives at
+submodule level and the conversion itself is a one-liner.
+
+Three pieces make it up.
+
+- **The counting lemma** `YoungTableau.column_lt_rowLen_of_injective`: if a label
+  is determined by its row in a tabloid `U` together with its column in a tableau
+  `t`, then those two indices are again the coordinates of a cell of `μ`. The
+  labels in the first `k` columns of `t` number `∑ i, min (μ.rowLen i) k`, while
+  row `i` of `U` holds at most `min (μ.rowLen i) k` of them — at most `rowLen i`
+  because that is the length of the row, and at most `k` because the labels in
+  one row of `U` have distinct columns in `t`. Upper bounds that add up to the
+  total are equalities, and `k = μ.rowLen i` is the statement. This is the only
+  real combinatorics in the file; the rest is bookkeeping.
+- **Sagan's Corollary 2.4.3** `YoungTableau.columnAntisymmetriser_single_mem_span`:
+  the column antisymmetriser `κ_t` sends a tabloid into the line spanned by the
+  polytabloid `e_t`. Either two labels share a row of `U` and a column of `t`, and
+  their transposition is an odd element of the column group fixing `U`, so `κ_t U`
+  equals its own negative; or none do, and the counting lemma exhibits `U` as a
+  column permutation of the tabloid of `t`, which `κ_t` absorbs through its sign.
+- **The tabloid form** `tabloidForm`, taken Hermitian rather than bilinear. Over
+  `ℚ` Sagan's form is positive definite for free; over `ℂ` a symmetric bilinear
+  form can be degenerate on `S^μ` for all this argument says, and the submodule
+  theorem alone does not exclude it, so the second argument is conjugated. The
+  form is then positive definite, `S^μ ∩ (S^μ)^⊥ = 0` is immediate, and
+  `G`-invariance survives because the permutation matrices are real.
+
+`spechtSubrepresentation_le_or_forall_tabloidForm_eq_zero` is the submodule
+theorem, and `isIrreducible_spechtSubrepresentation` reads it back as
+`IsSimpleOrder (Subrepresentation …)` by pushing a subrepresentation of `S^μ`
+forward along the inclusion into `M^μ`.
+
+The mathematics follows `TauCetiProject/TauCeti` (Apache-2.0), files
+`RepresentationTheory/Symmetric/Specht/SubmoduleTheorem.lean`,
+`RepresentationTheory/Symmetric/Vanishing.lean` and
+`Combinatorics/Young/Tableau.lean`; the credit is recorded on each adapted
+declaration. Nothing was copied: their development is over `ℚ`, states the
+Specht module through a quotient-of-cosets tabloid and a group-algebra
+symmetriser, and their form is bilinear, so every proof was rewritten against
+this package's `Tabloid` structure, `YoungTableau.columnGroup` and the Hermitian
+form.
+
+Verification:
+
+- `#print axioms spechtModule_irreducible`:
+  `[propext, Classical.choice, Quot.sound]`, recorded in `AxiomAudit.lean` under
+  `#guard_msgs`.
+- `lake build`: `Build completed successfully (3217 jobs)`, no warnings.
+- `python3 docs/verify_frozen_signatures.py`: exit 0, 5/27 converted.
+
+### Layer 2: `spechtModule_iso_iff_eq`
+
+Sagan's Proposition 2.4.5 and the distinctness half of Theorem 2.4.6, over `ℂ`,
+in the new module `SymmetricGroupRep/Distinctness.lean`. The dominance order was
+added next to `YoungDiagramOfSize` as `YoungDiagram.Dominates` — partial sums of
+row lengths, compared termwise — together with
+`YoungDiagram.Dominates.antisymm`, which is `YoungDiagram.ext_of_rowLen` applied
+to consecutive differences of equal partial sums. The conversion itself then
+reads: an isomorphism gives dominance each way, and antisymmetry gives equality.
+
+Three pieces make up the dominance statement.
+
+- **`YoungTableau.dominates_of_injective`**, the dominance lemma: if a label is
+  determined by its row in a tabloid `S` of shape `ν` together with its column
+  in a tableau `t` of shape `μ`, then `μ ⊵ ν`. The labels in the first `j` rows
+  of `S` number `∑ i < j, ν.rowLen i`; each column `c` of `t` holds at most
+  `min (μ.colLen c) j` of them, at most `μ.colLen c` because that is the length
+  of the column and at most `j` because those labels have distinct rows in `S`;
+  and summing that bound over the columns of `t` counts exactly the cells of `μ`
+  in its first `j` rows, which is `∑ i < j, μ.rowLen i`. The last equality is
+  read off the tableau itself rather than proved about diagrams: `t` is a
+  bijection from labels to cells, so both sides are fiberwise counts of the same
+  label set.
+- **`YoungTableau.dominates_of_smul_eq_sign_smul`**, Proposition 2.4.5 in
+  eigenvector form: a nonzero vector of `M^ν` that the column group of a
+  `μ`-tableau scales by the sign forces `μ ⊵ ν`. Take a tabloid where the vector
+  has a nonzero coefficient; two labels sharing a row of it and a column of `t`
+  would give an odd column permutation fixing it, so the coefficient would equal
+  its own negative. Hence no two do, and the dominance lemma applies.
+- **`dominates_of_iso_spechtSubrepresentation`**, the transport to `FDRep`. An
+  isomorphism is injective, so it sends the polytabloid of a tableau — nonzero
+  by `polytabloid_ne_zero` — to a nonzero vector of `S^ν`, hence of `M^ν`; and
+  equivariance turns `YoungTableau.smul_polytabloid_of_mem_columnGroup`, which
+  is Sagan's Sign Lemma 2.4.1 for the column group, into the sign eigenvector
+  property there. The statement is phrased with `FDRep.of (spechtSubrepresentation _)`
+  rather than `spechtModule`, which is definitionally the same thing, so that
+  the module can sit below `Classification.lean`.
+
+One existing declaration was generalised rather than duplicated:
+`YoungTableau.exists_mem_columnGroup_sign_eq_neg_one` in `SubmoduleTheorem.lean`
+now allows the tabloid a shape of its own, since its proof reads only the rows
+of the tabloid and the columns of the tableau. The two counting lemmas in
+`Distinctness.lean` are `private` and are the transposes of the ones in
+`SubmoduleTheorem.lean`; unifying the two pairs would need a transpose operation
+on tableaux, which is more machinery than it would save.
+
+`TauCetiProject/TauCeti` (Apache-2.0) proves the same theorem in
+`RepresentationTheory/Symmetric/Specht/Distinctness.lean`, but by a different
+route — a group-algebra column symmetriser transported along a permutation
+congruence between the label sets of the two shapes — so nothing here is adapted
+from it. The counting lemmas are transposes of ones in `SubmoduleTheorem.lean`,
+whose credit to that package stands.
+
+Verification:
+
+- `#print axioms spechtModule_iso_iff_eq`:
+  `[propext, Classical.choice, Quot.sound]`, recorded in `AxiomAudit.lean` under
+  `#guard_msgs`.
+- `lake build`: `Build completed successfully (3218 jobs)`, no warnings.
+- `python3 docs/verify_frozen_signatures.py`: exit 0, 6/27 converted.
+
+### Shared infrastructure: the multiplicity form of the decomposition
+
+No target was converted in this step; the isotypic decomposition was completed
+instead. `SymmetricGroupRepresentation.exists_iso_biproduct_simples` produces a
+biproduct of simples listed *with repetitions*, indexed by `Fin k`, whereas every
+consuming target names each simple once and records how often it occurs.
+`SymmetricGroupRepresentation.exists_iso_biproduct_multiplicity` in
+`Decomposition.lean` bridges the two, in the general form: for a family `S` of
+pairwise non-isomorphic simples that exhausts the simples, every `V` satisfies
+
+```lean
+V ≅ ⨁ i, ⨁ _ : Fin (Module.finrank ℂ (S i ⟶ V)), S i
+```
+
+The proof classifies each summand `T j` by the member of `S` it is isomorphic to,
+giving `c : Fin k → ι`, and then does two independent things with `c`. The
+multiplicities are counted through Schur's lemma: `finrank ℂ (S i ⟶ V)` equals
+`∑ j, finrank ℂ (S i ⟶ T j)` by `FDRep.homCongrTarget` and
+`FDRep.homBiproductLinearEquiv`, each term is `1` or `0` by
+`FDRep.finrank_hom_simple_simple`, and the resulting count is `Nat.card` of the
+fibre of `c` over `i` — the two hypotheses on `S` are what make the term `1`
+exactly when `c j = i`. The isomorphism itself is assembled by
+`biproduct.reindex` along `Equiv.sigmaFiberEquiv c`, `biproductBiproductIso` to
+regroup, and a second `biproduct.reindex` sending each fibre to `Fin` of its
+cardinality, which is where the count is consumed.
+
+The five general `FDRep` Hom lemmas the proof needed already existed in
+`ElementDistinctness.lean` — `homFinrank`, `homCongrTarget`,
+`homBiproductLinearEquiv`, `homFinrank_iso_target`, `homFinrank_biproduct` — but
+that module sits far above `Decomposition.lean` in the import order, and it is
+imported by nothing, so `lake build` never checked it. They were moved down into
+`Decomposition.lean` unchanged, rather than duplicated; `ElementDistinctness.lean`
+keeps `outerTensorIso`, which depends on modules above, and still compiles.
+
+Verification:
+
+- `#print axioms SymmetricGroupRepresentation.exists_iso_biproduct_multiplicity`:
+  `[propext, Classical.choice, Quot.sound]`, recorded in `AxiomAudit.lean` under
+  `#guard_msgs`.
+- `lake build`: `Build completed successfully (3218 jobs)`, no warnings.
+  `ElementDistinctness.lean`, which the build does not reach, was compiled
+  separately with `lake env lean` and is clean.
+- `python3 docs/verify_frozen_signatures.py`: exit 0, still 6/27 converted, all
+  27 signatures preserved.
+
+`spechtModule_kronecker` was **not** converted, on purpose. Its
+`kroneckerCoefficient` is by definition the Hom dimension this lemma produces, so
+the target is one application of the lemma to the Specht family — and the
+application was elaborated to confirm exactly that — but its completeness
+hypothesis can only come from `exists_iso_spechtModule`, which is still an axiom.
+Landing it now would close a frozen target through a project axiom.

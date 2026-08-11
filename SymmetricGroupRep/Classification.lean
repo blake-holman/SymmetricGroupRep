@@ -1,5 +1,6 @@
-import SymmetricGroupRep.Polytabloid
-import SymmetricGroupRep.Semisimple
+import SymmetricGroupRep.Decomposition
+import SymmetricGroupRep.Distinctness
+import SymmetricGroupRep.SubmoduleTheorem
 
 open CategoryTheory
 
@@ -12,13 +13,17 @@ noncomputable def spechtModule {n : ℕ} (μ : YoungDiagramOfSize n) : Symmetric
 /-- Every complex Specht module is irreducible.
 
 See Sagan, *The Symmetric Group*, 2nd ed., Theorem 2.4.6. -/
-axiom spechtModule_irreducible {n : ℕ} (μ : YoungDiagramOfSize n) : Simple (spechtModule μ)
+theorem spechtModule_irreducible {n : ℕ} (μ : YoungDiagramOfSize n) : Simple (spechtModule μ) :=
+  FDRep.simple_of_isIrreducible _
 
 /-- Complex Specht modules are isomorphic exactly when their Young diagrams agree.
 
 See Sagan, *The Symmetric Group*, 2nd ed., Theorem 2.4.6. -/
-axiom spechtModule_iso_iff_eq {n : ℕ} (μ ν : YoungDiagramOfSize n) :
-  Nonempty (spechtModule μ ≅ spechtModule ν) ↔ μ = ν
+theorem spechtModule_iso_iff_eq {n : ℕ} (μ ν : YoungDiagramOfSize n) :
+  Nonempty (spechtModule μ ≅ spechtModule ν) ↔ μ = ν :=
+  ⟨fun ⟨f⟩ => Subtype.ext ((dominates_of_iso_spechtSubrepresentation μ ν f).antisymm
+      (dominates_of_iso_spechtSubrepresentation ν μ f.symm)),
+    fun h => h ▸ ⟨Iso.refl _⟩⟩
 
 /-- Every irreducible complex representation of `S_n` is isomorphic to a Specht module.
 

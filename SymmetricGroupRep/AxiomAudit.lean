@@ -30,6 +30,14 @@ the standard kernel principles mathlib itself already relies on.
 #guard_msgs in
 #print axioms spechtModule_singleRow
 
+/-- info: 'spechtModule_irreducible' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms spechtModule_irreducible
+
+/-- info: 'spechtModule_iso_iff_eq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms spechtModule_iso_iff_eq
+
 /-! The shared infrastructure the remaining targets are built on is guarded here
 too, so that a regression in it fails the build rather than surfacing later as a
 mysteriously unprovable target. -/
@@ -49,3 +57,11 @@ Quot.sound]
 -/
 #guard_msgs in
 #print axioms SymmetricGroupRepresentation.exists_iso_biproduct_simples
+
+/--
+info: 'SymmetricGroupRepresentation.exists_iso_biproduct_multiplicity' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs in
+#print axioms SymmetricGroupRepresentation.exists_iso_biproduct_multiplicity

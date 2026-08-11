@@ -12,40 +12,6 @@ noncomputable section
 
 namespace FDRep
 
-/-- Dimension of an equivariant Hom space, kept local to the representation package. -/
-def homFinrank {G : Type} [Monoid G] (W V : FDRep ℂ G) : Nat :=
-  Module.finrank ℂ (W ⟶ V)
-
-/-- Postcomposition with an isomorphism identifies equivariant Hom spaces. -/
-def homCongrTarget {G : Type} [Monoid G] (W : FDRep ℂ G)
-    {V V' : FDRep ℂ G} (e : V ≅ V') :
-    (W ⟶ V) ≃ₗ[ℂ] (W ⟶ V') where
-  toFun f := f ≫ e.hom
-  invFun f := f ≫ e.inv
-  left_inv f := by simp
-  right_inv f := by simp
-  map_add' f g := by simp
-  map_smul' c f := by simp
-
-/-- Maps into a finite biproduct are freely specified componentwise. -/
-def homBiproductLinearEquiv {G ι : Type} [Monoid G] [Fintype ι]
-    (W : FDRep ℂ G) (V : ι → FDRep ℂ G) :
-    (W ⟶ ⨁ V) ≃ₗ[ℂ] (∀ i, W ⟶ V i) where
-  toFun f i := f ≫ biproduct.π V i
-  invFun f := biproduct.lift f
-  left_inv f := by
-    ext i
-    simp
-  right_inv f := by
-    funext i
-    simp
-  map_add' f g := by
-    funext i
-    simp
-  map_smul' c f := by
-    funext i
-    simp
-
 /-- Outer tensor products carry isomorphisms in both factors. -/
 def outerTensorIso {G H : Type} [Monoid G] [Monoid H]
     {V V' : FDRep ℂ G} {W W' : FDRep ℂ H}
@@ -64,17 +30,6 @@ def outerTensorIso {G H : Type} [Monoid G] [Monoid H]
   exact Action.mkIso E.toLinearEquiv.toFGModuleCatIso fun gh => by
     apply FGModuleCat.hom_ext
     exact E.toIntertwiningMap.2 gh
-
-theorem homFinrank_iso_target {G : Type} [Monoid G]
-    (W : FDRep ℂ G) {V V' : FDRep ℂ G} (e : V ≅ V') :
-    homFinrank W V = homFinrank W V' := by
-  exact (homCongrTarget W e).finrank_eq
-
-theorem homFinrank_biproduct {G ι : Type}
-    [Group G] [Fintype ι] (W : FDRep ℂ G) (V : ι → FDRep ℂ G) :
-    homFinrank W (⨁ V) = ∑ i, homFinrank W (V i) := by
-  unfold homFinrank
-  rw [(homBiproductLinearEquiv W V).finrank_eq, Module.finrank_pi_fintype]
 
 end FDRep
 
