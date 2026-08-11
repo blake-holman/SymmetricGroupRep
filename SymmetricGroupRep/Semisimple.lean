@@ -1,4 +1,5 @@
 import SymmetricGroupRep.Basic
+import Mathlib.RepresentationTheory.Character
 import Mathlib.RepresentationTheory.FinGroupCharZero
 import Mathlib.RepresentationTheory.Maschke
 import Mathlib.RepresentationTheory.Subrepresentation
@@ -9,9 +10,13 @@ Mathlib's Maschke-derived instances — `IsSemisimpleModule` over the group
 algebra, and `Injective` and `Projective` in `FDRep` — are all gated on
 `NeZero (Nat.card G : k)`, which does not synthesise on its own. Supplying it
 once here makes complete reducibility available throughout the package.
+
+The character of the rigid dual is recorded here too, since it is the other
+fact about `FDRep ℂ (S_n)` that mathlib leaves to its callers.
 -/
 
 open CategoryTheory
+open scoped MonoidalCategory
 
 noncomputable instance symmetricGroupCardNeZero (n : ℕ) :
     NeZero (Nat.card (SymmetricGroup n) : ℂ) := by
@@ -57,3 +62,19 @@ theorem Subrepresentation.exists_retraction_toFDRepHom {n : ℕ}
     ∃ r : V ⟶ FDRep.of W.toRepresentation,
       Subrepresentation.toFDRepHom V W ≫ r = 𝟙 _ :=
   SymmetricGroupRepresentation.exists_retraction _
+
+/-- The character of the rigid dual `Vᘁ` at `g` is the character of `V` at `g⁻¹`.
+
+Mathlib's `FDRep.char_dual` states this only for `FDRep.of (Representation.dual V.ρ)`,
+and its own TODO records the omission. `Action.rightDual_ρ` identifies the action
+of `Vᘁ` with the right adjoint mate of the action of `g⁻¹`, and
+`rightAdjointMate_comp_evaluation` read at `x ⊗ₜ v` says that mate is the transpose. -/
+theorem FDRep.char_rightDual {n : ℕ} (V : SymmetricGroupRepresentation n)
+    (g : SymmetricGroup n) : (Vᘁ).character g = V.character g⁻¹ := by
+  have hρ : (Vᘁ).ρ g = Module.Dual.transpose (V.ρ g⁻¹) := by
+    rw [← FDRep.hom_hom_action_ρ Vᘁ g, Action.rightDual_ρ]
+    exact LinearMap.ext fun x => LinearMap.ext fun v =>
+      congrArg (fun m : V.Vᘁ ⊗ V.V ⟶ 𝟙_ (FGModuleCat ℂ) => m.hom.hom (x ⊗ₜ[ℂ] v))
+        (rightAdjointMate_comp_evaluation (Action.ρ V g⁻¹))
+  simp only [FDRep.character, hρ]
+  exact LinearMap.trace_transpose' (V.ρ g⁻¹)

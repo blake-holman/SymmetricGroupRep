@@ -3,6 +3,7 @@ import SymmetricGroupRep.Biregular
 import SymmetricGroupRep.BranchingBasis
 import SymmetricGroupRep.BranchingOperators
 import SymmetricGroupRep.CharacterProjector
+import SymmetricGroupRep.Decomposition
 import SymmetricGroupRep.Dimensions
 import SymmetricGroupRep.HookLength
 import SymmetricGroupRep.KSubsets

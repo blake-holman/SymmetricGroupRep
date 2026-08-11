@@ -11,6 +11,11 @@ Baseline `lake build`: succeeds (3210 jobs). Current: succeeds (3214 jobs).
 
 Progress: **4 of 27 verified**, 23 `axiom` declarations remain in the tree.
 
+The two pieces of shared scaffolding that gate most of the remainder — the
+isotypic decomposition and the rigid-dual character — are now proved, and
+`FDRep.simple_of_isIrreducible` reduces `spechtModule_irreducible` to a
+submodule-level statement with no category theory in it.
+
 ## Mechanised completion checks
 
 Two of the completion checks are now enforced rather than inspected by hand, so
@@ -352,10 +357,14 @@ is itself a frozen target, so each is an ordinary supporting development:
 5. **`YoungDiagramOfSize n ≃ Nat.Partition n`.** `YoungDiagram` and
    `Nat.Partition` are never mentioned in the same mathlib file.
    `YoungDiagram.equivListRowLens` is the natural starting point.
-6. **`(Vᘁ).character g = V.character g⁻¹` for the rigid dual.** Mathlib states
+6. **`(Vᘁ).character g = V.character g⁻¹` for the rigid dual** — **now proved
+   locally** as `FDRep.char_rightDual` in `Semisimple.lean`. Mathlib states
    `FDRep.char_dual` only for `FDRep.of (Representation.dual V.ρ)` and its own
-   TODO notes the gap. `Action.rightDual_ρ` supplies the bridge. Needed by
-   `spechtModule_selfDual` and `symmetricGroupBiregular_decomposition`.
+   source TODO asks for the rigid form. An earlier note here blamed a coercion
+   mismatch; that diagnosis was wrong — the real gap was the missing
+   identification of `FGModuleCat`'s right adjoint mate with
+   `Module.Dual.transpose`, and the way through is
+   `rightAdjointMate_comp_evaluation` read at an element.
 7. **Character of an induced representation**, and `Rep.ind` along a
    finite-index inclusion as a coset-indexed direct sum. Neither exists.
    `Rep.coindToInd` is defined as a sum over right cosets and is the closest
