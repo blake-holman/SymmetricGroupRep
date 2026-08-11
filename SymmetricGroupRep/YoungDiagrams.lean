@@ -11,7 +11,8 @@ Pieri rules.
 /-- A Young diagram with exactly `n` boxes. -/
 abbrev YoungDiagramOfSize (n : ℕ) := { μ : YoungDiagram // μ.card = n }
 
-private theorem YoungDiagram.cell_fst_lt_card
+/-- A row index of a cell is below the number of cells. -/
+theorem YoungDiagram.cell_fst_lt_card
     (μ : YoungDiagram) {c : ℕ × ℕ} (hc : c ∈ μ.cells) : c.1 < μ.card := by
   exact (YoungDiagram.mem_iff_lt_colLen.mp hc).trans_le <| by
     rw [YoungDiagram.colLen_eq_card]
@@ -35,6 +36,8 @@ noncomputable instance (n : ℕ) : Finite (YoungDiagramOfSize n) := by
   exact Finite.of_injective cells fun μ ν h => by
     apply Subtype.ext
     exact YoungDiagram.ext (congrArg Subtype.val h)
+
+noncomputable instance (n : ℕ) : Fintype (YoungDiagramOfSize n) := Fintype.ofFinite _
 
 /-- A Young diagram is determined by its row lengths. -/
 theorem YoungDiagram.ext_of_rowLen {μ ν : YoungDiagram}

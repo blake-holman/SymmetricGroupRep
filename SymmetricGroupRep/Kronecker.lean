@@ -1,4 +1,5 @@
 import SymmetricGroupRep.LittlewoodRichardson
+import SymmetricGroupRep.SignTwist
 import SymmetricGroupRep.YoungPermutation
 
 open CategoryTheory CategoryTheory.Limits
@@ -129,13 +130,6 @@ theorem spechtModule_singleRow (n : ℕ) :
     apply FGModuleCat.hom_ext
     exact E.toIntertwiningMap.2 g⟩
 
-/-- Transpose a fixed-size Young diagram. -/
-def YoungDiagramOfSize.transpose {n : ℕ}
-    (μ : YoungDiagramOfSize n) : YoungDiagramOfSize n :=
-  ⟨μ.val.transpose, by
-    rw [YoungDiagram.card]
-    simpa [YoungDiagram.transpose] using μ.property⟩
-
 /-- Tensoring a Specht module with the sign representation transposes its
 Young diagram.
 
@@ -143,10 +137,17 @@ James, *The Representation Theory of the Symmetric Groups*, Lecture Notes in
 Mathematics 682 (1978), equation (6.6) and Theorem 6.7 on page 25, gives the
 conjugate-partition identity after base change to `ℂ`; the self-duality remark
 following the theorem removes the displayed dual. The source is indexed in
-`refs/README.md`. -/
-axiom spechtModule_tensor_sign {n : ℕ} (μ : YoungDiagramOfSize n) :
+`refs/README.md`.
+
+The proof replaces James's dimension count by Schur's lemma:
+`spechtModule_transpose_iso_spechtSignTwist` produces a nonzero map between two
+irreducibles, and `spechtSignTwist_iso_tensor_sign` identifies the sign twist
+with the tensor product. -/
+theorem spechtModule_tensor_sign {n : ℕ} (μ : YoungDiagramOfSize n) :
   Nonempty (spechtModule (YoungDiagramOfSize.transpose μ) ≅
-    spechtModule μ ⊗ SymmetricGroupRepresentation.sign n)
+    spechtModule μ ⊗ SymmetricGroupRepresentation.sign n) :=
+  ⟨(spechtModule_transpose_iso_spechtSignTwist μ).some ≪≫
+    (spechtSignTwist_iso_tensor_sign μ).some⟩
 
 /-- Transport a Young diagram across an equality of its size. -/
 def YoungDiagramOfSize.cast {m n : ℕ} (h : m = n)

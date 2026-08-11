@@ -1,43 +1,9 @@
 import SymmetricGroupRep.Branching
 import SymmetricGroupRep.HookLength
-import Mathlib.Algebra.Category.ModuleCat.Biproducts
-import Mathlib.LinearAlgebra.Dimension.Constructions
-import Mathlib.LinearAlgebra.Dimension.StrongRankCondition
 
 open CategoryTheory CategoryTheory.Limits
 
 attribute [local instance] Limits.HasFiniteBiproducts.of_hasFiniteProducts
-
-universe u
-
-private noncomputable def FDRep.biproductLinearEquivPi
-    {k G : Type u} [Field k] [Group G]
-    {ι : Type} [Finite ι] (f : ι → FDRep k G) :
-    ((⨁ f : FDRep k G) : Type u) ≃ₗ[k] ∀ i, f i := by
-  let forgetAction := Action.forget (FGModuleCat k) G
-  let forgetFG := forget₂ (FGModuleCat k) (ModuleCat k)
-  let e₁ : forgetAction.obj (⨁ f) ≅ ⨁ fun i => forgetAction.obj (f i) :=
-    forgetAction.mapBiproduct f
-  let e₂ :
-      forgetFG.obj (⨁ fun i => forgetAction.obj (f i)) ≅
-        ⨁ fun i => forgetFG.obj (forgetAction.obj (f i)) :=
-    forgetFG.mapBiproduct (fun i => forgetAction.obj (f i))
-  let e₃ :
-      (⨁ fun i => forgetFG.obj (forgetAction.obj (f i))) ≅
-        ModuleCat.of k (∀ i, f i) :=
-    ModuleCat.biproductIsoPi _
-  exact (FGModuleCat.isoToLinearEquiv e₁).trans
-    (e₂.toLinearEquiv.trans e₃.toLinearEquiv)
-
-/-- Finrank is additive across a finite biproduct of finite-dimensional
-representations. -/
-theorem FDRep.finrank_biproduct
-    {k G : Type u} [Field k] [Group G]
-    {ι : Type} [Fintype ι] (f : ι → FDRep k G) :
-    Module.finrank k ((⨁ f : FDRep k G) : Type u) =
-      ∑ i, Module.finrank k (f i) := by
-  rw [(FDRep.biproductLinearEquivPi f).finrank_eq,
-    Module.finrank_pi_fintype]
 
 /-- The dimension of `S^μ` is the number of standard tableaux of shape `μ`. -/
 theorem spechtModule_finrank_eq_card_standardYoungTableau {n : ℕ}

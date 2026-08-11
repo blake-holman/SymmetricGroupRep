@@ -97,6 +97,27 @@ theorem Tabloid.smul_rowOf {n : ℕ} {mu : YoungDiagramOfSize n}
     (sigma • T).rowOf i = T.rowOf (sigma⁻¹ i) :=
   rfl
 
+/-- Two tabloids of the same shape place the same number of labels in each row, so some
+permutation carries one to the other. -/
+instance {n : ℕ} (mu : YoungDiagramOfSize n) :
+    MulAction.IsPretransitive (SymmetricGroup n) (Tabloid mu) where
+  exists_smul_eq T U := by
+    have card_row : ∀ (V : Tabloid mu) (row : Fin n),
+        Fintype.card {i : Fin n // V.rowOf i = row} = mu.val.rowLen row := fun V row => by
+      rw [Fintype.card_subtype, ← V.content (row : ℕ)]
+      simp [Fin.ext_iff]
+    let fibers : (Σ row : Fin n, {i : Fin n // T.rowOf i = row}) ≃
+        Σ row : Fin n, {i : Fin n // U.rowOf i = row} :=
+      Equiv.sigmaCongrRight fun row =>
+        Fintype.equivOfCardEq ((card_row T row).trans (card_row U row).symm)
+    let sigma : SymmetricGroup n := (Equiv.sigmaFiberEquiv T.rowOf).symm.trans
+      (fibers.trans (Equiv.sigmaFiberEquiv U.rowOf))
+    have key : ∀ j : Fin n, U.rowOf (sigma j) = T.rowOf j := fun j =>
+      (fibers ((Equiv.sigmaFiberEquiv T.rowOf).symm j)).2.2
+    refine ⟨sigma, Tabloid.ext (funext fun i => ?_)⟩
+    rw [Tabloid.smul_rowOf, ← key (sigma⁻¹ i)]
+    simp
+
 /-- The Young permutation module with its tabloid basis. -/
 noncomputable def youngPermutationModule {n : ℕ} (mu : YoungDiagramOfSize n) :
     SymmetricGroupRepresentation n :=

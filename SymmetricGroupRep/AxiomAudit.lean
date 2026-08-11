@@ -6,6 +6,7 @@ import SymmetricGroupRep.Decomposition
 import SymmetricGroupRep.ProductClassification
 import SymmetricGroupRep.RegularDecomposition
 import SymmetricGroupRep.SelfDuality
+import SymmetricGroupRep.Tableaux
 
 /-! # Axiom-closure audit for converted targets
 
@@ -53,6 +54,10 @@ the standard kernel principles mathlib itself already relies on.
 /-- info: 'spechtModule_kronecker' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms spechtModule_kronecker
+
+/-- info: 'spechtModule_tensor_sign' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms spechtModule_tensor_sign
 
 /--
 info: 'existsUnique_iso_spechtOuterTensor' depends on axioms: [propext, Classical.choice, Quot.sound]
@@ -111,3 +116,14 @@ info: 'FDRep.finrank_hom_outerTensor' depends on axioms: [propext, Classical.cho
 -/
 #guard_msgs in
 #print axioms FDRep.finrank_hom_outerTensor
+
+/-- info: 'exists_spechtTableauBasis' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms exists_spechtTableauBasis
+
+/--
+info: 'youngPermutationModule_twoRow_induction' depends on axioms: [propext, Classical.choice,
+Quot.sound]
+-/
+#guard_msgs in
+#print axioms youngPermutationModule_twoRow_induction

@@ -7,6 +7,72 @@ import Mathlib.LinearAlgebra.Finsupp.LSum
 open CategoryTheory
 open scoped MonoidalCategory
 
+namespace Representation
+
+variable {G H X : Type} [Group G] [Group H] [MulAction H X]
+
+/-- The map out of the induced trivial representation sending the generator indexed by `h` to
+the point `h⁻¹ • base`. -/
+private noncomputable def indTrivialToFinsupp (φ : G →* H) (base : X)
+    (fixesBase : ∀ g : G, φ g • base = base) :
+    IndV φ (1 : Representation ℂ G ℂ) →ₗ[ℂ] (X →₀ ℂ) :=
+  Coinvariants.lift _
+    (Finsupp.lmapDomain ℂ ℂ (fun h : H => h⁻¹ • base) ∘ₗ
+      (_root_.TensorProduct.rid ℂ (H →₀ ℂ)).toLinearMap)
+    fun g => by
+      ext h z
+      simp [mul_smul, ← map_inv, fixesBase]
+
+private theorem indTrivialToFinsupp_mk (φ : G →* H) (base : X)
+    (fixesBase : ∀ g : G, φ g • base = base) (h : H) (z : ℂ) :
+    indTrivialToFinsupp φ base fixesBase (IndV.mk φ _ h z) =
+      Finsupp.single (h⁻¹ • base) z := by
+  simp [indTrivialToFinsupp]
+
+/-- The map into the induced trivial representation sending a point to a generator carrying the
+base point to it. -/
+private noncomputable def indTrivialOfFinsupp (φ : G →* H) (base : X)
+    (transitive : ∀ x : X, ∃ h : H, h⁻¹ • base = x) :
+    (X →₀ ℂ) →ₗ[ℂ] IndV φ (1 : Representation ℂ G ℂ) :=
+  Finsupp.linearCombination ℂ fun x => IndV.mk φ _ (transitive x).choose 1
+
+private theorem indTrivialOfFinsupp_single (φ : G →* H) (base : X)
+    (transitive : ∀ x : X, ∃ h : H, h⁻¹ • base = x) (x : X) (z : ℂ) :
+    indTrivialOfFinsupp φ base transitive (Finsupp.single x z) =
+      IndV.mk φ _ (transitive x).choose z := by
+  rw [indTrivialOfFinsupp, Finsupp.linearCombination_single, ← map_smul, smul_eq_mul, mul_one]
+
+/-- Generators of the induced trivial representation indexed by the same coset agree. -/
+private theorem indTrivialMk_mul (φ : G →* H) (g : G) (h : H) (z : ℂ) :
+    IndV.mk φ (1 : Representation ℂ G ℂ) (φ g * h) z = IndV.mk φ _ h z := by
+  have := Coinvariants.mk_self_apply
+    (Representation.tprod ((leftRegular ℂ H).comp φ) (1 : Representation ℂ G ℂ)) g
+    (Finsupp.single h (1 : ℂ) ⊗ₜ[ℂ] z)
+  simpa using this
+
+/-- On a transitive `H`-set whose base-point stabiliser is the image of `φ`, the induced trivial
+representation is the permutation module on the set. -/
+private noncomputable def indTrivialFinsuppEquiv (φ : G →* H) (base : X)
+    (transitive : ∀ x : X, ∃ h : H, h⁻¹ • base = x)
+    (stabilizer : ∀ h : H, h • base = base ↔ h ∈ φ.range) :
+    IndV φ (1 : Representation ℂ G ℂ) ≃ₗ[ℂ] (X →₀ ℂ) :=
+  have fixesBase : ∀ g : G, φ g • base = base := fun g => (stabilizer (φ g)).2 ⟨g, rfl⟩
+  LinearEquiv.ofLinear (indTrivialToFinsupp φ base fixesBase)
+    (indTrivialOfFinsupp φ base transitive)
+    (Finsupp.lhom_ext' fun x => LinearMap.ext_ring (by
+      show indTrivialToFinsupp φ base fixesBase
+          (indTrivialOfFinsupp φ base transitive (Finsupp.single x 1)) = Finsupp.single x 1
+      rw [indTrivialOfFinsupp_single, indTrivialToFinsupp_mk, (transitive x).choose_spec]))
+    (IndV.hom_ext _ _ fun h => LinearMap.ext fun z => by
+      obtain ⟨g, hg⟩ := (stabilizer (h * (transitive (h⁻¹ • base)).choose⁻¹)).1 (by
+        rw [mul_smul, (transitive (h⁻¹ • base)).choose_spec, smul_inv_smul])
+      show indTrivialOfFinsupp φ base transitive
+          (indTrivialToFinsupp φ base fixesBase (IndV.mk φ _ h z)) = IndV.mk φ _ h z
+      rw [indTrivialToFinsupp_mk, indTrivialOfFinsupp_single,
+        ← indTrivialMk_mul φ g (transitive (h⁻¹ • base)).choose z, hg, inv_mul_cancel_right])
+
+end Representation
+
 namespace FDRep
 
 /-- An equivariant equivalence of finite `G`-sets induces an isomorphism of their
@@ -25,6 +91,29 @@ noncomputable def ofMulActionEquiv
   exact Action.mkIso E.toLinearEquiv.toFGModuleCatIso fun g => by
     apply FGModuleCat.hom_ext
     exact E.toIntertwiningMap.2 g
+
+/-- A transitive permutation representation is induced from the trivial representation of a group
+whose image is the stabiliser of a base point. -/
+noncomputable def indTrivialIso {G H X : Type} [Group G] [Group H] [Finite H]
+    [MulAction H X] [Finite X] (φ : G →* H) (base : X)
+    (transitive : ∀ x : X, ∃ h : H, h⁻¹ • base = x)
+    (stabilizer : ∀ h : H, h • base = base ↔ h ∈ φ.range) :
+    FDRep.ind φ (𝟙_ (FDRep ℂ G)) ≅ FDRep.of (Representation.ofMulAction ℂ H X) := by
+  have fixesBase : ∀ g : G, φ g • base = base := fun g => (stabilizer (φ g)).2 ⟨g, rfl⟩
+  haveI : Module.Finite ℂ (Representation.IndV φ (1 : Representation ℂ G ℂ)) :=
+    Module.Finite.equiv (Representation.indTrivialFinsuppEquiv φ base transitive stabilizer).symm
+  refine Action.mkIso
+    (Representation.indTrivialFinsuppEquiv φ base transitive stabilizer).toFGModuleCatIso ?_
+  intro h
+  apply FGModuleCat.hom_ext
+  refine Representation.IndV.hom_ext φ _ fun h₂ => LinearMap.ext fun z => ?_
+  show Representation.indTrivialToFinsupp φ base fixesBase
+      (Representation.ind φ 1 h (Representation.IndV.mk φ _ h₂ z)) =
+    Representation.ofMulAction ℂ H X h
+      (Representation.indTrivialToFinsupp φ base fixesBase (Representation.IndV.mk φ _ h₂ z))
+  rw [Representation.ind_mk, Representation.indTrivialToFinsupp_mk,
+    Representation.indTrivialToFinsupp_mk, Representation.ofMulAction_single,
+    mul_inv_rev, inv_inv, mul_smul]
 
 end FDRep
 
@@ -229,6 +318,43 @@ theorem twoRowEquiv_smul {n r : ℕ} (h : 2 * r ≤ n)
 
 end Tabloid
 
+/-- The two-row tabloid whose top row holds the first `a` labels. -/
+private def twoRowBaseTabloid (a b : ℕ) (h : b ≤ a) :
+    Tabloid (twoRowPartition (a + b) b (by omega)) where
+  rowOf i := ⟨if (i : ℕ) < a then 0 else 1, by have := i.isLt; split <;> omega⟩
+  row_nonempty i := by
+    have := i.isLt
+    rw [twoRowPartition_rowLen]
+    split <;> simp <;> omega
+  content row := by
+    rw [Finset.card_filter, Fin.sum_univ_add, twoRowPartition_rowLen]
+    simp
+    split_ifs <;> omega
+
+/-- The standard Young subgroup is the stabiliser of the base tabloid. -/
+private theorem smul_twoRowBaseTabloid_eq_self_iff (a b : ℕ) (h : b ≤ a)
+    (sigma : SymmetricGroup (a + b)) :
+    sigma • twoRowBaseTabloid a b h = twoRowBaseTabloid a b h ↔
+      sigma ∈ (SymmetricGroup.youngSubgroupInclusion a b).range := by
+  have hrow : ∀ i j : Fin (a + b),
+      (twoRowBaseTabloid a b h).rowOf i = (twoRowBaseTabloid a b h).rowOf j ↔
+        ((i : ℕ) < a ↔ (j : ℕ) < a) := fun i j => by
+    rw [Fin.ext_iff]
+    simp only [twoRowBaseTabloid]
+    split_ifs <;> simp <;> omega
+  have hrows : sigma • twoRowBaseTabloid a b h = twoRowBaseTabloid a b h ↔
+      ∀ i : Fin (a + b), ((sigma⁻¹ i : ℕ) < a ↔ (i : ℕ) < a) := by
+    rw [Tabloid.ext_iff, funext_iff]
+    exact forall_congr' fun i => by rw [Tabloid.smul_rowOf]; exact hrow _ i
+  rw [hrows, SymmetricGroup.mem_youngSubgroupInclusion_range_iff]
+  constructor
+  · intro hfix i hi
+    exact (hfix (sigma i)).mp (by simpa using hi)
+  · intro hmaps i
+    have hinv := (SymmetricGroup.mem_youngSubgroupInclusion_range_iff a b sigma⁻¹).mp
+      (inv_mem ((SymmetricGroup.mem_youngSubgroupInclusion_range_iff a b sigma).mpr hmaps))
+    exact ⟨fun hlt => by simpa using hmaps _ hlt, hinv i⟩
+
 /-- The Young permutation module of shape `(a,b)` is induced from the trivial
 representation of the standard Young subgroup `S_a x S_b`.
 
@@ -240,7 +366,13 @@ See also Sagan, *The Symmetric Group*, 2nd ed., Section 2.1,
 https://doi.org/10.1007/978-1-4757-6804-6_2.  Mathlib's induced representation
 uses right translation on coset generators, so the standard identification
 sends the generator indexed by `g` to the tabloid `g⁻¹ • T_0`. -/
-axiom youngPermutationModule_twoRow_induction (a b : ℕ) (h : b ≤ a) :
+theorem youngPermutationModule_twoRow_induction (a b : ℕ) (h : b ≤ a) :
   Nonempty (youngPermutationModule (twoRowPartition (a + b) b (by omega)) ≅
     (SymmetricGroupRepresentation.youngSubgroupInduction a b).obj
-      (𝟙_ (FDRep ℂ (SymmetricGroup a × SymmetricGroup b))))
+      (𝟙_ (FDRep ℂ (SymmetricGroup a × SymmetricGroup b)))) :=
+  ⟨(FDRep.indTrivialIso (SymmetricGroup.youngSubgroupInclusion a b) (twoRowBaseTabloid a b h)
+      (fun T => by
+        obtain ⟨sigma, hsigma⟩ :=
+          MulAction.exists_smul_eq (SymmetricGroup (a + b)) (twoRowBaseTabloid a b h) T
+        exact ⟨sigma⁻¹, by simpa using hsigma⟩)
+      (smul_twoRowBaseTabloid_eq_self_iff a b h)).symm⟩

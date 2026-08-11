@@ -49,7 +49,7 @@ theorem column_apply (t : YoungTableau μ) (c : ↥μ.val.cells) : t.column (t c
   rw [column, Equiv.symm_apply_apply]
 
 /-- Row `i` of a tableau meets its first `k` columns in `min (μ.rowLen i) k` labels. -/
-private theorem card_filter_column_lt_and_row_eq (t : YoungTableau μ) (i k : ℕ) :
+theorem card_filter_column_lt_and_row_eq (t : YoungTableau μ) (i k : ℕ) :
     (Finset.univ.filter fun y => t.column y < k ∧ t.row y = i).card = min (μ.val.rowLen i) k := by
   classical
   have hinj : Set.InjOn t.column

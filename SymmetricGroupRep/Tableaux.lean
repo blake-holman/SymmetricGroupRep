@@ -1,27 +1,8 @@
-import SymmetricGroupRep.Classification
+import SymmetricGroupRep.RegularDecomposition
+import SymmetricGroupRep.StandardIndependence
 import Mathlib.LinearAlgebra.Basis.Basic
 
 /-! # Standard Young tableaux and Specht bases -/
-
-/-- A standard tableau of shape `μ`, with labels `0, ..., n - 1` increasing
-from left to right and from top to bottom. -/
-@[ext]
-structure StandardYoungTableau {n : ℕ} (μ : YoungDiagramOfSize n) where
-  /-- The bijective labeling of the cells of `μ`. -/
-  entry : ↥μ.val.cells ≃ Fin n
-  /-- Labels increase strictly along rows. -/
-  row_strict : ∀ {c d}, c.1.1 = d.1.1 → c.1.2 < d.1.2 → entry c < entry d
-  /-- Labels increase strictly down columns. -/
-  col_strict : ∀ {c d}, c.1.2 = d.1.2 → c.1.1 < d.1.1 → entry c < entry d
-
-/-- There are finitely many standard tableaux of a fixed shape. -/
-noncomputable instance {n : ℕ} (μ : YoungDiagramOfSize n) :
-    Finite (StandardYoungTableau μ) :=
-  Finite.of_injective StandardYoungTableau.entry fun T U h => by
-    cases T
-    cases U
-    cases h
-    rfl
 
 /-- The standard tableaux of shape `μ` index a basis of the Specht module `S^μ`.
 
@@ -31,10 +12,34 @@ Basis Theorem, DOI `10.1007/978-1-4757-6804-6_2`). Classical labels
 use mathlib's top-left, zero-based cell coordinates. The statement records only
 existence because `spechtModule μ` is an abstract representative of its
 isomorphism class. -/
-axiom exists_spechtTableauBasis {n : ℕ} (μ : YoungDiagramOfSize n) :
-  Nonempty (Module.Basis (StandardYoungTableau μ) ℂ (spechtModule μ))
+theorem exists_spechtTableauBasis {n : ℕ} (μ : YoungDiagramOfSize n) :
+  Nonempty (Module.Basis (StandardYoungTableau μ) ℂ (spechtModule μ)) := by
+  letI : Fintype (StandardYoungTableau μ) := Fintype.ofFinite _
+  have hsum : ∑ ν : YoungDiagramOfSize n, Nat.card (StandardYoungTableau ν) ^ 2 =
+      ∑ ν : YoungDiagramOfSize n, Module.finrank ℂ (spechtModule ν) ^ 2 := by
+    rw [sum_card_standardYoungTableau_sq, sum_finrank_spechtModule_sq]
+  have hsq := (Finset.sum_eq_sum_iff_of_le fun ν _ =>
+    Nat.pow_le_pow_left (card_standardYoungTableau_le_finrank ν) 2).mp hsum μ (Finset.mem_univ μ)
+  have hcard : Fintype.card (StandardYoungTableau μ) = Module.finrank ℂ (spechtModule μ) := by
+    rw [← Nat.card_eq_fintype_card]
+    exact Nat.pow_left_injective (by norm_num) hsq
+  haveI : Nontrivial (spechtModule μ : Type) :=
+    Submodule.nontrivial_iff_ne_bot.mpr (spechtSubrepresentation_ne_bot μ)
+  haveI : Nonempty (StandardYoungTableau μ) :=
+    Fintype.card_pos_iff.mp (by rw [hcard]; exact Module.finrank_pos)
+  exact ⟨basisOfLinearIndependentOfCardEqFinrank
+    (linearIndependent_spechtStandardFamily μ) hcard⟩
 
 /-- A chosen standard-tableau basis of `S^μ`. -/
 noncomputable def spechtTableauBasis {n : ℕ} (μ : YoungDiagramOfSize n) :
     Module.Basis (StandardYoungTableau μ) ℂ (spechtModule μ) :=
   Classical.choice (exists_spechtTableauBasis μ)
+
+/-- Removing one box splits the dimension of a Specht module. This is the numerical content of
+the branching rule, and it holds independently of it: both sides count standard tableaux. -/
+theorem finrank_spechtModule_eq_sum_oneBoxRemovals {n : ℕ} (μ : YoungDiagramOfSize (n + 1)) :
+    Module.finrank ℂ (spechtModule μ) =
+      ∑ ν ∈ oneBoxRemovals μ, Module.finrank ℂ (spechtModule ν) := by
+  rw [Module.finrank_eq_nat_card_basis (spechtTableauBasis μ), card_standardYoungTableau_succ]
+  exact Finset.sum_congr rfl fun ν _ =>
+    (Module.finrank_eq_nat_card_basis (spechtTableauBasis ν)).symm

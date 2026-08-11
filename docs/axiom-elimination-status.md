@@ -7,9 +7,9 @@ Independently confirmed target count: **27**. The inventory below was produced b
 scanning `rg -n '^\s*axiom\s+' --glob '*.lean' .` against the frozen baseline and
 extracting each declaration verbatim with `git show 5f00453:<file>`.
 
-Baseline `lake build`: succeeds (3210 jobs). Current: succeeds (3232 jobs).
+Baseline `lake build`: succeeds (3210 jobs). Current: succeeds (3236 jobs).
 
-Progress: **12 of 27 verified**, 15 `axiom` declarations remain in the tree.
+Progress: **15 of 27 verified**, 12 `axiom` declarations remain in the tree.
 
 The classification of the complex irreducibles of `S_n` by Young diagrams is
 fully proved — irreducibility, distinctness and completeness — and so is the
@@ -65,7 +65,7 @@ that drift fails loudly instead of silently:
   tree text to be the frozen signature followed by nothing but a `:=` body
   marker. It also rejects any conversion to a declaration form other than
   `theorem` or `noncomputable def`. The script was negative-tested: it catches
-  both an added hypothesis and an altered conclusion. Current status: 7/27
+  both an added hypothesis and an altered conclusion. Current status: 13/27
   converted, all 27 signatures preserved.
 - **Axiom closure.** `SymmetricGroupRep/AxiomAudit.lean` records the
   `#print axioms` closure of every converted target inside `#guard_msgs`, and is
@@ -295,21 +295,21 @@ layer. The audit script confirms 27 nodes, no directed cycle, and no edge with
 | Layer | Target | Form | State |
 |---|---|---|---|
 | 0 | `spechtModule` | noncomputable def | **verified** |
-| 0 | `youngPermutationModule_twoRow_induction` | theorem | axiom |
+| 0 | `youngPermutationModule_twoRow_induction` | theorem | **verified** |
 | 0 | `twoRowKostkaIndexEquiv` | noncomputable def | **verified** |
 | 0 | `standardYoungTableau_card_mul_hookProduct` | theorem | axiom |
 | 0 | `schurWeylMultiplicity_mul_hookProduct` | theorem | axiom |
 | 1 | `spechtModule_irreducible` | theorem | **verified** |
 | 1 | `spechtModule_singleRow` | theorem | **verified** |
 | 1 | `spechtModule_selfDual` | theorem | **verified** |
-| 1 | `exists_spechtTableauBasis` | theorem | axiom |
+| 1 | `exists_spechtTableauBasis` | theorem | **verified** |
 | 1 | `twoRowKostkaIndexEquiv_shape` | theorem | **verified** |
 | 2 | `spechtModule_iso_iff_eq` | theorem | **verified** |
 | 3 | `exists_iso_spechtModule` | theorem | **verified** |
 | 4 | `spechtModule_kronecker` | theorem | **verified** |
 | 4 | `symmetricGroupLeftRegular_decomposition` | theorem | **verified** |
 | 4 | `existsUnique_iso_spechtOuterTensor` | theorem | **verified** |
-| 4 | `spechtModule_tensor_sign` | theorem | axiom |
+| 4 | `spechtModule_tensor_sign` | theorem | **verified** |
 | 4 | `spechtModule_branching` | theorem | axiom |
 | 4 | `youngsRule` | theorem | axiom |
 | 5 | `symmetricGroupBiregular_decomposition` | theorem | **verified** |
@@ -531,26 +531,61 @@ audit.
 
 ## Next step
 
-Layers 1 to 4 are closed apart from `exists_spechtTableauBasis`,
-`spechtModule_tensor_sign`, `spechtModule_branching` and `youngsRule`.
+Layers 1 to 4 are closed apart from `spechtModule_branching` and `youngsRule`.
 
-Nothing further comes out of the decomposition engine on its own. Every remaining
-target names a multiplicity that the engine cannot compute from what is already
-proved: `youngsRule` needs Kostka numbers, `spechtModule_littlewoodRichardson`
-needs the Littlewood--Richardson rule, `spechtModule_branching` needs the
-branching rule, `tensorPower_schurWeyl` needs Schur--Weyl. Each of those is a
-theorem about induction and restriction, so item 7 of the missing-infrastructure
-list — the character of an induced representation, and `Rep.ind` along a
-finite-index inclusion — is now the critical path, and it feeds six targets.
+`spechtModule_branching` is now one lemma away. Its numerical content is proved:
+`finrank_spechtModule_eq_sum_oneBoxRemovals` says
+`dim S^μ = ∑_{ν ⊂ μ} dim S^ν`, with no appeal to any project axiom. What is
+still missing is the *occurrence* half — that every one-box removal really is a
+constituent, `Hom_{S_n}(S^ν, Res S^μ) ≠ 0` for each `ν ∈ OneBoxRemoval μ`. With
+that in hand the rule follows immediately: `Res S^μ ≅ ⨁_λ m_λ S^λ` by the
+isotypic decomposition, `m_ν ≥ 1` for `ν ⊂ μ`, and
+`∑_λ m_λ dim S^λ = dim S^μ = ∑_{ν ⊂ μ} dim S^ν` forces `m` to be the indicator
+of the one-box removals.
 
-Three targets remain independent of that path and are the cheapest available:
+The intended construction for the missing lemma is the row projection of the
+Young permutation module. For the corner `c` of `μ` that `ν` deletes, the map
+`M^μ ↓_{S_n} → M^ν` that keeps the tabloids with the label `n` in row `c.1` and
+forgets that label is `S_n`-equivariant, and it sends the polytabloid `e_t` of a
+tableau `t` carrying `n` in `c` to the polytabloid `e_{t'}` of the restricted
+tableau. Its image therefore contains `S^ν`, and splitting the resulting
+surjection from the semisimple `Res S^μ` produces the required nonzero map.
 
-- `spechtModule_tensor_sign`, which now has both of its prerequisites — the
-  classification and "equal characters imply isomorphic" — and reduces to
-  computing the sign-twisted Specht character.
-- `standardYoungTableau_card_mul_hookProduct` and
-  `schurWeylMultiplicity_mul_hookProduct`, self-contained combinatorics with no
-  representation theory in them.
+Nothing further comes out of the decomposition engine on its own. Every other
+remaining target names a multiplicity that the engine cannot compute from what
+is already proved: `youngsRule` needs Kostka numbers,
+`spechtModule_littlewoodRichardson` needs the Littlewood--Richardson rule,
+`tensorPower_schurWeyl` needs Schur--Weyl. Each of those is a theorem about
+induction and restriction, so item 7 of the missing-infrastructure list — the
+character of an induced representation, and `Rep.ind` along a finite-index
+inclusion — remains the critical path for them. One half of item 7 is now
+supplied: `FDRep.indTrivialIso` identifies `Ind_G^H 1` with the permutation
+module of any transitive `H`-set whose base-point stabiliser is the image of
+`G`, so induction from a Young subgroup can now be replaced by a permutation
+module rather than reasoned about through coinvariants.
+
+`youngsRule` was examined and is **not** one lemma away. With `FDRep.indTrivialIso`
+and Frobenius reciprocity it reduces to `dim (S^λ)^{S_μ} = K_{λμ}`, but no
+available identity computes that number. Both classical routes are large:
+
+- Sagan §2.10 (semistandard basis for `Hom(S^λ, M^μ)`, PDF p. 96) needs the
+  homomorphisms `θ_T`, the dominance order on *generalised* tableaux, and
+  Garnir elements in Lemma 2.10.7(3) — the same straightening machinery that
+  `exists_spechtTableauBasis` was deliberately routed around.
+- James §17 Thm 17.13(iv) (PDF p. 74) gets Young's rule from a Specht series for
+  `M^μ`, but that rests on §15–17: the modules `S^{ν,μ}`, the homomorphisms
+  `ψ_{c-1,ν}` (Def. 17.10), Lemma 17.12, and the combinatorial Lemmas 15.14 and
+  16.3.
+
+Neither is a single-lemma gap, so `youngsRule` should be scheduled as its own
+multi-stage development rather than attempted alongside other targets.
+
+`standardYoungTableau_card_mul_hookProduct` and
+`schurWeylMultiplicity_mul_hookProduct` remain independent of that path: they are
+self-contained combinatorics with no representation theory in them, and the first
+is half done, since `dim S^μ = #StandardYoungTableau μ` reduces it to the purely
+combinatorial hook identity. Both were scoped against their sources rather than
+attempted; see the correction to revision R4 below.
 
 ## Resolved apparent cycles
 
@@ -559,9 +594,10 @@ construction rather than letting one target justify another:
 
 1. `exists_spechtTableauBasis` versus `spechtModule_branching`. Dimension
    counting derives the tableau basis from branching, while the classical proof
-   of branching uses the tableau basis. Broken by proving the standard basis
-   theorem directly from Garnir relations and straightening on the polytabloid
-   module, so the edge runs only from the basis to branching.
+   of branching uses the tableau basis. Broken *without* Garnir relations and
+   straightening, and without the hook-length formula, by counting instead: see
+   the verification log for `exists_spechtTableauBasis`. The edge runs only from
+   the basis to branching.
 2. The classification triple. Completeness of the Specht list can be argued from
    branching by induction, which would make layers 1 to 3 depend on layer 4.
    Broken by proving completeness from the independent count of conjugacy
@@ -1048,3 +1084,240 @@ Verification: `#print axioms symmetricGroupBiregular_decomposition` is
 `TwoStepBranchingBasis.lean` lint hints; `python3 docs/verify_frozen_signatures.py`
 exits 0 at 12/27 with all 27 signatures preserved.
 
+### Layer 1: `exists_spechtTableauBasis`
+
+The target only asserts that *some* basis is indexed by `StandardYoungTableau μ`,
+so it is exactly the dimension count `#StandardYoungTableau μ = dim S^μ`. Neither
+route on record was taken. Route A (Garnir relations and straightening) is a
+large development, and Route B is unusable as recorded because it routes through
+`standardYoungTableau_card_mul_hookProduct`, which is still an axiom — closing
+the target that way would have been circular.
+
+The route actually used replaces the hook-length formula by two independent
+computations of `n !`, which pin the two sequences to each other:
+
+1. **Standard tableaux, counted through the Young graph.** `YoungGraph.lean`
+   builds the one-box constructions `YoungDiagram.addBox` and
+   `YoungDiagram.removeBox`, identifies the rows each may use, and proves the two
+   facts the graph rests on: a diagram has exactly one more one-box addition than
+   it has one-box removals (`card_oneBoxAddition_eq_succ`, a bijection between
+   the extendable rows other than the first and the shortenable rows), and two
+   distinct diagrams of the same size have a common one-box extension exactly
+   when they have a common one-box contraction
+   (`card_filter_common_addition_eq_card_filter_common_removal`, which is
+   `|μ ⊔ ν| + |μ ⊓ ν| = |μ| + |ν|`). Together these are the commutation relation
+   `DU = UD + I` of Stanley's differential posets.
+
+   `StandardTableaux.lean` then proves that deleting the largest label is a
+   bijection `StandardYoungTableau μ ≃ Σ ν ∈ OneBoxRemoval μ, StandardYoungTableau ν`
+   — the inverse writes the largest label into the deleted cell, using
+   `finSuccEquivLast` and an explicit splitting of the cells of `μ` — so the
+   tableau counts satisfy the Young-graph recursion. Feeding the recursion into
+   the commutation relation gives
+   `∑_{λ ∈ OneBoxAddition ν} f λ = (n + 1) * f ν` by induction, and then
+   `sum_card_standardYoungTableau_sq`: `∑_{μ ⊢ n} f μ ^ 2 = n !`.
+
+2. **Specht dimensions, counted through the regular representation.**
+   `sum_finrank_spechtModule_sq` reads `∑_{μ ⊢ n} (dim S^μ) ^ 2 = n !` off the
+   already-converted `symmetricGroupLeftRegular_decomposition`, using
+   `FDRep.finrank_biproduct` (moved down into `Decomposition.lean`, since
+   `Dimensions.lean` sits above `Tableaux.lean`) and
+   `Module.finrank_finsupp_self` together with `Fintype.card_perm`.
+
+3. **The termwise inequality.** `StandardIndependence.lean` proves that the
+   standard polytabloids are linearly independent, which is Sagan's Lemma 2.5.4
+   and gives `#StandardYoungTableau μ ≤ dim S^μ`. The proof orders tabloids
+   colexicographically by the row of each label — mathlib's `Colex` on
+   `Fin n → Fin n`, which compares at the largest differing label. If `σ` is a
+   nontrivial element of the column group of a standard tableau `t`, then at the
+   largest label `k` it moves, `σ⁻¹ k < k` lies in the same column of `t`, so
+   standardness puts it in a strictly earlier row: `σ • {t} < {t}`. Hence `{t}`
+   is the colexicographic maximum of the tabloids occurring in `e_t`, where it
+   has coefficient one. In a vanishing combination of standard polytabloids the
+   tableau with the largest tabloid therefore has coefficient zero. Recovering
+   the tableau from its tabloid — the column of a label counts the smaller
+   labels in its row, which reuses the previously private
+   `YoungTableau.card_filter_column_lt_and_row_eq` — makes the family injective.
+
+Squares are monotone, so termwise `≤` with equal sums forces equality, and
+`basisOfLinearIndependentOfCardEqFinrank` turns the standard polytabloids into
+the required basis. `#print axioms exists_spechtTableauBasis` is
+`[propext, Classical.choice, Quot.sound]`, and the closure is recorded in
+`AxiomAudit.lean`.
+
+Two consequences are recorded next to the target. `Dimensions.lean`'s
+`spechtModule_finrank_eq_card_standardYoungTableau` is now axiom-free, and
+`finrank_spechtModule_eq_sum_oneBoxRemovals` gives the dimension identity of the
+branching rule without using the branching axiom.
+
+### Layer 0: `youngPermutationModule_twoRow_induction`
+
+The target says `M^(a,b) ≅ Ind_(S_a × S_b)^(S_(a+b)) 1`. It was proved in the
+general form it really has — a transitive permutation representation is induced
+from the trivial representation of a stabiliser — and then specialised.
+
+`FDRep.indTrivialIso` (in `YoungPermutation.lean`, next to the existing
+`FDRep.ofMulActionEquiv`) takes a homomorphism `φ : G →* H`, a finite `H`-set
+`X`, and a base point whose `H`-orbit is all of `X` and whose stabiliser is
+exactly `φ.range`, and produces `Ind φ 1 ≅ FDRep.of (ofMulAction ℂ H X)`. The
+underlying linear equivalence is built by hand out of mathlib's coinvariants
+API, because mathlib's `Representation.ind φ ρ` is `(k[H] ⊗ A)_G`, not a coset
+module:
+
+- forwards, `Coinvariants.lift` sends the generator `⟦single h 1 ⊗ z⟧` to
+  `single (h⁻¹ • base) z`. This is well defined because `φ g` fixes the base
+  point, and it is the only choice compatible with mathlib's right-translation
+  convention `h₁ • ⟦h₂ ⊗ a⟧ = ⟦h₂h₁⁻¹ ⊗ a⟧` — which is exactly what the target's
+  docstring already recorded;
+- backwards, transitivity picks for each point some `h` carrying the base point
+  to it, and `Finsupp.linearCombination` extends;
+- the round trip uses `Coinvariants.mk_self_apply`: two group elements in the
+  same coset give the same generator, since their ratio lies in `φ.range`.
+
+`Module.Finite` for the induced module is obtained from that equivalence, so the
+private `indVModuleFinite` of `Induction.lean` is not needed. Equivariance is
+`Representation.ind_mk` plus `(h₂h⁻¹)⁻¹ = h · h₂⁻¹`.
+
+The two hypotheses are then discharged for the two-row Young module.
+
+- Transitivity is now an instance, `MulAction.IsPretransitive (SymmetricGroup n)
+  (Tabloid mu)`, in `Tabloids.lean`, and holds for every shape: the `content`
+  field says the two tabloids have equally large fibres over each row, so
+  `Equiv.sigmaFiberEquiv` on both sides of a fibrewise `Fintype.equivOfCardEq`
+  builds a permutation `σ` with `U.rowOf (σ j) = T.rowOf j`, which is `σ • T = U`.
+- The stabiliser is `SymmetricGroup.mem_youngSubgroupInclusion_range_iff` in
+  `YoungSubgroup.lean`: a permutation lies in the image of
+  `youngSubgroupInclusion a b` exactly when it maps `{i | i < a}` into itself.
+  The easy direction is `Fin.addCases` against the two existing `apply_castAdd`
+  and `apply_natAdd` simp lemmas; the other direction transports along
+  `finSumFinEquiv.permCongrHom` and is mathlib's
+  `Equiv.Perm.mem_sumCongrHom_range_of_perm_mapsTo_inl`.
+
+The base tabloid puts label `i` in row `0` when `i < a` and row `1` otherwise;
+its `content` is `Fin.sum_univ_add` over the two blocks. Two labels share its row
+exactly when they are on the same side of `a`, so its stabiliser condition is
+literally the block condition above.
+
+`#print axioms youngPermutationModule_twoRow_induction` is
+`[propext, Classical.choice, Quot.sound]`, recorded in `AxiomAudit.lean`.
+
+### Layer 4: `spechtModule_tensor_sign`
+
+The target says `S^(μᵀ) ≅ S^μ ⊗ sgn`. The proof is in the new module
+`SymmetricGroupRep/SignTwist.lean`; `Kronecker.lean` now imports it, and
+`YoungDiagramOfSize.transpose` moved there because the transposed *tableau* is
+needed alongside the transposed diagram.
+
+James, Theorem 6.7 (PDF p. 30, printed p. 25) builds a homomorphism out of
+`M^(μᵀ)` and then compares dimensions to see that its kernel is exactly
+`S^(μᵀ)⊥`. The dimension comparison is unnecessary here: the classification is
+already proved, so `S^(μᵀ)` and the sign twist of `S^μ` are both known to be
+simple, and `CategoryTheory.isIso_of_hom_simple` upgrades any nonzero map
+between them to an isomorphism. Only the map and its non-vanishing have to be
+constructed.
+
+**Twisting instead of tensoring.** `Representation.signTwist ρ` is `g ↦ sgn g • ρ g`.
+It keeps the underlying module, so the whole construction stays inside
+`Tabloid μ →₀ ℂ` and never has to unfold a tensor product in `FDRep`.
+
+- `Subrepresentation.signTwistOrderIso` says a subspace is `ρ`-stable exactly
+  when it is `ρ.signTwist`-stable — the sign is a unit — so the two
+  `Subrepresentation` lattices are order-isomorphic and
+  `Representation.IsIrreducible` transfers as an instance. With mathlib's
+  `OrderIso.isSimpleOrder_iff` this is four lines, and `spechtSignTwist μ` is
+  simple by the existing `FDRep.simple_of_isIrreducible`.
+- `spechtSignTwist_iso_tensor_sign` identifies the twist with the tensor product
+  by characters: `FDRep.char_tensor` for the right-hand side, `LinearMap.trace_id`
+  for the one-dimensional `sign n`, and linearity of the trace for the twist.
+  This is the only place where `SymmetricGroupRepresentation.nonempty_iso_of_character_eq`
+  is used, and it is used on an identity that is trivial to check.
+
+**The map.** Fix a tableau `t` of shape `μ` and let `tᵀ` be its transpose, which
+is `t` precomposed with `Equiv.prodComm` on cells; `transpose_row` and
+`transpose_column` are `rfl`. The map sends the tabloid `σ • {tᵀ}` to
+`sgn σ • σ • e_t`, i.e. to `ρ.signTwist σ` applied to the polytabloid. Two facts
+make it well defined:
+
+- `YoungTableau.smul_transpose_tabloid_eq_iff`: `σ • {tᵀ} = {tᵀ}` iff
+  `σ ∈ t.columnGroup`. Both sides say `t.column (σ i) = t.column i` for all `i`,
+  once the tabloid equality is unfolded to its `rowOf` components.
+- `YoungTableau.ofMulAction_polytabloid_of_mem_columnGroup`: for
+  `σ ∈ t.columnGroup`, `σ • e_t = sgn σ • e_t`. This is reindexing the defining
+  sum by `Equiv.mulLeft ⟨σ, hσ⟩` inside the column group.
+
+Together they give `ρ.signTwist σ e_t = e_t` for `σ` in the column group — the
+two signs cancel — so `signTwistOrbitMap`, defined by choosing a carrier with
+`MulAction.exists_smul_eq` (transitivity of the tabloid action is the instance
+added for `youngPermutationModule_twoRow_induction`), does not depend on the
+choice. `signTwistOrbitMap_eq` states exactly that, and every later step is a
+corollary of it: equivariance comes from applying it to the carrier `g * carrier T`.
+`Finsupp.linearCombination` extends the orbit map linearly, and `Action.Hom.mk`
+packages it as `youngPermutationModule μᵀ ⟶ spechtSignTwist μ`.
+
+**Non-vanishing.** Composing with `Subrepresentation.toFDRepHom` restricts the
+map to `S^(μᵀ)`, and the image of the polytabloid `e_(tᵀ)` is
+`∑_{σ ∈ C_(tᵀ)} σ • e_t` — the signs cancel a second time. Its coefficient on the
+tabloid of `t` is `Fintype.card (t.transpose.columnGroup)`, because
+`Representation.ofMulAction_apply` turns each term into `e_t (σ⁻¹ • {t})` and
+`smul_tabloid_of_mem_transpose_columnGroup` says the column group of `tᵀ` fixes
+`{t}`, so each term contributes `e_t {t} = 1`. That is James's computation
+`⟨{t}κ_t ρ_t, {t}⟩ = |R_t|` with the row group of `t` presented as the column
+group of `tᵀ`.
+
+`#print axioms spechtModule_tensor_sign` is `[propext, Classical.choice, Quot.sound]`,
+recorded in `AxiomAudit.lean`. No project axiom occurs in the chain: the only
+converted targets it uses are `spechtModule`, `spechtModule_irreducible` and
+`SymmetricGroupRepresentation.nonempty_iso_of_character_eq`.
+
+## Correction to revision R4, and the shared hook lemma
+
+R4 recorded a single route for `standardYoungTableau_card_mul_hookProduct`:
+first-column coordinates `l_i = μ.rowLen i + (m - 1 - i)`, then the corner
+recursion, then "a Vandermonde-style identity" with the missing algebraic step
+"supplied by Bandlow (2)–(5)". Reading Bandlow (PDF pp. 3–8) shows those are two
+different routes, and the second does not supply the first:
+
+- Bandlow's identities (3), (4) and (5) are stated in the **corner contents**
+  `x_i = ct(X_i)`, `y_i = ct(Y_i)` of the outer and inner corners, not in the
+  first-column coordinates `l_i`. His (3) is proved by cancelling hook lengths
+  between `μ` and `μ` minus a corner directly, so on that route the
+  first-column lemma is never used at all. What that route does need is corner
+  theory (outer and inner corners, their contents, `∑ x_i = ∑ y_i`), the
+  Lagrange-interpolation argument of (4) — comparing the `t^(m-1)` coefficients
+  of two polynomials in `ℚ[t]` — and the rectangle decomposition of (5).
+- The `l_i` route needs the first-column lemma, and then a *different* algebraic
+  identity, which Bandlow does not state.
+
+So R4 should be split into two independent routes, and neither is a single-lemma
+gap. Both were scoped, not attempted; nothing speculative was left in the tree.
+
+The lemma that revision R5 names as shared by the two hook targets is the
+first-column one,
+
+```
+hookProduct μ * ∏_{i < j < m} (l i - l j) = ∏_{i < m} (l i)!
+```
+
+and it does have a short proof, worth recording because the recorded citation for
+it (Sagan Theorem 3.11.1) was already shown to be circular. Write `m = μ.colLen 0`
+for the number of rows and `β j = m + j - μ.colLen j`. Then:
+
+1. `μ.hookLength (i, j) + β j = l i` for every cell `(i, j)`, by `omega` from
+   `j < μ.rowLen i` and `i < μ.colLen j`.
+2. `β` is strictly increasing, since `colLen` is antitone, and `l` is strictly
+   decreasing on `[0, m)`, since `rowLen` is antitone.
+3. `β j ≠ l k` for all `j` and all `k < m`. Unfolded, `β j = l k` says
+   `j + k + 1 = μ.colLen j + μ.rowLen k`. If `(k, j) ∈ μ` then `μ.rowLen k ≥ j + 1`
+   and `μ.colLen j ≥ k + 1`, so the right side is at least `j + k + 2`; if
+   `(k, j) ∉ μ` then `μ.rowLen k ≤ j` and `μ.colLen j ≤ k`, so it is at most
+   `j + k`. Both cases use only `mem_iff_lt_rowLen` and `mem_iff_lt_colLen`.
+4. For fixed `i < m`, the `μ.rowLen i` values `β j` and the `m - 1 - i` values
+   `l k` for `i < k < m` are distinct elements of `Finset.range (l i)`, and their
+   count is `μ.rowLen i + (m - 1 - i) = l i`, so together they exhaust it. Hence
+   `(l i)! = ∏_{j < μ.rowLen i} (l i - β j) * ∏_{i < k < m} (l i - l k)`, and the
+   first factor is the product of the hook lengths in row `i` by step 1.
+
+Multiplying over `i` gives the displayed identity. The remaining work in this
+lemma is Finset bookkeeping — rewriting `μ.cells.prod` as an iterated product
+over rows — and is the reason it was not landed alongside a representation-theory
+target.

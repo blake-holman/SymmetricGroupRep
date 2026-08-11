@@ -26,3 +26,20 @@ theorem symmetricGroupLeftRegular_decomposition (n : ℕ) :
   exact ⟨e ≪≫ biproduct.mapIso fun μ =>
     biproduct.reindex (finCongr (finrank_hom_symmetricGroupLeftRegular n (spechtModule μ)))
       fun _ => spechtModule μ⟩
+
+/-- The squared Specht dimensions sum to the order of the symmetric group. -/
+theorem sum_finrank_spechtModule_sq (n : ℕ) :
+    ∑ μ : YoungDiagramOfSize n, Module.finrank ℂ (spechtModule μ) ^ 2 = n.factorial := by
+  let e := Classical.choice (symmetricGroupLeftRegular_decomposition n)
+  have h := (FDRep.isoToLinearEquiv e).finrank_eq
+  rw [FDRep.finrank_biproduct] at h
+  have h2 : ∑ μ : YoungDiagramOfSize n,
+      Module.finrank ℂ ((⨁ fun _ : Fin (Module.finrank ℂ (spechtModule μ)) => spechtModule μ :
+        SymmetricGroupRepresentation n) : Type) =
+      ∑ μ : YoungDiagramOfSize n, Module.finrank ℂ (spechtModule μ) ^ 2 :=
+    Finset.sum_congr rfl fun μ _ => by
+      rw [FDRep.finrank_biproduct, Finset.sum_const, Finset.card_univ, Fintype.card_fin, sq]
+      simp
+  rw [← h2, ← h]
+  show Module.finrank ℂ (SymmetricGroup n →₀ ℂ) = n.factorial
+  rw [Module.finrank_finsupp_self, Fintype.card_perm, Fintype.card_fin]
