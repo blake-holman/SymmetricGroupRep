@@ -403,6 +403,27 @@ either — the conjugate partition appears there only in the symmetric-function
 chapters. James 1978, equation (6.6) and Theorem 6.7 (printed p. 25), is the
 correct source, and the docstring already cites it.
 
+## Reconnaissance for `spechtModule_singleRow`
+
+Verified in Lean but not yet committed, recorded so the next pass is quick:
+
+- `𝟙_ (SymmetricGroupRepresentation n)` has carrier `ℂ` and `ρ g = 1`, both by
+  `rfl`. So the target reduces to exhibiting the one-row Specht module as the
+  trivial one-dimensional representation.
+- For the one-row shape, `row_nonempty` forces every label into row `0`, so
+  `Tabloid (singleRowPartition n)` is a subsingleton, and it is nonempty by
+  `Tabloid.nonempty`; hence `Unique`.
+- Mathlib already has the matching bridge:
+  `Representation.ofMulActionSubsingletonEquivTrivial`, which sends
+  `ofMulAction k G H` for subsingleton `H` to `Representation.trivial k G k` via
+  `Finsupp.LinearEquiv.finsuppUnique`. It is stated with a `MulOneClass H`
+  hypothesis that `Tabloid` does not satisfy, but its two-line proof transfers
+  directly.
+- The remaining step is `(spechtSubrepresentation (singleRowPartition n)).toSubmodule = ⊤`.
+  Since the tabloid type is `Unique`, the ambient module is one dimensional, and
+  `polytabloid_apply_tabloid` already gives a vector with coefficient one, so the
+  polytabloid equals `Finsupp.single` on the unique tabloid and spans.
+
 ## Next step: irreducibility
 
 With `spechtModule` constructed, the next layer is `spechtModule_irreducible`
