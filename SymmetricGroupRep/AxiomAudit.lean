@@ -3,6 +3,7 @@ import SymmetricGroupRep.Kostka
 import SymmetricGroupRep.Classification
 import SymmetricGroupRep.Kronecker
 import SymmetricGroupRep.Decomposition
+import SymmetricGroupRep.HookLength
 import SymmetricGroupRep.ProductClassification
 import SymmetricGroupRep.RegularDecomposition
 import SymmetricGroupRep.SelfDuality
@@ -78,6 +79,16 @@ info: 'symmetricGroupBiregular_decomposition' depends on axioms: [propext, Class
 #guard_msgs in
 #print axioms symmetricGroupBiregular_decomposition
 
+/-- info: 'spechtModule_branching' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms spechtModule_branching
+
+/--
+info: 'spechtModule_induction_branching' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms spechtModule_induction_branching
+
 /-! The shared infrastructure the remaining targets are built on is guarded here
 too, so that a regression in it fails the build rather than surfacing later as a
 mysteriously unprovable target. -/
@@ -127,3 +138,10 @@ Quot.sound]
 -/
 #guard_msgs in
 #print axioms youngPermutationModule_twoRow_induction
+
+/--
+info: 'standardYoungTableau_card_mul_hookProduct' depends on axioms: [propext, Classical.choice,
+Quot.sound]
+-/
+#guard_msgs in
+#print axioms standardYoungTableau_card_mul_hookProduct

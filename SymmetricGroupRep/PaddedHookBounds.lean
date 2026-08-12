@@ -65,14 +65,6 @@ theorem colLen_eq_zero_of_card_le (eta : YoungDiagram) {j : ℕ} (hj : eta.card 
     exact Finset.card_le_card (Finset.filter_subset _ _)
   exact (Nat.not_lt_of_ge hj) (hrow.trans_le hrow_card)
 
-/-- The descending product from `m` down to one is `m!`. -/
-theorem prod_range_desc (m : ℕ) :
-    (∏ j ∈ Finset.range m, (m - j)) = m.factorial := by
-  calc
-    (∏ j ∈ Finset.range m, (m - j)) = m.descFactorial m :=
-      (Nat.descFactorial_eq_prod_range m m).symm
-    _ = m.factorial := Nat.descFactorial_self m
-
 /-- Extending a row by one box multiplies its hook product by at least the
 number of columns not occupied by an `r`-box diagram. -/
 theorem top_hook_product_step

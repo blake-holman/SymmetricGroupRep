@@ -40,6 +40,7 @@ import SymmetricGroupRep.SubmoduleTheorem
 import SymmetricGroupRep.Tableaux
 import SymmetricGroupRep.Tabloids
 import SymmetricGroupRep.TwoStepBranchingBasis
+import SymmetricGroupRep.Vandermonde
 import SymmetricGroupRep.YoungDiagrams
 import SymmetricGroupRep.YoungGraph
 import SymmetricGroupRep.YoungPermutation

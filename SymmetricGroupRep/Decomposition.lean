@@ -337,3 +337,27 @@ theorem FDRep.finrank_biproduct
   rw [(FDRep.biproductLinearEquivPi f).finrank_eq,
     Module.finrank_pi_fintype]
 
+/-- Equivariant Hom spaces of a finite group have the same dimension in either direction: the
+character pairing that computes them is invariant under `g ↦ g⁻¹`. -/
+theorem FDRep.finrank_hom_symm {G : Type} [Group G] [Finite G] (V W : FDRep ℂ G) :
+    Module.finrank ℂ (V ⟶ W) = Module.finrank ℂ (W ⟶ V) := by
+  haveI := Fintype.ofFinite G
+  have hpairing : (Module.finrank ℂ (V ⟶ W) : ℂ) = (Module.finrank ℂ (W ⟶ V) : ℂ) := by
+    rw [← FDRep.scalar_product_char_eq_finrank_equivariant V W,
+      ← FDRep.scalar_product_char_eq_finrank_equivariant W V]
+    exact congrArg _ (Fintype.sum_equiv (Equiv.inv G) _ _ fun g => by simp [mul_comm])
+  exact_mod_cast hpairing
+
+/-- Dimension count over a complete family of pairwise non-isomorphic simples: each member
+contributes its multiplicity times its dimension. -/
+theorem FDRep.finrank_eq_sum_finrank_hom_mul {G ι : Type} [Group G] [Finite G]
+    [NeZero (Nat.card G : ℂ)] [Fintype ι] (S : ι → FDRep ℂ G) (hsimple : ∀ i, Simple (S i))
+    (hdistinct : ∀ i j, Nonempty (S i ≅ S j) → i = j)
+    (hcomplete : ∀ T : FDRep ℂ G, Simple T → ∃ i, Nonempty (T ≅ S i)) (V : FDRep ℂ G) :
+    ∑ i, Module.finrank ℂ (S i ⟶ V) * Module.finrank ℂ (S i) = Module.finrank ℂ V := by
+  let e := Classical.choice
+    (FDRep.exists_iso_biproduct_multiplicity S hsimple hdistinct hcomplete V)
+  rw [(FDRep.isoToLinearEquiv e).finrank_eq, FDRep.finrank_biproduct]
+  exact Finset.sum_congr rfl fun i _ => by
+    rw [FDRep.finrank_biproduct, Finset.sum_const, Finset.card_univ, Fintype.card_fin, smul_eq_mul]
+
