@@ -38,8 +38,8 @@ theorem SymmetricGroup.adjacentTransposition_apply_of_ne {n : ℕ}
   Equiv.swap_apply_of_ne_of_ne hleft hright
 
 /-- An equivariant map moves the action of the group across itself. -/
-theorem FDRep.hom_apply_rho {n : ℕ} {W V : SymmetricGroupRepresentation n} (f : W ⟶ V)
-    (g : SymmetricGroup n) (v : W.V) :
+theorem FDRep.hom_apply_rho {G : Type} [Monoid G] {W V : FDRep ℂ G} (f : W ⟶ V)
+    (g : G) (v : W.V) :
     f.hom.hom.hom (W.ρ g v) = V.ρ g (f.hom.hom.hom v) := by
   simpa using congrArg (fun h : W.V ⟶ V.V => (ModuleCat.Hom.hom h.hom) v) (f.comm g)
 

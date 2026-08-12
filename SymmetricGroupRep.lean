@@ -1,5 +1,8 @@
+import SymmetricGroupRep.Alternant
 import SymmetricGroupRep.AxiomAudit
 import SymmetricGroupRep.Basic
+import SymmetricGroupRep.BenderKnuth
+import SymmetricGroupRep.Bialternant
 import SymmetricGroupRep.Biregular
 import SymmetricGroupRep.Branching
 import SymmetricGroupRep.BranchingBasis
@@ -8,6 +11,7 @@ import SymmetricGroupRep.CharacterProjector
 import SymmetricGroupRep.CharacterProjectorAlgebra
 import SymmetricGroupRep.CharacterProjectorReal
 import SymmetricGroupRep.Classification
+import SymmetricGroupRep.ColumnSplit
 import SymmetricGroupRep.ContentEigenvalue
 import SymmetricGroupRep.Decomposition
 import SymmetricGroupRep.Dimensions
@@ -31,6 +35,7 @@ import SymmetricGroupRep.Polytabloid
 import SymmetricGroupRep.ProductClassification
 import SymmetricGroupRep.Regular
 import SymmetricGroupRep.RegularDecomposition
+import SymmetricGroupRep.SchurPolynomial
 import SymmetricGroupRep.SchurWeyl
 import SymmetricGroupRep.SelfDuality
 import SymmetricGroupRep.Semisimple
@@ -41,11 +46,13 @@ import SymmetricGroupRep.SpechtCharacterReal
 import SymmetricGroupRep.SpechtForm
 import SymmetricGroupRep.SpectralBasis
 import SymmetricGroupRep.StandardTableaux
+import SymmetricGroupRep.Stembridge
 import SymmetricGroupRep.SubmoduleTheorem
 import SymmetricGroupRep.TableauContent
 import SymmetricGroupRep.TableauInversions
 import SymmetricGroupRep.Tableaux
 import SymmetricGroupRep.Tabloids
+import SymmetricGroupRep.TwoBoxInduction
 import SymmetricGroupRep.TwoStepBranchingBasis
 import SymmetricGroupRep.Vandermonde
 import SymmetricGroupRep.YoungBasis
