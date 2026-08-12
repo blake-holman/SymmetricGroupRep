@@ -24,6 +24,7 @@ import SymmetricGroupRep.KSubsets
 import SymmetricGroupRep.Kostka
 import SymmetricGroupRep.Kronecker
 import SymmetricGroupRep.LittlewoodRichardson
+import SymmetricGroupRep.LittlewoodRichardsonBridge
 import SymmetricGroupRep.MultiplicitySpaces
 import SymmetricGroupRep.Orthogonal
 import SymmetricGroupRep.OuterTensor
@@ -35,7 +36,9 @@ import SymmetricGroupRep.Polytabloid
 import SymmetricGroupRep.ProductClassification
 import SymmetricGroupRep.Regular
 import SymmetricGroupRep.RegularDecomposition
+import SymmetricGroupRep.SchurKostka
 import SymmetricGroupRep.SchurPolynomial
+import SymmetricGroupRep.SchurProduct
 import SymmetricGroupRep.SchurWeyl
 import SymmetricGroupRep.SelfDuality
 import SymmetricGroupRep.Semisimple

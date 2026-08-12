@@ -34,6 +34,18 @@ theorem YoungDiagram.rowLen_eq_zero {ν : YoungDiagram} {q i : ℕ} (hν : ν.co
   have := YoungDiagram.mem_iff_lt_colLen.mp hcell
   omega
 
+/-- A Young diagram has no more rows than cells. -/
+theorem YoungDiagram.colLen_zero_le_card (μ : YoungDiagram) : μ.colLen 0 ≤ μ.card := by
+  rw [YoungDiagram.colLen_eq_card]
+  exact Finset.card_le_card (Finset.filter_subset _ _)
+
+/-- A Young diagram of size `n` has at most `n` rows. -/
+theorem YoungDiagramOfSize.colLen_zero_le {n : ℕ} (mu : YoungDiagramOfSize n) :
+    mu.val.colLen 0 ≤ n := by
+  have hcard := mu.val.colLen_zero_le_card
+  rw [mu.property] at hcard
+  exact hcard
+
 /-- Every antitone vector of length `q` is the vector of row lengths of a Young
 diagram with at most `q` rows. -/
 theorem exists_youngDiagram_rowLen {q : ℕ} (r : Fin q → ℕ)

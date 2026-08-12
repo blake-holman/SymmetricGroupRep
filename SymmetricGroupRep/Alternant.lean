@@ -83,6 +83,74 @@ theorem alt_eq_zero_of_eq {α : Fin N →₀ ℕ} {i j : Fin N} (hij : i ≠ j) 
   refine eq_zero_of_eq_neg ?_
   conv_lhs => rw [← hmap, alt_mapDomain_swap hij]
 
+open scoped Classical in
+/-- The coefficients of an alternant collect the permutations that carry the
+exponent vector to the exponent read off. -/
+theorem coeff_alt (α β : Fin N →₀ ℕ) :
+    (alt α).coeff β =
+      ∑ w : Equiv.Perm (Fin N),
+        if Finsupp.mapDomain w α = β then (Equiv.Perm.sign w : ℤ) else 0 := by
+  rw [alt, asym, coeff_sum]
+  refine Finset.sum_congr rfl fun w _ => ?_
+  rw [rename_monomial, C_mul_monomial, mul_one, coeff_monomial]
+
+private theorem apply_symm_eq {α : Fin N →₀ ℕ} {w : Equiv.Perm (Fin N)} {β : Fin N →₀ ℕ}
+    (h : Finsupp.mapDomain w α = β) (x : Fin N) : α (w.symm x) = β x := by
+  have hx : Finsupp.equivMapDomain w α x = β x := by
+    rw [Finsupp.equivMapDomain_eq_mapDomain, h]
+  rwa [Finsupp.equivMapDomain_apply] at hx
+
+private theorem eq_one_of_symm_eq_one {w : Equiv.Perm (Fin N)} (h : w.symm = 1) : w = 1 := by
+  rw [← Equiv.symm_symm w, h]
+  rfl
+
+/-- Only the identity fixes an exponent vector with distinct entries. -/
+private theorem eq_one_of_mapDomain_eq {α : Fin N →₀ ℕ} (hα : Function.Injective ⇑α)
+    {w : Equiv.Perm (Fin N)} (h : Finsupp.mapDomain w α = α) : w = 1 :=
+  eq_one_of_symm_eq_one (Equiv.ext fun x => hα (apply_symm_eq h x))
+
+/-- An exponent vector with distinct entries appears once in its own alternant. -/
+theorem coeff_alt_self {α : Fin N →₀ ℕ} (hα : Function.Injective ⇑α) : (alt α).coeff α = 1 := by
+  classical
+  rw [coeff_alt]
+  rw [Finset.sum_eq_single 1 (fun w _ hw => if_neg fun h => hw (eq_one_of_mapDomain_eq hα h))
+    fun h => absurd (Finset.mem_univ (1 : Equiv.Perm (Fin N))) h]
+  rw [if_pos (show Finsupp.mapDomain (1 : Equiv.Perm (Fin N)) α = α by simp)]
+  simp
+
+/-- An increasing permutation of a finite linear order is the identity. -/
+private theorem perm_eq_one_of_strictMono {w : Equiv.Perm (Fin N)} (hw : StrictMono w) : w = 1 := by
+  have hsymm : StrictMono w.symm := fun x y hxy => by
+    by_contra hcon
+    exact absurd (hw.monotone (not_lt.mp hcon)) (by simpa using not_le.mpr hxy)
+  refine Equiv.ext fun i => le_antisymm ?_ hw.le_apply
+  simpa using hw.monotone (hsymm.le_apply (x := i))
+
+/-- A strictly decreasing exponent vector is determined by the multiset of its
+entries: a permutation carrying one to another is the identity. -/
+theorem eq_of_mapDomain_eq {α β : Fin N →₀ ℕ} (hα : StrictAnti ⇑α) (hβ : StrictAnti ⇑β)
+    {w : Equiv.Perm (Fin N)} (h : Finsupp.mapDomain w α = β) : α = β := by
+  have hmono : StrictMono ⇑w.symm := fun x y hxy => by
+    refine (StrictAnti.lt_iff_gt hα).mp ?_
+    rw [apply_symm_eq h, apply_symm_eq h]
+    exact hβ hxy
+  rw [eq_one_of_symm_eq_one (perm_eq_one_of_strictMono hmono)] at h
+  simpa using (Finsupp.mapDomain_id (v := α)).symm.trans h
+
+/-- Distinct strictly decreasing exponent vectors do not meet in their
+alternants. -/
+theorem coeff_alt_of_ne {α β : Fin N →₀ ℕ} (hα : StrictAnti ⇑α) (hβ : StrictAnti ⇑β)
+    (hne : α ≠ β) : (alt α).coeff β = 0 := by
+  classical
+  rw [coeff_alt]
+  exact Finset.sum_eq_zero fun w _ => if_neg fun h => hne (eq_of_mapDomain_eq hα hβ h)
+
+/-- An alternant with distinct exponents is not zero. -/
+theorem alt_ne_zero {α : Fin N →₀ ℕ} (hα : Function.Injective ⇑α) : alt α ≠ 0 := fun h => by
+  have hone := coeff_alt_self hα
+  rw [h, coeff_zero] at hone
+  exact zero_ne_one hone
+
 /-- Multiplying an alternant by a Schur polynomial spreads it over the tableaux
 of the shape. -/
 theorem alt_mul_schurPoly (κ : Fin N →₀ ℕ) (lam : YoungDiagram) :

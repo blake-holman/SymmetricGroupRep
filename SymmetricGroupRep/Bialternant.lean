@@ -195,4 +195,65 @@ theorem alt_staircase_mul_schurPoly (h : lam.colLen 0 ≤ N) :
   rw [expo_apply, expo_apply, prof_zero, weight_superstandard]
   omega
 
+/-! ### The staircase alternants are a basis
+
+The exponents of `a_{λ + ρ}` strictly decrease, so `λ` can be read back off the
+exponent vector.  That makes these alternants linearly independent over `ℤ`,
+which is how a Schur expansion is recovered from a bialternant identity. -/
+
+/-- Shifting the rows of a shape by the staircase makes them strictly
+decrease. -/
+theorem strictAnti_staircase (mu : YoungDiagram) :
+    StrictAnti ⇑(expo N fun i => mu.rowLen i + (N - 1 - i)) := by
+  intro i j hij
+  have hlt : (i : ℕ) < j := hij
+  have hj := j.isLt
+  have hrow := mu.rowLen_anti i j (le_of_lt hlt)
+  simp only [expo_apply]
+  omega
+
+/-- The staircase exponents are distinct, so the staircase alternant can be
+cancelled. -/
+theorem alt_staircase_ne_zero : alt (expo N fun i => N - 1 - i) ≠ 0 :=
+  alt_ne_zero fun i j hij => by
+    have hi := i.isLt
+    have hj := j.isLt
+    simp only [expo_apply] at hij
+    exact Fin.ext (by omega)
+
+/-- Shapes of a common size that fits in `N` rows are told apart by their
+staircase-shifted exponents. -/
+theorem staircase_injective {n : ℕ} (hn : n ≤ N) :
+    Function.Injective fun ξ : YoungDiagramOfSize n =>
+      expo N fun i => ξ.val.rowLen i + (N - 1 - i) := by
+  have hcol : ∀ ξ : YoungDiagramOfSize n, ξ.val.colLen 0 ≤ N := fun ξ =>
+    le_trans (YoungDiagramOfSize.colLen_zero_le ξ) hn
+  intro ξ ζ h
+  refine Subtype.ext (YoungDiagram.ext_of_rowLen fun row => ?_)
+  rcases lt_or_ge row N with hrow | hrow
+  · have hval := congrArg (fun d : Fin N →₀ ℕ => d ⟨row, hrow⟩) h
+    simp only [expo_apply] at hval
+    omega
+  · rw [YoungDiagram.rowLen_eq_zero (hcol ξ) hrow, YoungDiagram.rowLen_eq_zero (hcol ζ) hrow]
+
+/-- **The staircase alternants of the shapes of a fixed size are linearly
+independent over `ℤ`.** -/
+theorem eq_of_sum_alt_staircase_eq {n : ℕ} (hn : n ≤ N) {f g : YoungDiagramOfSize n → ℤ}
+    (h : ∑ ξ : YoungDiagramOfSize n, C (f ξ) * alt (expo N fun i => ξ.val.rowLen i + (N - 1 - i)) =
+      ∑ ξ : YoungDiagramOfSize n, C (g ξ) * alt (expo N fun i => ξ.val.rowLen i + (N - 1 - i))) :
+    f = g := by
+  funext ζ
+  have hcoeff : ∀ p : YoungDiagramOfSize n → ℤ,
+      (∑ ξ : YoungDiagramOfSize n,
+          C (p ξ) * alt (expo N fun i => ξ.val.rowLen i + (N - 1 - i))).coeff
+        (expo N fun i => ζ.val.rowLen i + (N - 1 - i)) = p ζ := by
+    intro p
+    rw [coeff_sum]
+    refine (Finset.sum_eq_single ζ (fun ξ _ hξ => ?_) fun hζ =>
+      absurd (Finset.mem_univ ζ) hζ).trans ?_
+    · rw [coeff_C_mul, coeff_alt_of_ne (strictAnti_staircase _) (strictAnti_staircase _)
+        fun hcon => hξ (staircase_injective hn hcon), mul_zero]
+    · rw [coeff_C_mul, coeff_alt_self (strictAnti_staircase _).injective, mul_one]
+  rw [← hcoeff f, h, hcoeff g]
+
 end Stembridge
