@@ -1801,7 +1801,8 @@
         "ex.twoRowPartition",
         "ex.youngSubgroupRoundTripMultiplicity"
       ],
-      "state": "axiom"
+      "state": "axiom",
+      "scheduling": "OUT OF SCOPE FOR AUTOMATED WORK. The user has taken this target over personally and instructed that it be skipped altogether. Do not attempt it. Leave it an axiom and do not edit Kronecker.lean. Context for whoever picks it up: Rosmanis states Lemma 1.12 without proof, and Ballantine-Orellana Theorem 2.1, proposed as a replacement, assumes lambda_1 - lambda_2 >= 2p, which the Lean hypotheses do not imply - take i = j = floor(n/2) - 1. It is the only target with no adequate proof in the literature at the generality its statement needs."
     }
   ],
   "assembly": [
