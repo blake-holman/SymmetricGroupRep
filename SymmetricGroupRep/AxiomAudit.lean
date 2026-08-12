@@ -6,6 +6,7 @@ import SymmetricGroupRep.Decomposition
 import SymmetricGroupRep.HookLength
 import SymmetricGroupRep.ProductClassification
 import SymmetricGroupRep.RegularDecomposition
+import SymmetricGroupRep.Orthogonal
 import SymmetricGroupRep.SelfDuality
 import SymmetricGroupRep.Tableaux
 
@@ -88,6 +89,19 @@ info: 'spechtModule_induction_branching' depends on axioms: [propext, Classical.
 -/
 #guard_msgs in
 #print axioms spechtModule_induction_branching
+
+/--
+info: 'spechtBranchingBasisData' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms spechtBranchingBasisData
+
+/--
+info: 'spechtOrthogonalBasis_adjacentTransposition' depends on axioms: [propext, Classical.choice,
+Quot.sound]
+-/
+#guard_msgs in
+#print axioms spechtOrthogonalBasis_adjacentTransposition
 
 /-! The shared infrastructure the remaining targets are built on is guarded here
 too, so that a regression in it fails the build rather than surfacing later as a

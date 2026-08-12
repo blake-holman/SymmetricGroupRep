@@ -269,6 +269,42 @@ theorem entry_extend_cell (ν : OneBoxRemoval μ) (S : StandardYoungTableau ν.v
 
 end OneBoxRemoval
 
+/-- The cell deleted by the removal a tableau selects is the cell of its largest label. -/
+theorem StandardYoungTableau.cell_largestRemoval {n : ℕ} {μ : YoungDiagramOfSize (n + 1)}
+    (T : StandardYoungTableau μ) :
+    OneBoxRemoval.cell T.largestRemoval = T.largestCell.1 := by
+  have hcells : T.largestRemoval.val.val.cells = μ.val.cells.erase T.largestCell.1 := rfl
+  have hsdiff := OneBoxRemoval.sdiff_eq_cell T.largestRemoval
+  rw [hcells] at hsdiff
+  have herase : μ.val.cells \ μ.val.cells.erase T.largestCell.1 = {T.largestCell.1} := by
+    ext x
+    simp only [Finset.mem_sdiff, Finset.mem_erase, Finset.mem_singleton]
+    constructor
+    · rintro ⟨hx, hx'⟩
+      by_contra hne
+      exact hx' ⟨hne, hx⟩
+    · rintro rfl
+      exact ⟨T.largestCell.2, fun h => h.1 rfl⟩
+  exact (Finset.singleton_injective (herase.symm.trans hsdiff)).symm
+
+/-- Deleting the largest label and writing it back restores the tableau. -/
+theorem OneBoxRemoval.extend_restrictLargest {n : ℕ} {μ : YoungDiagramOfSize (n + 1)}
+    (T : StandardYoungTableau μ) :
+    OneBoxRemoval.extend T.largestRemoval T.restrictLargest = T := by
+  have hcells : T.largestRemoval.val.val.cells = μ.val.cells.erase T.largestCell.1 := rfl
+  refine StandardYoungTableau.ext (Equiv.ext fun d => ?_)
+  by_cases hd : d.1 ∈ T.largestRemoval.val.val.cells
+  · rw [OneBoxRemoval.entry_extend_of_mem _ _ d hd]
+    refine Fin.ext ?_
+    rw [Fin.val_castSucc]
+    exact T.restrictedEntryEquiv_val ⟨d.1, hd⟩
+  · rw [OneBoxRemoval.entry_extend_cell _ _ d hd]
+    have hlargest : d = T.largestCell := by
+      refine Subtype.ext ?_
+      rw [hcells, Finset.mem_erase] at hd
+      exact not_not.mp fun h => hd ⟨h, d.2⟩
+    rw [hlargest, T.entry_largestCell]
+
 /-- Removing the largest label of a standard tableau of shape `μ`, and extending back, are
 mutually inverse: standard tableaux of shape `μ` are indexed by a one-box removal of `μ`
 together with a standard tableau of that shape. -/
@@ -294,34 +330,7 @@ noncomputable def standardYoungTableauEquivRemovals {n : ℕ} (μ : YoungDiagram
     have h₂ := OneBoxRemoval.entry_extend_of_mem ν S' ⟨d.1, OneBoxRemoval.cells_subset ν d.2⟩ d.2
     rw [heq', h₂] at h₁
     exact Fin.castSucc_injective n h₁.symm
-  · intro T
-    refine ⟨⟨T.largestRemoval, T.restrictLargest⟩, ?_⟩
-    have hcells : T.largestRemoval.val.val.cells = μ.val.cells.erase T.largestCell.1 := rfl
-    have hcell : OneBoxRemoval.cell T.largestRemoval = T.largestCell.1 := by
-      have hsdiff := OneBoxRemoval.sdiff_eq_cell T.largestRemoval
-      rw [hcells] at hsdiff
-      have : μ.val.cells \ μ.val.cells.erase T.largestCell.1 = {T.largestCell.1} := by
-        ext x
-        simp only [Finset.mem_sdiff, Finset.mem_erase, Finset.mem_singleton]
-        constructor
-        · rintro ⟨hx, hx'⟩
-          by_contra hne
-          exact hx' ⟨hne, hx⟩
-        · rintro rfl
-          exact ⟨T.largestCell.2, fun h => h.1 rfl⟩
-      exact (Finset.singleton_injective (this.symm.trans hsdiff)).symm
-    refine StandardYoungTableau.ext (Equiv.ext fun d => ?_)
-    by_cases hd : d.1 ∈ T.largestRemoval.val.val.cells
-    · rw [OneBoxRemoval.entry_extend_of_mem _ _ d hd]
-      refine Fin.ext ?_
-      rw [Fin.val_castSucc]
-      exact T.restrictedEntryEquiv_val ⟨d.1, hd⟩
-    · rw [OneBoxRemoval.entry_extend_cell _ _ d hd]
-      have : d = T.largestCell := by
-        refine Subtype.ext ?_
-        rw [hcells, Finset.mem_erase] at hd
-        exact not_not.mp fun h => hd ⟨h, d.2⟩
-      rw [this, T.entry_largestCell]
+  · exact fun T => ⟨⟨T.largestRemoval, T.restrictLargest⟩, OneBoxRemoval.extend_restrictLargest T⟩
 
 /-- The diagrams obtained from `ν` by adding one box. -/
 noncomputable def oneBoxAdditions {n : ℕ} (ν : YoungDiagramOfSize n) :

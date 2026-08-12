@@ -36,7 +36,7 @@ theorem column_lt (t : YoungTableau μ) (i : Fin n) : t.column i < n :=
   lt_of_lt_of_le (μ.val.cell_snd_lt_card (t.symm i).2) μ.property.le
 
 /-- Column `c` of a tableau meets its first `j` rows in `min (μ.colLen c) j` labels. -/
-private theorem card_filter_row_lt_and_column_eq (t : YoungTableau μ) (j c : ℕ) :
+theorem card_filter_row_lt_and_column_eq (t : YoungTableau μ) (j c : ℕ) :
     (Finset.univ.filter fun y => t.row y < j ∧ t.column y = c).card =
       min (μ.val.colLen c) j := by
   classical
@@ -59,7 +59,7 @@ private theorem card_filter_row_lt_and_column_eq (t : YoungTableau μ) (j c : �
   rw [← Finset.card_image_of_injOn hinj, himage, Finset.card_range]
 
 /-- Column `c` of a tableau holds `μ.colLen c` labels. -/
-private theorem card_filter_column_eq (t : YoungTableau μ) (c : ℕ) :
+theorem card_filter_column_eq (t : YoungTableau μ) (c : ℕ) :
     (Finset.univ.filter fun y => t.column y = c).card = μ.val.colLen c := by
   classical
   have hcolLen : μ.val.colLen c ≤ n :=

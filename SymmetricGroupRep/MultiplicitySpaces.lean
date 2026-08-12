@@ -23,24 +23,6 @@ theorem spechtMultiplicitySpace_finrank {n : ℕ}
   rw [CategoryTheory.finrank_hom_simple_simple]
   simp [spechtModule_iso_iff_eq]
 
-/-- Schur's lemma makes every Specht endomorphism scalar. -/
-theorem spechtEndomorphism_eq_smul_id {n : ℕ}
-    (μ : YoungDiagramOfSize n) (f : spechtModule μ ⟶ spechtModule μ) :
-    ∃ c : ℂ, f = c • 𝟙 (spechtModule μ) := by
-  letI := spechtModule_irreducible μ
-  obtain ⟨c, hc⟩ := CategoryTheory.endomorphism_simple_eq_smul_id ℂ f
-  exact ⟨c, hc.symm⟩
-
-/-- A morphism between differently labeled Specht modules is zero. -/
-theorem spechtHom_eq_zero_of_ne {n : ℕ}
-    {μ ν : YoungDiagramOfSize n} (h : μ ≠ ν)
-    (f : spechtModule μ ⟶ spechtModule ν) : f = 0 := by
-  letI := spechtModule_irreducible μ
-  letI := spechtModule_irreducible ν
-  by_contra hf
-  haveI := CategoryTheory.isIso_of_hom_simple hf
-  exact h ((spechtModule_iso_iff_eq μ ν).mp ⟨asIso f⟩)
-
 /-- A matrix entry of an endomorphism in a fixed two-step endpoint block. -/
 noncomputable def twoStepBranchingBlockEntry {n : ℕ}
     (μ : YoungDiagramOfSize (n + 2)) (ν : YoungDiagramOfSize n)

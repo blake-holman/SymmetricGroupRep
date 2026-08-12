@@ -330,33 +330,6 @@ theorem restrictTwoLargest_swapAdjacent_last {n : ℕ}
     _ = (T.restrictTwoLargest.entry cell).val :=
       (T.restrictTwoLargest_entry_val cell).symm
 
-/-- Swapping the same adjacent pair a second time restores the original
-entry labeling. -/
-theorem swappedEntry_swapAdjacent {n : ℕ} {mu : YoungDiagramOfSize (n + 1)}
-    (T : StandardYoungTableau mu) (i : Fin n)
-    (h : T.IsAdjacentSwapStandard i) :
-    (T.swapAdjacent i h).swappedEntry i = T.entry := by
-  apply Equiv.ext
-  intro cell
-  simp [swappedEntry, swapAdjacent]
-
-/-- An admissible adjacent swap is admissible in the reverse direction. -/
-theorem isAdjacentSwapStandard_swapAdjacent {n : ℕ}
-    {mu : YoungDiagramOfSize (n + 1)} (T : StandardYoungTableau mu) (i : Fin n)
-    (h : T.IsAdjacentSwapStandard i) :
-    (T.swapAdjacent i h).IsAdjacentSwapStandard i := by
-  rw [IsAdjacentSwapStandard, swappedEntry_swapAdjacent]
-  exact ⟨T.row_strict, T.col_strict⟩
-
-/-- Swapping an admissible adjacent pair twice restores the tableau. -/
-theorem swapAdjacent_swapAdjacent {n : ℕ}
-    {mu : YoungDiagramOfSize (n + 1)} (T : StandardYoungTableau mu) (i : Fin n)
-    (h : T.IsAdjacentSwapStandard i) :
-    (T.swapAdjacent i h).swapAdjacent i
-        (T.isAdjacentSwapStandard_swapAdjacent i h) = T := by
-  apply StandardYoungTableau.ext
-  exact T.swappedEntry_swapAdjacent i h
-
 /-- The two-step removal path selected by a tableau, indexed by its endpoint. -/
 def largestTwoStepRemovalTo {n : ℕ} {mu : YoungDiagramOfSize (n + 2)}
     (T : StandardYoungTableau mu) : TwoStepRemovalTo mu T.eraseTwoLargestShape :=

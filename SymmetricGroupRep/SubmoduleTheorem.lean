@@ -304,6 +304,10 @@ theorem tabloidForm_zero_left (y : Tabloid μ →₀ ℂ) : tabloidForm 0 y = 0 
 theorem tabloidForm_zero_right (x : Tabloid μ →₀ ℂ) : tabloidForm x 0 = 0 := by
   simp [tabloidForm]
 
+theorem tabloidForm_add_left (x y z : Tabloid μ →₀ ℂ) :
+    tabloidForm (x + y) z = tabloidForm x z + tabloidForm y z := by
+  simp [tabloidForm, add_mul, Finset.sum_add_distrib]
+
 theorem tabloidForm_add_right (x y z : Tabloid μ →₀ ℂ) :
     tabloidForm x (y + z) = tabloidForm x y + tabloidForm x z := by
   simp [tabloidForm, mul_add, Finset.sum_add_distrib]
@@ -356,12 +360,29 @@ theorem tabloidForm_ofMulAction_left (g : SymmetricGroup n) (x y : Tabloid μ �
   rw [Representation.ofMulAction_apply, Representation.ofMulAction_apply]
   simp
 
+/-- The form pairs a vector with itself in the sum of the squared moduli of its
+coefficients, a nonnegative real. -/
+theorem tabloidForm_self (x : Tabloid μ →₀ ℂ) :
+    tabloidForm x x = ((∑ T : Tabloid μ, Complex.normSq (x T) : ℝ) : ℂ) := by
+  rw [Complex.ofReal_sum, tabloidForm]
+  exact Finset.sum_congr rfl fun T _ => Complex.mul_conj (x T)
+
+/-- Pairing a vector with itself gives a real number. -/
+theorem tabloidForm_self_eq_ofReal (x : Tabloid μ →₀ ℂ) :
+    tabloidForm x x = ((tabloidForm x x).re : ℂ) := by
+  rw [tabloidForm_self]
+  simp
+
+/-- Pairing a vector with itself gives a nonnegative number. -/
+theorem tabloidForm_self_re_nonneg (x : Tabloid μ →₀ ℂ) : 0 ≤ (tabloidForm x x).re := by
+  rw [tabloidForm_self, Complex.ofReal_re]
+  exact Finset.sum_nonneg fun T _ => Complex.normSq_nonneg (x T)
+
 /-- The form is positive definite, so only the zero vector is self-orthogonal. -/
 theorem eq_zero_of_tabloidForm_self_eq_zero {x : Tabloid μ →₀ ℂ} (h : tabloidForm x x = 0) :
     x = 0 := by
   have hcast : ((∑ T : Tabloid μ, Complex.normSq (x T) : ℝ) : ℂ) = 0 := by
-    rw [Complex.ofReal_sum, ← h, tabloidForm]
-    exact Finset.sum_congr rfl fun T _ => (Complex.mul_conj (x T)).symm
+    rw [← tabloidForm_self, h]
   have hsum : ∑ T : Tabloid μ, Complex.normSq (x T) = 0 := by exact_mod_cast hcast
   refine Finsupp.ext fun T => Complex.normSq_eq_zero.mp ?_
   exact (Finset.sum_eq_zero_iff_of_nonneg fun U _ => Complex.normSq_nonneg (x U)).mp hsum T

@@ -3,69 +3,11 @@ import Mathlib.RepresentationTheory.Character
 
 open scoped Classical
 
-namespace StandardYoungTableau
-
-private theorem axialDistance_ne_zero {n : ℕ} (μ : YoungDiagramOfSize (n + 1))
-    (T : StandardYoungTableau μ) (i : Fin n) :
-    T.axialDistance i ≠ 0 := by
-  intro hzero
-  have hcontent : T.content i.succ = T.content (Fin.castSucc i) := by
-    exact sub_eq_zero.mp hzero
-  rcases hpi : T.entry.symm (Fin.castSucc i) with ⟨⟨a, b⟩, hp⟩
-  rcases hqi : T.entry.symm i.succ with ⟨⟨c, d⟩, hq⟩
-  have hpq : (⟨(a, b), hp⟩ : ↥μ.val.cells) ≠ ⟨(c, d), hq⟩ := by
-    intro hpq
-    have h := congrArg T.entry hpq
-    rw [← hpi, ← hqi] at h
-    simp only [T.entry.apply_symm_apply] at h
-    have hval : i.val = i.val + 1 := by
-      simpa only [Fin.val_castSucc, Fin.val_succ] using congrArg Fin.val h
-    omega
-  simp only [content, position] at hcontent
-  rw [hpi, hqi] at hcontent
-  have habcd : (d : ℤ) - c = b - a := hcontent
-  have hentryp : T.entry ⟨(a, b), hp⟩ = Fin.castSucc i := by
-    rw [← hpi]
-    exact T.entry.apply_symm_apply _
-  have hentryq : T.entry ⟨(c, d), hq⟩ = i.succ := by
-    rw [← hqi]
-    exact T.entry.apply_symm_apply _
-  have hac : a ≠ c := by
-    intro hac
-    have hbd : b = d := by omega
-    apply hpq
-    simp [hac, hbd]
-  rcases lt_or_gt_of_ne hac with hac | hca
-  · have hbd : b < d := by omega
-    let r : ↥μ.val.cells := ⟨(c, b), μ.val.up_left_mem (by rfl) hbd.le hq⟩
-    have hpr : T.entry ⟨(a, b), hp⟩ < T.entry r :=
-      T.col_strict (by simp [r]) hac
-    have hrq : T.entry r < T.entry ⟨(c, d), hq⟩ :=
-      T.row_strict (by simp [r]) hbd
-    have hipr : Fin.castSucc i < T.entry r := by simpa [hentryp] using hpr
-    have hriq : T.entry r < i.succ := by simpa [hentryq] using hrq
-    change i.val < (T.entry r).val at hipr
-    change (T.entry r).val < i.val + 1 at hriq
-    omega
-  · have hdb : d < b := by omega
-    let r : ↥μ.val.cells := ⟨(a, d), μ.val.up_left_mem (by rfl) hdb.le hp⟩
-    have hqr : T.entry ⟨(c, d), hq⟩ < T.entry r :=
-      T.col_strict (by simp [r]) hca
-    have hrp : T.entry r < T.entry ⟨(a, b), hp⟩ :=
-      T.row_strict (by simp [r]) hdb
-    have hiqr : i.succ < T.entry r := by simpa [hentryq] using hqr
-    have hrip : T.entry r < Fin.castSucc i := by simpa [hentryp] using hrp
-    change i.val + 1 < (T.entry r).val at hiqr
-    change (T.entry r).val < i.val at hrip
-    omega
-
-end StandardYoungTableau
-
 private theorem sqrt_axialDistance_im {n : ℕ} (μ : YoungDiagramOfSize (n + 1))
     (T : StandardYoungTableau μ) (i : Fin n) :
     (Complex.sqrt (1 - ((T.axialDistance i : ℂ)⁻¹) ^ 2)).im = 0 := by
   let d := T.axialDistance i
-  have hd : d ≠ 0 := StandardYoungTableau.axialDistance_ne_zero μ T i
+  have hd : d ≠ 0 := T.axialDistance_ne_zero i
   have hdreal : (1 : ℝ) ≤ |(d : ℝ)| := by
     norm_cast
     exact Int.one_le_abs hd

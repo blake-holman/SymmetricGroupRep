@@ -1,4 +1,5 @@
 import SymmetricGroupRep.Branching
+import SymmetricGroupRep.YoungBranching
 import SymmetricGroupRep.Tableaux
 import Mathlib.Logic.Equiv.Fin.Basic
 
@@ -37,7 +38,9 @@ equations (1) and (3)--(4), give the corresponding coherent embeddings.
 Rescaling each chosen path vector makes the displayed branching coefficient
 equal to one. Lean labels tableaux by `Fin n`, so deleting the classical entry
 `n` is `StandardYoungTableau.restrictLargest`. -/
-axiom spechtBranchingBasisData : SpechtBranchingBasisData
+noncomputable def spechtBranchingBasisData : SpechtBranchingBasisData :=
+  ⟨fun {_} μ => spechtYoungBasis μ, fun {_} μ => spechtYoungBranchingIso μ,
+    fun {_} μ T => spechtYoungBranchingIso_basis μ T⟩
 
 /-- The coherent tableau basis selected by the branching data. -/
 noncomputable def spechtCoherentBasis {n : ℕ} (μ : YoungDiagramOfSize n) :
