@@ -1,3 +1,4 @@
+import SymmetricGroupRep.SemistandardHom
 import SymmetricGroupRep.YoungPermutation
 import Mathlib.CategoryTheory.Preadditive.Biproducts
 import Mathlib.Combinatorics.Young.SemistandardTableau
@@ -60,6 +61,94 @@ noncomputable def kostkaNumber {n : ℕ}
     (shape weight : YoungDiagramOfSize n) : ℕ :=
   Nat.card (WeightedSemistandardTableau shape weight)
 
+/-- A shape of size `n` has no row past row `n`. -/
+private theorem rowLen_eq_zero_of_le {n : ℕ} (mu : YoungDiagramOfSize n) {row : ℕ}
+    (hrow : n ≤ row) : mu.val.rowLen row = 0 := by
+  by_contra hne
+  have hlt : row < n := Tabloid.cell_fst_lt (mu := mu)
+    ⟨(row, 0), YoungDiagram.mem_iff_lt_rowLen.mpr (Nat.pos_of_ne_zero hne)⟩
+  omega
+
+namespace YoungTableau
+
+variable {n : ℕ} {lam mu : YoungDiagramOfSize n}
+
+/-- A tableau matches its labels with the cells of its shape, so a condition on cells and the
+condition it becomes on labels hold equally often. -/
+private theorem card_filter_cells (t : YoungTableau lam)
+    (p : ℕ → ℕ → Prop) [∀ row column, Decidable (p row column)]
+    (q : Fin n → Prop) [DecidablePred q] (hpq : ∀ i : Fin n, p (t.row i) (t.column i) ↔ q i) :
+    (lam.val.cells.filter fun cell => p cell.1 cell.2).card =
+      (Finset.univ.filter q).card := by
+  refine (Finset.card_nbij (fun i => (t.row i, t.column i)) (fun i hi => ?_)
+    (fun i _ j _ hij => t.row_column_injective hij) fun c hc => ?_).symm
+  · simp only [Finset.coe_filter, Set.mem_setOf_eq, Finset.mem_univ, true_and] at hi
+    exact Finset.mem_filter.mpr ⟨t.mem_cells i, (hpq i).mpr hi⟩
+  · simp only [Finset.coe_filter, Set.mem_setOf_eq] at hc
+    refine ⟨t ⟨c, hc.1⟩, ?_, Prod.ext (t.row_apply _) (t.column_apply _)⟩
+    simp only [Finset.coe_filter, Set.mem_setOf_eq, Finset.mem_univ, true_and]
+    exact (hpq _).mp (by rw [t.row_apply, t.column_apply]; exact hc.2)
+
+/-- The tabloid a semistandard tableau of shape `lam` and weight `mu` determines, read through
+`t`: the label in a cell is sent to the row named by the entry there. -/
+private def readTabloid (t : YoungTableau lam) (T : WeightedSemistandardTableau lam mu) :
+    Tabloid mu where
+  rowOf i := ⟨T.tableau (t.row i) (t.column i), T.entry_lt _ (t.mem_cells i)⟩
+  row_nonempty i := by
+    rw [← T.content ⟨T.tableau (t.row i) (t.column i), T.entry_lt _ (t.mem_cells i)⟩,
+      Finset.card_pos]
+    exact ⟨(t.row i, t.column i), Finset.mem_filter.mpr ⟨t.mem_cells i, rfl⟩⟩
+  content row := by
+    rcases lt_or_ge row n with hrow | hrow
+    · exact (card_filter_cells t (fun r c => T.tableau r c = row)
+        (fun i => T.tableau (t.row i) (t.column i) = row) fun _ => Iff.rfl).symm.trans
+        (T.content ⟨row, hrow⟩)
+    · rw [rowLen_eq_zero_of_le mu hrow, Finset.card_eq_zero, Finset.filter_eq_empty_iff]
+      exact fun i _ => Nat.ne_of_lt (lt_of_lt_of_le (T.entry_lt _ (t.mem_cells i)) hrow)
+
+private theorem semistandard_readTabloid (t : YoungTableau lam)
+    (T : WeightedSemistandardTableau lam mu) : Semistandard t (readTabloid t T) :=
+  semistandard_of_entry_eq t fun _ => rfl
+
+/-- **Sagan's Proposition 2.9.2.**  Reading a tabloid of weight `mu` through a tableau `t` of
+shape `lam` matches the semistandard tabloids with the semistandard tableaux of shape `lam` and
+weight `mu`. -/
+def semistandardTabloidEquiv (t : YoungTableau lam) :
+    {S : Tabloid mu // Semistandard t S} ≃ WeightedSemistandardTableau lam mu where
+  toFun S :=
+    { tableau := readTableau t S.2
+      entry_lt := fun cell hcell => by
+        show readEntry t S.val cell.1 cell.2 < n
+        rw [readEntry_of_mem t S.val hcell]
+        exact (S.val.rowOf _).isLt
+      content := fun value => by
+        show (lam.val.cells.filter fun cell =>
+          readEntry t S.val cell.1 cell.2 = (value : ℕ)).card = mu.val.rowLen (value : ℕ)
+        exact (card_filter_cells t (fun r c => readEntry t S.val r c = (value : ℕ))
+          (fun i => (S.val.rowOf i : ℕ) = (value : ℕ))
+          fun i => by simp only [readEntry_row_column]; exact Iff.rfl).trans
+          (S.val.content (value : ℕ)) }
+  invFun T := ⟨readTabloid t T, semistandard_readTabloid t T⟩
+  left_inv S := Subtype.ext (Tabloid.ext (funext fun i => Fin.ext (readEntry_row_column t S.val i)))
+  right_inv T := by
+    obtain ⟨T, hT, wT⟩ := T
+    dsimp only
+    congr 1
+    exact SemistandardYoungTableau.ext (readEntry_eq t fun _ => rfl)
+
+/-- The multiplicity of `S^lam` in `M^mu` is the Kostka number `K_(lam,mu)`.
+
+This is Sagan, *The Symmetric Group*, 2nd ed., Theorem 2.10.1: the semistandard homomorphisms are
+a basis of `Hom(S^lam, M^mu)`, and reading them through a tableau of shape `lam` matches them with
+the semistandard tableaux of shape `lam` and weight `mu`. -/
+theorem finrank_hom_eq_kostkaNumber (lam mu : YoungDiagramOfSize n) :
+    Module.finrank ℂ (spechtModule lam ⟶ youngPermutationModule mu) = kostkaNumber lam mu := by
+  obtain ⟨t⟩ := YoungTableau.nonempty lam
+  exact (t.finrank_hom_eq_card_semistandard (Y := Tabloid mu)).trans
+    (Nat.card_congr (semistandardTabloidEquiv t))
+
+end YoungTableau
+
 /-- Young's rule: the Young permutation module of weight `weight` contains
 `S^shape` with multiplicity `K_(shape,weight)`.
 
@@ -71,10 +160,16 @@ https://math.berkeley.edu/~ltomczak/notes/Mich2022/RepSn_Notes.pdf: rows are
 weakly increasing, columns are strictly increasing, and the first Kostka index
 is the shape.  Tomczak uses positive entries, while
 `WeightedSemistandardTableau` shifts them down by one. -/
-axiom youngsRule {n : ℕ} (weight : YoungDiagramOfSize n) :
+theorem youngsRule {n : ℕ} (weight : YoungDiagramOfSize n) :
   Nonempty (youngPermutationModule weight ≅
     ⨁ fun shape : YoungDiagramOfSize n =>
-      ⨁ fun _ : Fin (kostkaNumber shape weight) => spechtModule shape)
+      ⨁ fun _ : Fin (kostkaNumber shape weight) => spechtModule shape) := by
+  obtain ⟨e⟩ := FDRep.exists_iso_biproduct_multiplicity spechtModule spechtModule_irreducible
+    (fun shape shape' h => (spechtModule_iso_iff_eq shape shape').mp h)
+    (fun T hT => @exists_iso_spechtModule n T hT) (youngPermutationModule weight)
+  exact ⟨e ≪≫ biproduct.mapIso fun shape =>
+    biproduct.reindex (finCongr (YoungTableau.finrank_hom_eq_kostkaNumber shape weight))
+      fun _ => spechtModule shape⟩
 
 /-- The balanced two-row weight associated to a `k`-subset of an `n`-element
 set.  Complementary subset sizes give the same weight. -/

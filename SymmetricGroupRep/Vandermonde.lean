@@ -1,4 +1,5 @@
 import Mathlib.LinearAlgebra.Lagrange
+import Mathlib.LinearAlgebra.Vandermonde
 import Mathlib.Tactic.LinearCombination
 import Mathlib.Tactic.IntervalCases
 
@@ -8,11 +9,15 @@ The hook-length formula and the hook-content formula are both proved in
 first-column coordinates, where the shape of a diagram is recorded by the
 strictly decreasing vector of its first-column hook lengths. The algebra those
 proofs need is the Vandermonde product of that vector: how it behaves when one
-coordinate drops by one, and the weighted sum of all such drops.
+coordinate drops by one, the weighted sum of all such drops, and the sum of the
+products of all shorter vectors that interlace it.
 
 The weighted sum is Bandlow, *An elementary proof of the hook length formula*,
 Electronic Journal of Combinatorics 15 (2008), R45, equation (4); it is proved
-here by Lagrange interpolation, as Bandlow does.
+here by Lagrange interpolation, as Bandlow does. The interlacing sum is the
+Weyl dimension formula read backwards, and is proved here by evaluating the
+determinant of the Vandermonde matrix in the binomial-coefficient basis, where
+summing a row over an interval telescopes.
 -/
 
 open Finset Polynomial
@@ -234,3 +239,153 @@ theorem sum_mul_vanderDec_update {m : ℕ} {b : ℕ → ℚ} (hb : Set.InjOn b (
     linear_combination b i * hupd
   rw [hsum, ← hlag]
   ring
+
+/-- The Vandermonde product read as a product over `Fin m`. -/
+theorem vanderDec_eq_prod_fin (m : ℕ) (b : ℕ → ℚ) :
+    vanderDec m b = ∏ i : Fin m, ∏ j ∈ Finset.Ioi i, (b i - b j) := by
+  rw [vanderDec, ← Fin.prod_univ_eq_prod_range (fun i => ∏ j ∈ Ico (i + 1) m, (b i - b j)) m]
+  refine Finset.prod_congr rfl fun i _ => ?_
+  have := Finset.prod_map (Finset.Ioi i) Fin.valEmbedding (fun j => b i - b j)
+  rw [Fin.map_valEmbedding_Ioi, ← Finset.Ico_add_one_left_eq_Ioo] at this
+  simpa using this
+
+/-- Reversing the coordinates turns the decreasing convention into mathlib's
+Vandermonde determinant, which takes each factor as a later entry minus an
+earlier one. -/
+private theorem prod_sub_eq_det_vandermonde {m : ℕ} (g : Fin m → ℚ) :
+    ∏ i : Fin m, ∏ j ∈ Finset.Ioi i, (g i - g j) =
+      (Matrix.vandermonde fun i => g i.rev).det := by
+  rw [Matrix.det_vandermonde,
+    Finset.prod_sigma' Finset.univ (fun i : Fin m => Finset.Ioi i) (fun i j => g i - g j),
+    Finset.prod_sigma' Finset.univ (fun i : Fin m => Finset.Ioi i)
+      (fun i j => g j.rev - g i.rev)]
+  refine Finset.prod_nbij' (fun x => ⟨x.2.rev, x.1.rev⟩) (fun x => ⟨x.2.rev, x.1.rev⟩)
+    ?_ ?_ ?_ ?_ ?_ <;>
+    simp +contextual [Fin.rev_lt_rev]
+
+/-- Summing a column of Pascal's triangle: the hockey-stick identity. -/
+private theorem sum_range_choose_eq_choose_succ (n k : ℕ) :
+    ∑ t ∈ range n, t.choose k = n.choose (k + 1) := by
+  induction n with
+  | zero => simp
+  | succ n ih => rw [Finset.sum_range_succ, ih, Nat.choose_succ_succ, Nat.add_comm]
+
+/-- The Vandermonde determinant in the binomial-coefficient basis: the falling
+factorials are monic of the right degrees, and column `j` then carries the
+common factor `j !`. -/
+private theorem det_vandermonde_eq_prod_factorial_mul_det_choose {m : ℕ} (v : Fin m → ℕ) :
+    (Matrix.vandermonde fun i => (v i : ℚ)).det =
+      (∏ j : Fin m, ((j : ℕ).factorial : ℚ)) *
+        (Matrix.of fun i j : Fin m => ((v i).choose j : ℚ)).det := by
+  rw [Matrix.det_eval_matrixOfPolynomials_eq_det_vandermonde (fun i => ((v i : ℕ) : ℚ))
+      (fun j => descPochhammer ℚ (j : ℕ)) (fun j => descPochhammer_natDegree ℚ (j : ℕ))
+      (fun j => monic_descPochhammer ℚ (j : ℕ)),
+    ← Matrix.det_mul_row (fun j : Fin m => ((j : ℕ).factorial : ℚ))]
+  congr 1
+  ext i j
+  simp [descPochhammer_eval_eq_descFactorial, Nat.descFactorial_eq_factorial_mul_choose]
+
+/-- Each row of the binomial matrix depends only on its own coordinate, so
+summing the coordinates over independent ranges sums the rows. -/
+private theorem sum_det_choose_eq_det_sum {q : ℕ} (A : Fin q → Finset ℕ) :
+    ∑ δ ∈ Fintype.piFinset A, (Matrix.of fun i j : Fin q => ((δ i).choose j : ℚ)).det =
+      (Matrix.of fun i j : Fin q => ∑ t ∈ A i, ((t.choose j : ℕ) : ℚ)).det := by
+  have h := (Matrix.detRowAlternating (R := ℚ) (n := Fin q)).toMultilinearMap.map_sum_finset
+    (fun (_ : Fin q) (t : ℕ) (j : Fin q) => ((t.choose (j : ℕ) : ℕ) : ℚ)) A
+  have hrow : (fun i : Fin q => ∑ t ∈ A i, fun j : Fin q => ((t.choose (j : ℕ) : ℕ) : ℚ)) =
+      (Matrix.of fun i j : Fin q => ∑ t ∈ A i, ((t.choose (j : ℕ) : ℕ) : ℚ)) := by
+    funext i j
+    simp [Finset.sum_apply]
+  rw [hrow] at h
+  exact h.symm
+
+/-- Subtracting each row of the binomial matrix from the next one clears its
+first column except at the top, and what is left is the matrix of differences
+one size down. -/
+private theorem det_choose_eq_det_choose_diff {q : ℕ} (c : ℕ → ℕ) :
+    (Matrix.of fun i j : Fin (q + 1) => ((c i).choose j : ℚ)).det =
+      (Matrix.of fun i j : Fin q =>
+        ((c (i + 1)).choose (j + 1) : ℚ) - ((c i).choose (j + 1) : ℚ)).det := by
+  set A : Matrix (Fin (q + 1)) (Fin (q + 1)) ℚ :=
+    Matrix.of fun i j => ((c i).choose j : ℚ) with hA
+  set B : Matrix (Fin (q + 1)) (Fin (q + 1)) ℚ :=
+    Matrix.of fun i j => Fin.cases (A 0 j) (fun i' => A i'.succ j - A i'.castSucc j) i with hB
+  have hdet : A.det = B.det :=
+    Matrix.det_eq_of_forall_row_eq_smul_add_pred (fun _ => 1)
+      (fun j => by simp [hB]) (fun i j => by simp [hB])
+  rw [hdet, Matrix.det_succ_column_zero, Finset.sum_eq_single 0]
+  · simp only [Fin.val_zero, pow_zero, Fin.succAbove_zero, one_mul]
+    rw [show B 0 0 = 1 by simp [hB, hA], one_mul]
+    congr 1
+  · intro i _ hi
+    obtain ⟨i, rfl⟩ := Fin.eq_succ_of_ne_zero hi
+    simp [hB, hA]
+  · simp
+
+/-- The interlacing sum in mathlib's increasing convention. -/
+private theorem factorial_mul_sum_det_vandermonde {q : ℕ} (c : ℕ → ℕ)
+    (hc : ∀ i < q, c i ≤ c (i + 1)) :
+    (q.factorial : ℚ) *
+        ∑ δ ∈ Fintype.piFinset fun i : Fin q => Finset.Ico (c i) (c (i + 1)),
+          (Matrix.vandermonde fun i => ((δ i : ℕ) : ℚ)).det =
+      (Matrix.vandermonde fun i : Fin (q + 1) => ((c i : ℕ) : ℚ)).det := by
+  have hN : (Matrix.of fun i j : Fin q =>
+      ∑ t ∈ Finset.Ico (c i) (c (i + 1)), ((t.choose (j : ℕ) : ℕ) : ℚ)) =
+      Matrix.of fun i j : Fin q =>
+        ((c ((i : ℕ) + 1)).choose ((j : ℕ) + 1) : ℚ) - ((c i).choose ((j : ℕ) + 1) : ℚ) := by
+    ext i j
+    rw [Matrix.of_apply, Matrix.of_apply, Finset.sum_Ico_eq_sub _ (hc i i.isLt),
+      ← Nat.cast_sum, ← Nat.cast_sum, sum_range_choose_eq_choose_succ,
+      sum_range_choose_eq_choose_succ]
+  rw [Finset.sum_congr rfl fun δ _ => det_vandermonde_eq_prod_factorial_mul_det_choose δ,
+    ← Finset.mul_sum, sum_det_choose_eq_det_sum, hN,
+    det_vandermonde_eq_prod_factorial_mul_det_choose (fun i : Fin (q + 1) => c i),
+    det_choose_eq_det_choose_diff, Fin.prod_univ_castSucc]
+  simp only [Fin.val_castSucc, Fin.val_last]
+  ring
+
+/-- The interlacing sum: for a decreasing vector `b` of length `q + 1`, the
+Vandermonde products of the vectors of length `q` that interlace it add up,
+after multiplication by `q !`, to the Vandermonde product of `b`.
+
+This is the Weyl dimension formula for `GL q` at the identity, read as a
+recursion in `q`. -/
+theorem factorial_mul_sum_vanderDec {q : ℕ} (b : ℕ → ℕ) (hb : ∀ i < q, b (i + 1) ≤ b i) :
+    (q.factorial : ℚ) *
+        ∑ γ ∈ Fintype.piFinset fun i : Fin q => Finset.Ico (b (i + 1)) (b i),
+          ∏ i : Fin q, ∏ j ∈ Finset.Ioi i, ((γ i : ℚ) - (γ j : ℚ)) =
+      vanderDec (q + 1) fun i => (b i : ℚ) := by
+  have hsum : ∑ γ ∈ Fintype.piFinset fun i : Fin q => Finset.Ico (b (i + 1)) (b i),
+        (∏ i : Fin q, ∏ j ∈ Finset.Ioi i, ((γ i : ℚ) - (γ j : ℚ))) =
+      ∑ δ ∈ Fintype.piFinset fun i : Fin q => Finset.Ico (b (q - i)) (b (q - (i + 1))),
+        (Matrix.vandermonde fun i => ((δ i : ℕ) : ℚ)).det := by
+    refine Finset.sum_nbij' (fun γ i => γ i.rev) (fun δ i => δ i.rev) ?_ ?_ ?_ ?_ ?_
+    · intro γ hγ
+      rw [Fintype.mem_piFinset] at hγ ⊢
+      intro i
+      have h := hγ i.rev
+      rw [Finset.mem_Ico, Fin.val_rev, show q - ((i : ℕ) + 1) + 1 = q - (i : ℕ) from by omega] at h
+      rw [Finset.mem_Ico]
+      exact h
+    · intro δ hδ
+      rw [Fintype.mem_piFinset] at hδ ⊢
+      intro i
+      have h := hδ i.rev
+      rw [Finset.mem_Ico, Fin.val_rev,
+        show q - (q - ((i : ℕ) + 1)) = (i : ℕ) + 1 from by omega,
+        show q - (q - ((i : ℕ) + 1) + 1) = (i : ℕ) from by omega] at h
+      rw [Finset.mem_Ico]
+      exact h
+    · exact fun γ _ => funext fun i => by simp
+    · exact fun δ _ => funext fun i => by simp
+    · exact fun γ _ => prod_sub_eq_det_vandermonde fun i => (γ i : ℚ)
+  have hc : ∀ i < q, b (q - i) ≤ b (q - (i + 1)) := by
+    intro i hi
+    rw [show q - i = q - (i + 1) + 1 from by omega]
+    exact hb _ (by omega)
+  have hvec : (fun i : Fin (q + 1) => ((b ((Fin.rev i : Fin (q + 1)) : ℕ) : ℕ) : ℚ)) =
+      fun i : Fin (q + 1) => ((b (q - (i : ℕ)) : ℕ) : ℚ) := by
+    funext i
+    rw [Fin.val_rev, show q + 1 - ((i : ℕ) + 1) = q - (i : ℕ) from by omega]
+  rw [hsum, factorial_mul_sum_det_vandermonde (fun i => b (q - i)) hc, vanderDec_eq_prod_fin,
+    prod_sub_eq_det_vandermonde fun i : Fin (q + 1) => ((b i : ℕ) : ℚ), hvec]

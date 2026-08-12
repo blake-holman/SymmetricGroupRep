@@ -34,6 +34,7 @@ import SymmetricGroupRep.RegularDecomposition
 import SymmetricGroupRep.SchurWeyl
 import SymmetricGroupRep.SelfDuality
 import SymmetricGroupRep.Semisimple
+import SymmetricGroupRep.SemistandardHom
 import SymmetricGroupRep.SignTwist
 import SymmetricGroupRep.SimpleCount
 import SymmetricGroupRep.SpechtCharacterReal

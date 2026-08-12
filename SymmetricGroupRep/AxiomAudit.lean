@@ -6,6 +6,7 @@ import SymmetricGroupRep.Decomposition
 import SymmetricGroupRep.HookLength
 import SymmetricGroupRep.ProductClassification
 import SymmetricGroupRep.RegularDecomposition
+import SymmetricGroupRep.SchurWeyl
 import SymmetricGroupRep.Orthogonal
 import SymmetricGroupRep.SelfDuality
 import SymmetricGroupRep.Tableaux
@@ -159,3 +160,18 @@ Quot.sound]
 -/
 #guard_msgs in
 #print axioms standardYoungTableau_card_mul_hookProduct
+
+/--
+info: 'schurWeylMultiplicity_mul_hookProduct' depends on axioms: [propext, Classical.choice,
+Quot.sound]
+-/
+#guard_msgs in
+#print axioms schurWeylMultiplicity_mul_hookProduct
+
+/-- info: 'youngsRule' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms youngsRule
+
+/-- info: 'tensorPower_schurWeyl' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms tensorPower_schurWeyl
