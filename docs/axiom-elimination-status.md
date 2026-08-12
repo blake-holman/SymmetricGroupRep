@@ -7,9 +7,9 @@ Independently confirmed target count: **27**. The inventory below was produced b
 scanning `rg -n '^\s*axiom\s+' --glob '*.lean' .` against the frozen baseline and
 extracting each declaration verbatim with `git show 5f00453:<file>`.
 
-Baseline `lake build`: succeeds (3210 jobs). Current: succeeds (3236 jobs).
+Baseline `lake build`: succeeds (3210 jobs). Current: succeeds (3248 jobs).
 
-Progress: **15 of 27 verified**, 12 `axiom` declarations remain in the tree.
+Progress: **20 of 27 verified**, 7 `axiom` declarations remain in the tree.
 
 The classification of the complex irreducibles of `S_n` by Young diagrams is
 fully proved — irreducibility, distinctness and completeness — and so is the
@@ -294,33 +294,33 @@ layer. The audit script confirms 27 nodes, no directed cycle, and no edge with
 
 | Layer | Target | Form | State |
 |---|---|---|---|
-| 0 | `spechtModule` | noncomputable def | **verified** |
-| 0 | `youngPermutationModule_twoRow_induction` | theorem | **verified** |
-| 0 | `twoRowKostkaIndexEquiv` | noncomputable def | **verified** |
-| 0 | `standardYoungTableau_card_mul_hookProduct` | theorem | axiom |
-| 0 | `schurWeylMultiplicity_mul_hookProduct` | theorem | axiom |
-| 1 | `spechtModule_irreducible` | theorem | **verified** |
-| 1 | `spechtModule_singleRow` | theorem | **verified** |
-| 1 | `spechtModule_selfDual` | theorem | **verified** |
-| 1 | `exists_spechtTableauBasis` | theorem | **verified** |
-| 1 | `twoRowKostkaIndexEquiv_shape` | theorem | **verified** |
-| 2 | `spechtModule_iso_iff_eq` | theorem | **verified** |
-| 3 | `exists_iso_spechtModule` | theorem | **verified** |
-| 4 | `spechtModule_kronecker` | theorem | **verified** |
-| 4 | `symmetricGroupLeftRegular_decomposition` | theorem | **verified** |
-| 4 | `existsUnique_iso_spechtOuterTensor` | theorem | **verified** |
-| 4 | `spechtModule_tensor_sign` | theorem | **verified** |
-| 4 | `spechtModule_branching` | theorem | axiom |
-| 4 | `youngsRule` | theorem | axiom |
-| 5 | `symmetricGroupBiregular_decomposition` | theorem | **verified** |
-| 5 | `spechtModule_littlewoodRichardson` | theorem | axiom |
-| 5 | `spechtModule_induction_branching` | theorem | axiom |
-| 5 | `tensorPower_schurWeyl` | theorem | axiom |
-| 5 | `spechtBranchingBasisData` | noncomputable def | axiom |
-| 6 | `spechtModule_pieri_horizontal` | theorem | axiom |
-| 6 | `spechtModule_pieri_vertical` | theorem | axiom |
-| 6 | `twoRowKroneckerCoefficient_eq_roundTrip_sub` | theorem | axiom |
-| 6 | `spechtOrthogonalBasis_adjacentTransposition` | theorem | axiom |
+| 0 | `spechtModule` |  noncomputable def  | **verified** |
+| 0 | `youngPermutationModule_twoRow_induction` |  theorem  | **verified** |
+| 0 | `twoRowKostkaIndexEquiv` |  noncomputable def  | **verified** |
+| 0 | `standardYoungTableau_card_mul_hookProduct` |  theorem  | **verified** |
+| 0 | `schurWeylMultiplicity_mul_hookProduct` |  theorem  | axiom |
+| 1 | `spechtModule_irreducible` |  theorem  | **verified** |
+| 1 | `spechtModule_singleRow` |  theorem  | **verified** |
+| 1 | `spechtModule_selfDual` |  theorem  | **verified** |
+| 1 | `exists_spechtTableauBasis` |  theorem  | **verified** |
+| 1 | `twoRowKostkaIndexEquiv_shape` |  theorem  | **verified** |
+| 2 | `spechtModule_iso_iff_eq` |  theorem  | **verified** |
+| 3 | `exists_iso_spechtModule` |  theorem  | **verified** |
+| 4 | `spechtModule_kronecker` |  theorem  | **verified** |
+| 4 | `symmetricGroupLeftRegular_decomposition` |  theorem  | **verified** |
+| 4 | `existsUnique_iso_spechtOuterTensor` |  theorem  | **verified** |
+| 4 | `spechtModule_tensor_sign` |  theorem  | **verified** |
+| 4 | `spechtModule_branching` |  theorem  | **verified** |
+| 4 | `youngsRule` |  theorem  | axiom |
+| 5 | `symmetricGroupBiregular_decomposition` |  theorem  | **verified** |
+| 5 | `spechtModule_littlewoodRichardson` |  theorem  | axiom |
+| 5 | `spechtModule_induction_branching` |  theorem  | **verified** |
+| 5 | `tensorPower_schurWeyl` |  theorem  | axiom |
+| 5 | `spechtBranchingBasisData` |  noncomputable def  | **verified** |
+| 6 | `spechtModule_pieri_horizontal` |  theorem  | axiom |
+| 6 | `spechtModule_pieri_vertical` |  theorem  | axiom |
+| 6 | `twoRowKroneckerCoefficient_eq_roundTrip_sub` |  theorem  | axiom |
+| 6 | `spechtOrthogonalBasis_adjacentTransposition` |  theorem  | **verified** |
 
 ## Global blocker
 
@@ -1321,3 +1321,33 @@ Multiplying over `i` gives the displayed identity. The remaining work in this
 lemma is Finset bookkeeping — rewriting `μ.cells.prod` as an iterated product
 over rows — and is the reason it was not landed alongside a representation-theory
 target.
+
+## Current state (regenerated from the tree)
+
+**20 of 27 converted; 7 axioms remain.**
+
+Remaining, with what blocks them:
+
+| Target | Blocked by |
+|---|---|
+| `youngsRule` | nothing — it is the bottleneck, and gates the next three |
+| `spechtModule_littlewoodRichardson` | `youngsRule` |
+| `spechtModule_pieri_horizontal` | `youngsRule` |
+| `spechtModule_pieri_vertical` | `youngsRule` |
+| `tensorPower_schurWeyl` | `youngsRule` |
+| `schurWeylMultiplicity_mul_hookProduct` | nothing — independent combinatorics |
+| `twoRowKroneckerCoefficient_eq_roundTrip_sub` | deferred to last by instruction |
+
+`youngsRule` has now been assessed and declined three times, each time correctly
+at the time. The honest reading is that it needs the Garnir straightening
+machinery this project has otherwise routed around completely — the standard
+basis theorem avoided it via a sum-of-squares squeeze, and nothing since has
+supplied the invariant dimension `dim (S^λ)^{S_μ} = K(λ,μ)` that Young's rule
+reduces to.
+
+`docs/proof-dag.json` carries the route, lemma decomposition and taint register.
+Note its taint register is now stale **in the safe direction**: entries tainted
+by `spechtModule_branching`, `spechtBranchingBasisData` and the hook-length
+formula verify clean now that those are converted. Only the 7 remaining axioms
+still bind, and any specific claim should be re-checked with `#print axioms`
+rather than trusted from the register.

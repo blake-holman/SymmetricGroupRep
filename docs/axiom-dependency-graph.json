@@ -45,7 +45,7 @@
           "label": "Proposition 2.1.11"
         }
       ],
-      "state": "axiom"
+      "state": "verified"
     },
     {
       "id": "twoRowKostkaIndexEquiv",
@@ -161,7 +161,7 @@
           "note": "derived from Lemma 1 and the Frobenius degree formula 2.2"
         }
       ],
-      "state": "axiom"
+      "state": "verified"
     },
     {
       "id": "schurWeylMultiplicity_mul_hookProduct",
@@ -369,7 +369,7 @@
           "note": "records that S^lambda is self-dual"
         }
       ],
-      "state": "axiom"
+      "state": "verified"
     },
     {
       "id": "exists_spechtTableauBasis",
@@ -415,7 +415,7 @@
           "label": "Theorem 2.6.5"
         }
       ],
-      "state": "axiom"
+      "state": "verified"
     },
     {
       "id": "spechtModule_iso_iff_eq",
@@ -487,7 +487,7 @@
           "note": "cited in the chapter introduction for the count of irreducibles against conjugacy classes"
         }
       ],
-      "state": "axiom"
+      "state": "verified"
     },
     {
       "id": "spechtModule_kronecker",
@@ -518,7 +518,7 @@
           "note": "the opposite Hom orientation"
         }
       ],
-      "state": "axiom"
+      "state": "verified"
     },
     {
       "id": "symmetricGroupLeftRegular_decomposition",
@@ -541,7 +541,7 @@
           "note": "flat-numbered draft; the published edition numbers this 4.1.1(ii)"
         }
       ],
-      "state": "axiom"
+      "state": "verified"
     },
     {
       "id": "existsUnique_iso_spechtOuterTensor",
@@ -571,7 +571,7 @@
           "note": "flat-numbered draft; the published edition numbers this 3.10.2"
         }
       ],
-      "state": "axiom"
+      "state": "verified"
     },
     {
       "id": "spechtModule_tensor_sign",
@@ -601,7 +601,7 @@
           "note": "S^lambda tensor sign is the dual of S^(lambda transpose); the self-duality remark removes the dual"
         }
       ],
-      "state": "axiom"
+      "state": "verified"
     },
     {
       "id": "symmetricGroupBiregular_decomposition",
@@ -632,7 +632,7 @@
           "label": "Theorem 3.1(ii)"
         }
       ],
-      "state": "axiom"
+      "state": "verified"
     },
     {
       "id": "spechtModule_branching",
@@ -668,7 +668,7 @@
           "note": "proof uses the standard basis and the filtration (2.11)"
         }
       ],
-      "state": "axiom"
+      "state": "verified"
     },
     {
       "id": "youngsRule",
@@ -764,7 +764,7 @@
           "note": "derived from part 1 by Frobenius reciprocity, Theorem 1.12.6"
         }
       ],
-      "state": "axiom"
+      "state": "verified"
     },
     {
       "id": "spechtModule_pieri_horizontal",
@@ -902,7 +902,7 @@
           "note": "the coherent embedding V_mu into the restriction of V_lambda"
         }
       ],
-      "state": "axiom"
+      "state": "verified"
     },
     {
       "id": "twoRowKroneckerCoefficient_eq_roundTrip_sub",
@@ -968,7 +968,7 @@
           "note": "Young's orthogonal form"
         }
       ],
-      "state": "axiom"
+      "state": "verified"
     }
   ],
   "edges": [
@@ -1566,9 +1566,10 @@
     }
   ],
   "progress": {
-    "verified": 6,
-    "remaining": 21,
-    "remaining_axiom_declarations_in_tree": 21
+    "verified": 20,
+    "remaining": 7,
+    "remaining_axiom_declarations_in_tree": 7,
+    "note": "regenerated from the tree, not maintained by hand"
   },
   "prior_art": {
     "note": "Verified independently in this session, not relayed: TauCetiProject/TauCeti is Apache-2.0 licensed, Lean 4 on mathlib, and the cited files exist at the claimed sizes with zero occurrences of sorry. It develops the Specht theory over Q using Representation and Submodule rather than FDRep C, so adopting it is a port with a base-change and categorical-wrapper step, not a copy.",
