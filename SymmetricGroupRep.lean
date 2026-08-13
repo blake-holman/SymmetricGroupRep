@@ -27,6 +27,7 @@ import SymmetricGroupRep.KostkaInverse
 import SymmetricGroupRep.Kronecker
 import SymmetricGroupRep.LittlewoodRichardson
 import SymmetricGroupRep.LittlewoodRichardsonBridge
+import SymmetricGroupRep.LittlewoodRichardsonCoefficient
 import SymmetricGroupRep.LittlewoodRichardsonRepresentation
 import SymmetricGroupRep.MultiplicitySpaces
 import SymmetricGroupRep.Orthogonal

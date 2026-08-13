@@ -1,3 +1,7 @@
+import SymmetricGroupRep.KostkaConvolution
+import SymmetricGroupRep.KostkaInverse
+import SymmetricGroupRep.LittlewoodRichardsonCoefficient
+import SymmetricGroupRep.LittlewoodRichardsonRepresentation
 import SymmetricGroupRep.Pieri
 import SymmetricGroupRep.ProductClassification
 
@@ -5,61 +9,66 @@ open CategoryTheory CategoryTheory.Limits
 
 attribute [local instance] Limits.HasFiniteBiproducts.of_hasFiniteProducts
 
-/-! # Littlewood-Richardson tableaux and induction -/
+/-! # The Littlewood-Richardson rule
 
-namespace LittlewoodRichardson
+The multiplicity of `S^ξ` in the induced outer product `S^μ ⊠ S^ν` and the
+Littlewood-Richardson coefficient satisfy the same Kostka convolution
+identity against every pair of Young weights, so inverting the two
+unitriangular Kostka matrices identifies them.
+-/
 
-/-- `c` occurs no later than `d` when a skew tableau is read from top to
-bottom, and from right to left within each row. -/
-abbrev readingLE (c d : ℕ × ℕ) : Prop :=
-  c.1 < d.1 ∨ (c.1 = d.1 ∧ d.2 ≤ c.2)
-
-end LittlewoodRichardson
-
-/-- A Littlewood-Richardson tableau of skew shape `ξ / μ` and content `ν`.
-
-Entries are zero-based. Rows are weakly increasing, columns are strictly
-increasing, and every prefix of the top-to-bottom, right-to-left reading word
-has at least as many `i` entries as `i + 1` entries. -/
-@[ext]
-structure LittlewoodRichardsonTableau {a b : ℕ}
-    (μ : YoungDiagramOfSize a) (ν : YoungDiagramOfSize b)
-    (ξ : YoungDiagramOfSize (a + b)) where
-  /-- The inner diagram is contained in the outer diagram. -/
-  shape : μ.val ≤ ξ.val
-  /-- The entries of the skew cells. -/
-  entry : ↥(ξ.val.cells \ μ.val.cells) → Fin b
-  /-- Entries weakly increase along rows. -/
-  row_weak : ∀ {c d}, c.1.1 = d.1.1 → c.1.2 < d.1.2 → entry c ≤ entry d
-  /-- Entries strictly increase down columns. -/
-  col_strict : ∀ {c d}, c.1.2 = d.1.2 → c.1.1 < d.1.1 → entry c < entry d
-  /-- Entry `i` occurs `ν_i` times. -/
-  content : ∀ i : Fin b,
-    (Finset.univ.filter fun c => entry c = i).card = ν.val.rowLen i.1
-  /-- The reverse reading word is a lattice word. -/
-  lattice : ∀ (d : ↥(ξ.val.cells \ μ.val.cells)) (i : Fin (b - 1)),
-    (Finset.univ.filter fun c : ↥(ξ.val.cells \ μ.val.cells) =>
-      LittlewoodRichardson.readingLE c.1 d.1 ∧ (entry c).1 = i.1).card ≥
-    (Finset.univ.filter fun c : ↥(ξ.val.cells \ μ.val.cells) =>
-      LittlewoodRichardson.readingLE c.1 d.1 ∧ (entry c).1 = i.1 + 1).card
-
-/-- Littlewood-Richardson tableaux of fixed shape and content form a finite
-type. -/
-noncomputable instance {a b : ℕ}
+/-- The multiplicity of `S^ξ` in `Ind (S^μ ⊠ S^ν)` is the
+Littlewood-Richardson coefficient. -/
+private theorem finrank_hom_ind_spechtOuterTensor_eq_lr {a b : ℕ}
     (μ : YoungDiagramOfSize a) (ν : YoungDiagramOfSize b)
     (ξ : YoungDiagramOfSize (a + b)) :
-    Finite (LittlewoodRichardsonTableau μ ν ξ) :=
-  Finite.of_injective LittlewoodRichardsonTableau.entry fun T U h => by
-    cases T
-    cases U
-    cases h
-    rfl
-
-/-- The Littlewood-Richardson coefficient `c^ξ_{μ,ν}`. -/
-noncomputable def littlewoodRichardsonCoefficient {a b : ℕ}
-    (μ : YoungDiagramOfSize a) (ν : YoungDiagramOfSize b)
-    (ξ : YoungDiagramOfSize (a + b)) : ℕ :=
-  Nat.card (LittlewoodRichardsonTableau μ ν ξ)
+    Module.finrank ℂ
+      (spechtModule ξ ⟶
+        (SymmetricGroupRepresentation.youngSubgroupInduction a b).obj
+          (spechtOuterTensor μ ν)) =
+      littlewoodRichardsonCoefficient μ ν ξ := by
+  classical
+  have hdiff : ∀ (α : YoungDiagramOfSize a) (β : YoungDiagramOfSize b),
+      ∑ μ' : YoungDiagramOfSize a, (kostkaNumber μ' α : ℤ) *
+        ∑ ν' : YoungDiagramOfSize b, (kostkaNumber ν' β : ℤ) *
+          ((Module.finrank ℂ (spechtModule ξ ⟶
+              (SymmetricGroupRepresentation.youngSubgroupInduction a b).obj
+                (spechtOuterTensor μ' ν')) : ℤ) -
+            (littlewoodRichardsonCoefficient μ' ν' ξ : ℤ)) = 0 := by
+    intro α β
+    have hB := congrArg (Nat.cast (R := ℤ)) (sum_kostka_mul_finrank_hom_ind α β ξ)
+    have hC := congrArg (Nat.cast (R := ℤ)) (sum_kostka_mul_littlewoodRichardson α β ξ)
+    push_cast at hB hC
+    calc ∑ μ' : YoungDiagramOfSize a, (kostkaNumber μ' α : ℤ) *
+          ∑ ν' : YoungDiagramOfSize b, (kostkaNumber ν' β : ℤ) *
+            ((Module.finrank ℂ (spechtModule ξ ⟶
+                (SymmetricGroupRepresentation.youngSubgroupInduction a b).obj
+                  (spechtOuterTensor μ' ν')) : ℤ) -
+              (littlewoodRichardsonCoefficient μ' ν' ξ : ℤ))
+        = (∑ μ' : YoungDiagramOfSize a, ∑ ν' : YoungDiagramOfSize b,
+              (kostkaNumber μ' α : ℤ) * (kostkaNumber ν' β : ℤ) *
+                (Module.finrank ℂ (spechtModule ξ ⟶
+                  (SymmetricGroupRepresentation.youngSubgroupInduction a b).obj
+                    (spechtOuterTensor μ' ν')) : ℤ)) -
+            ∑ μ' : YoungDiagramOfSize a, ∑ ν' : YoungDiagramOfSize b,
+              (kostkaNumber μ' α : ℤ) * (kostkaNumber ν' β : ℤ) *
+                (littlewoodRichardsonCoefficient μ' ν' ξ : ℤ) := by
+          rw [← Finset.sum_sub_distrib]
+          refine Finset.sum_congr rfl fun μ' _ => ?_
+          rw [Finset.mul_sum, ← Finset.sum_sub_distrib]
+          refine Finset.sum_congr rfl fun ν' _ => ?_
+          ring
+      _ = 0 := by rw [hB, hC, sub_self]
+  have hcol : ∀ β : YoungDiagramOfSize b,
+      ∑ ν' : YoungDiagramOfSize b, (kostkaNumber ν' β : ℤ) *
+        ((Module.finrank ℂ (spechtModule ξ ⟶
+            (SymmetricGroupRepresentation.youngSubgroupInduction a b).obj
+              (spechtOuterTensor μ ν')) : ℤ) -
+          (littlewoodRichardsonCoefficient μ ν' ξ : ℤ)) = 0 :=
+    fun β => kostka_convolution_cancel _ (fun α => hdiff α β) μ
+  have hfinal := kostka_convolution_cancel _ hcol ν
+  have := sub_eq_zero.mp hfinal
+  exact_mod_cast this
 
 /-- Littlewood-Richardson decomposition for induction from a Young subgroup.
 
@@ -69,11 +78,21 @@ of `S^ξ` in `Ind_{S_a × S_b}^{S_{a+b}} (S^μ ⊠ S^ν)` with the number of
 Littlewood-Richardson tableaux of shape `ξ / μ` and content `ν`. Lean uses the
 package's standard first-block/second-block Young-subgroup inclusion and
 zero-based tableau entries. -/
-axiom spechtModule_littlewoodRichardson {a b : ℕ}
+theorem spechtModule_littlewoodRichardson {a b : ℕ}
     (μ : YoungDiagramOfSize a) (ν : YoungDiagramOfSize b) :
   Nonempty
     ((SymmetricGroupRepresentation.youngSubgroupInduction a b).obj
       (spechtOuterTensor μ ν) ≅
         ⨁ fun ξ : YoungDiagramOfSize (a + b) =>
           ⨁ fun _ : Fin (littlewoodRichardsonCoefficient μ ν ξ) =>
-            spechtModule ξ)
+            spechtModule ξ) := by
+  obtain ⟨e⟩ := FDRep.exists_iso_biproduct_multiplicity
+    spechtModule spechtModule_irreducible
+    (fun ξ ξ' h => (spechtModule_iso_iff_eq ξ ξ').mp h)
+    (fun T hT => @exists_iso_spechtModule (a + b) T hT)
+    ((SymmetricGroupRepresentation.youngSubgroupInduction a b).obj
+      (spechtOuterTensor μ ν))
+  exact ⟨e ≪≫ biproduct.mapIso fun ξ =>
+    biproduct.reindex
+      (finCongr (finrank_hom_ind_spechtOuterTensor_eq_lr μ ν ξ))
+      fun _ => spechtModule ξ⟩

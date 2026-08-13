@@ -201,3 +201,38 @@ import `LittlewoodRichardson.lean`.
   (71/71 modules) and `verify_frozen_signatures.py` (25/27, all frozen
   signatures preserved) pass; no `sorry`/`admit`/`native_decide`/`unsafe` in
   the new module.
+
+## Work Package E: COMPLETE — THE LR AXIOM IS A THEOREM
+
+Import restructure: the tableau/coefficient definitions moved verbatim to the
+new `SymmetricGroupRep/LittlewoodRichardsonCoefficient.lean`;
+`LittlewoodRichardsonBridge.lean` and `Kronecker.lean` now import that module,
+freeing `LittlewoodRichardson.lean` (which the frozen-signature verifier pins
+as the theorem's home) to import the whole proof stack
+(`KostkaConvolution`, `KostkaInverse`, `LittlewoodRichardsonRepresentation`).
+
+`LittlewoodRichardson.lean` now contains:
+- `finrank_hom_ind_spechtOuterTensor_eq_lr` (private): the two convolution
+  identities (WP B and WP C) agree against every pair of Young weights, so
+  `kostka_convolution_cancel` applied in the first and then the second index
+  forces `finrank (S^ξ ⟶ Ind (S^μ ⊠ S^ν)) = littlewoodRichardsonCoefficient μ ν ξ`.
+- `spechtModule_littlewoodRichardson` as a `theorem` with the frozen
+  signature, assembled exactly as in guide §4 (the `youngsRule` pattern).
+
+Verification (final gate, all passing):
+- `python3 docs/verify_frozen_signatures.py` — 26/27 converted; all frozen
+  signatures preserved (only the deferred Kronecker target remains an axiom).
+- `python3 docs/verify_build_coverage.py` — every module reachable.
+- `lake build` — 3264 jobs, zero errors.
+- `rg '^\s*axiom'` — only `twoRowKroneckerCoefficient_eq_roundTrip_sub`
+  (Kronecker.lean:176, explicitly deferred and out of scope).
+- No `sorry`/`admit`/`native_decide`/`unsafe` anywhere.
+- `#print axioms spechtModule_littlewoodRichardson` =
+  `[propext, Classical.choice, Quot.sound]` — no project axiom; the theorem
+  does not depend on the deferred Kronecker axiom. Guarded in
+  `SymmetricGroupRep/AxiomAudit.lean`.
+- `docs/axiom-elimination-status.md` LR row set to **verified**;
+  `docs/proof-dag.json` LR target node state set to `theorem`, line 81.
+
+Note: some other rows of the status table were already stale before this
+loop (they predate the baseline) and were deliberately left untouched.

@@ -313,7 +313,7 @@ layer. The audit script confirms 27 nodes, no directed cycle, and no edge with
 | 4 | `spechtModule_branching` |  theorem  | **verified** |
 | 4 | `youngsRule` |  theorem  | axiom |
 | 5 | `symmetricGroupBiregular_decomposition` |  theorem  | **verified** |
-| 5 | `spechtModule_littlewoodRichardson` |  theorem  | axiom |
+| 5 | `spechtModule_littlewoodRichardson` |  theorem  | **verified** |
 | 5 | `spechtModule_induction_branching` |  theorem  | **verified** |
 | 5 | `tensorPower_schurWeyl` |  theorem  | axiom |
 | 5 | `spechtBranchingBasisData` |  noncomputable def  | **verified** |

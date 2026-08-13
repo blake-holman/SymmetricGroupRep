@@ -1634,7 +1634,7 @@
       "cluster": "lr-pieri",
       "layer": 18,
       "module": "SymmetricGroupRep/LittlewoodRichardson.lean",
-      "line": 72,
+      "line": 81,
       "statement": "Nonempty (Ind_{S_a x S_b}^{S_{a+b}} (S^mu (x) S^nu) = biproduct_xi biproduct_{Fin c^xi_{mu,nu}} S^xi)",
       "proof_route": "Stembridge's sign-reversing-involution proof in bialternant form (Grinberg-Reiner presentation), in three layers: (A) symmetric functions in MvPolynomial (Fin N) Z with N := a+b, no ring Lambda and no skew Schur functions; (B) a skew-combinatorial bridge matching Stembridge's column-suffix count to the frozen LittlewoodRichardsonTableau via matrix transposition; (C) a representation bridge via ch(V) := sum_lambda finrank(S^lambda -> V) s_lambda.",
       "source": "Grinberg-Reiner, Hopf Algebras in Combinatorics (with solutions), Thm 2.6.6 / Cor 2.6.7 / Cor 2.6.9; Stembridge, A concise proof of the Littlewood-Richardson rule, EJC 9 (2002) N5",
@@ -1678,7 +1678,7 @@
         "ex.spechtModule_iso_iff_eq",
         "ex.spechtOuterTensor"
       ],
-      "state": "axiom"
+      "state": "theorem"
     },
     {
       "id": "spechtBranchingBasisData",

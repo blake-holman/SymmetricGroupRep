@@ -1,4 +1,4 @@
-import SymmetricGroupRep.LittlewoodRichardson
+import SymmetricGroupRep.LittlewoodRichardsonCoefficient
 import SymmetricGroupRep.SchurProduct
 
 /-! # Littlewood-Richardson tableaux are Stembridge's good tableaux

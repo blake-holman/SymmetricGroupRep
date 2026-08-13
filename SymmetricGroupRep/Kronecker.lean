@@ -1,4 +1,4 @@
-import SymmetricGroupRep.LittlewoodRichardson
+import SymmetricGroupRep.LittlewoodRichardsonCoefficient
 import SymmetricGroupRep.SignTwist
 import SymmetricGroupRep.YoungPermutation
 
