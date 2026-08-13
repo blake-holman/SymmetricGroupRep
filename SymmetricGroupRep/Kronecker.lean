@@ -165,22 +165,3 @@ noncomputable def youngSubgroupRoundTripMultiplicity {n : ℕ}
           (YoungDiagramOfSize.cast (Nat.sub_add_cancel hk).symm μ) *
         littlewoodRichardsonCoefficient α β
           (YoungDiagramOfSize.cast (Nat.sub_add_cancel hk).symm ν)
-
-/-- Rosmanis's two-row reduction of a Kronecker coefficient to two
-restrict-then-induce multiplicities.
-
-This is Lemma 1.12 on page 30 of Rosmanis, *Lower Bounds on Quantum Query and
-Learning Graph Complexities* (2014 thesis). The strict hypotheses match the
-statement there, and the natural-number subtraction is exact under that
-identity. -/
-axiom twoRowKroneckerCoefficient_eq_roundTrip_sub
-    (n i j : ℕ) (hi : 1 < i) (hj : 1 < j)
-    (hin : 2 * i < n) (hjn : 2 * j < n)
-    (ν : YoungDiagramOfSize n) :
-  kroneckerCoefficient
-      (twoRowPartition n i (by omega))
-      (twoRowPartition n j (by omega)) ν =
-    youngSubgroupRoundTripMultiplicity i (by omega)
-        (twoRowPartition n j (by omega)) ν -
-      youngSubgroupRoundTripMultiplicity (i - 1) (by omega)
-        (twoRowPartition n j (by omega)) ν

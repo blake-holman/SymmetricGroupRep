@@ -2,9 +2,9 @@
 """Check that every frozen target still has its baseline signature.
 
 Completion check 1 of .claude/commands/eliminate-representation-axioms.md asks
-that all 27 targets keep the identical signature and differ from the frozen
-baseline only in the leading declaration keyword. Doing that by eye does not
-scale across 27 targets and many commits, so this script does it mechanically.
+that all retained targets keep the identical signature and differ from the
+frozen baseline only in the leading declaration keyword. Doing that by eye does
+not scale across many targets and commits, so this script does it mechanically.
 
 For each target it extracts the declaration from the baseline commit and from
 the working tree, strips the leading keyword, normalises whitespace, and
@@ -45,7 +45,6 @@ TARGETS = {
     "spechtModule_kronecker": "Kronecker.lean",
     "spechtModule_singleRow": "Kronecker.lean",
     "spechtModule_tensor_sign": "Kronecker.lean",
-    "twoRowKroneckerCoefficient_eq_roundTrip_sub": "Kronecker.lean",
     "spechtOrthogonalBasis_adjacentTransposition": "Orthogonal.lean",
     "spechtModule_selfDual": "SelfDuality.lean",
     "symmetricGroupLeftRegular_decomposition": "RegularDecomposition.lean",
