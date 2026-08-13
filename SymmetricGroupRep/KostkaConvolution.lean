@@ -266,3 +266,161 @@ private theorem schurPoly_mul_schurPoly_singleRow {n r N : ℕ} (nu : YoungDiagr
     rw [hrowLen T hgood v, hwt v]
     have := hrowle v
     omega
+
+/-! ## Peeling the top value off a tableau -/
+
+open scoped Classical in
+/-- The tableaux of shape `xi` bounded by `ℓ + 1` with weight `w` are, for each
+shape `nu` that `xi` reaches by a horizontal strip, the tableaux of shape `nu`
+bounded by `ℓ` with the truncated weight. -/
+private theorem card_weight_fiber {ℓ m : ℕ} (w : ℕ → ℕ) (hm : ∑ i ∈ range ℓ, w i = m)
+    (xi : YoungDiagramOfSize (m + w ℓ)) :
+    Nat.card {T : BoundedSemistandardTableau (ℓ + 1) xi.val // T.weight = expo (ℓ + 1) w} =
+      ∑ nu : YoungDiagramOfSize m,
+        if IsHorizontalStrip nu.val xi.val then
+          Nat.card {S : BoundedSemistandardTableau ℓ nu.val // S.weight = expo ℓ w} else 0 := by
+  have hcomp : ∀ T : BoundedSemistandardTableau (ℓ + 1) xi.val,
+      T.weight = expo (ℓ + 1) w ↔ ∀ v, v < ℓ + 1 → T.tableau.weight v = w v :=
+    fun T => ⟨fun h v hv => congrArg (fun d : Fin (ℓ + 1) →₀ ℕ => d ⟨v, hv⟩) h,
+      fun h => Finsupp.ext fun i => h i i.isLt⟩
+  have hbelowcard : ∀ T : BoundedSemistandardTableau (ℓ + 1) xi.val,
+      T.weight = expo (ℓ + 1) w → (T.tableau.below ℓ).card = m := by
+    intro T hT
+    rw [YoungDiagram.card,
+      show (T.tableau.below ℓ).cells = xi.val.cells.filter fun c => T.tableau c.1 c.2 < ℓ from rfl,
+      Finset.card_eq_sum_card_fiberwise (f := fun c : ℕ × ℕ => T.tableau c.1 c.2) (t := range ℓ)
+        fun c hc => mem_range.mpr (mem_filter.mp hc).2]
+    refine Eq.trans (Finset.sum_congr rfl fun v hv => ?_) hm
+    rw [Finset.filter_filter, ← (hcomp T).mp hT v (by have := mem_range.mp hv; omega),
+      SemistandardYoungTableau.weight]
+    exact congrArg Finset.card (Finset.filter_congr fun c _ =>
+      ⟨fun h => h.2, fun h => ⟨by show T.tableau c.1 c.2 < ℓ; rw [h]; exact mem_range.mp hv, h⟩⟩)
+  have hres : ∀ (T : BoundedSemistandardTableau (ℓ + 1) xi.val) {nu : YoungDiagram}
+      (h : T.tableau.below ℓ = nu) (v : ℕ), v < ℓ →
+      (BoundedSemistandardTableau.restrict T h).tableau.weight v = T.tableau.weight v := by
+    intro T nu h v hv
+    have hmem : ∀ c : ℕ × ℕ, c ∈ nu.cells ↔ (c ∈ xi.val.cells ∧ T.tableau c.1 c.2 < ℓ) := by
+      intro c
+      rw [← h, YoungDiagram.mem_cells, SemistandardYoungTableau.mem_below,
+        YoungDiagram.mem_cells]
+    rw [SemistandardYoungTableau.weight, SemistandardYoungTableau.weight]
+    refine congrArg Finset.card (Finset.ext fun c => ?_)
+    rw [Finset.mem_filter, Finset.mem_filter, hmem c,
+      BoundedSemistandardTableau.restrict_apply]
+    constructor
+    · rintro ⟨⟨hcell, hlt⟩, hval⟩
+      rw [if_pos hlt] at hval
+      exact ⟨hcell, hval⟩
+    · rintro ⟨hcell, hval⟩
+      have hlt : T.tableau c.1 c.2 < ℓ := by rw [hval]; exact hv
+      exact ⟨⟨hcell, hlt⟩, by rw [if_pos hlt]; exact hval⟩
+  have hiff : ∀ (T : BoundedSemistandardTableau (ℓ + 1) xi.val) {nu : YoungDiagram}
+      (h : T.tableau.below ℓ = nu),
+      (T.weight = expo (ℓ + 1) w ↔ (BoundedSemistandardTableau.restrict T h).weight = expo ℓ w) := by
+    intro T nu h
+    constructor
+    · intro hT
+      refine Finsupp.ext fun i => ?_
+      show (BoundedSemistandardTableau.restrict T h).tableau.weight i = w i
+      rw [hres T h i i.isLt]
+      exact (hcomp T).mp hT i (by omega)
+    · intro hS
+      have hlow : ∀ v, v < ℓ → T.tableau.weight v = w v := by
+        intro v hv
+        rw [← hres T h v hv]
+        exact congrArg (fun d : Fin ℓ →₀ ℕ => d ⟨v, hv⟩) hS
+      refine (hcomp T).mpr fun v hv => ?_
+      rcases lt_or_ge v ℓ with hvl | hvl
+      · exact hlow v hvl
+      · have hsum : ∑ v ∈ range (ℓ + 1), T.tableau.weight v = m + w ℓ := by
+          rw [BoundedSemistandardTableau.sum_weight T, xi.property]
+        rw [Finset.sum_range_succ,
+          Finset.sum_congr rfl (fun v hv' => hlow v (mem_range.mp hv')), hm] at hsum
+        rw [show v = ℓ by omega]
+        omega
+  have hkey : ∀ nu : YoungDiagramOfSize m,
+      Nat.card {x : {T : BoundedSemistandardTableau (ℓ + 1) xi.val //
+            T.weight = expo (ℓ + 1) w} //
+          (⟨x.1.tableau.below ℓ, hbelowcard x.1 x.2⟩ : YoungDiagramOfSize m) = nu} =
+        if IsHorizontalStrip nu.val xi.val then
+          Nat.card {S : BoundedSemistandardTableau ℓ nu.val // S.weight = expo ℓ w} else 0 := by
+    intro nu
+    by_cases hstrip : IsHorizontalStrip nu.val xi.val
+    · obtain ⟨hle, hstr⟩ := hstrip
+      rw [if_pos ⟨hle, hstr⟩]
+      refine Nat.card_congr ⟨fun x => ⟨BoundedSemistandardTableau.restrict x.1.1
+          (congrArg Subtype.val x.2), (hiff x.1.1 (congrArg Subtype.val x.2)).mp x.1.2⟩,
+        fun S => ⟨⟨BoundedSemistandardTableau.extend hle hstr S.1,
+          (hiff (BoundedSemistandardTableau.extend hle hstr S.1)
+            (BoundedSemistandardTableau.below_extend hle hstr S.1)).mpr
+            (by rw [BoundedSemistandardTableau.restrict_extend]; exact S.2)⟩,
+          Subtype.ext (BoundedSemistandardTableau.below_extend hle hstr S.1)⟩,
+        fun x => ?_, fun S => ?_⟩
+      · exact Subtype.ext (Subtype.ext (BoundedSemistandardTableau.extend_restrict hle hstr
+          x.1.1 (congrArg Subtype.val x.2)))
+      · exact Subtype.ext (BoundedSemistandardTableau.restrict_extend hle hstr S.1)
+    · rw [if_neg hstrip]
+      have hempty : IsEmpty {x : {T : BoundedSemistandardTableau (ℓ + 1) xi.val //
+          T.weight = expo (ℓ + 1) w} //
+          (⟨x.1.tableau.below ℓ, hbelowcard x.1 x.2⟩ : YoungDiagramOfSize m) = nu} := by
+        refine ⟨fun x => hstrip ?_⟩
+        have hb : x.1.1.tableau.below ℓ = nu.val := congrArg Subtype.val x.2
+        exact ⟨hb ▸ x.1.1.tableau.below_le ℓ, fun i => hb ▸
+          SemistandardYoungTableau.rowLen_le_rowLen_below x.1.1.entry_lt i⟩
+      exact Nat.card_of_isEmpty
+  rw [← Nat.card_congr (Equiv.sigmaFiberEquiv
+      (fun x : {T : BoundedSemistandardTableau (ℓ + 1) xi.val // T.weight = expo (ℓ + 1) w} =>
+        (⟨x.1.tableau.below ℓ, hbelowcard x.1 x.2⟩ : YoungDiagramOfSize m))),
+    Nat.card_sigma]
+  exact Finset.sum_congr rfl fun nu _ => hkey nu
+
+/-! ## Products of one-row Schur polynomials -/
+
+open scoped Classical in
+/-- **The product of one-row Schur polynomials counts tableaux by weight.**  The
+coefficient of `s_ξ` in `s_(w 0) ⋯ s_(w (ℓ-1))` is the number of tableaux of shape
+`ξ` with entries below `ℓ` and weight `w`. -/
+private theorem prod_schurPoly_singleRow {N ℓ n : ℕ} (w : ℕ → ℕ)
+    (hn : ∑ i ∈ range ℓ, w i = n) (hN : n ≤ N) :
+    ∏ i ∈ range ℓ, schurPoly N (singleRowPartition (w i)).val =
+      ∑ ξ : YoungDiagramOfSize n,
+        MvPolynomial.C (Nat.card {T : BoundedSemistandardTableau ℓ ξ.val //
+          T.weight = expo ℓ w} : ℤ) * schurPoly N ξ.val := by
+  induction ℓ generalizing n with
+  | zero =>
+    rw [Finset.sum_range_zero] at hn
+    subst hn
+    have hbot : (⊥ : YoungDiagram).card = 0 := by
+      rw [YoungDiagram.card, YoungDiagram.cells_bot, Finset.card_empty]
+    have hcard : Nat.card {T : BoundedSemistandardTableau 0 (⊥ : YoungDiagram) //
+        T.weight = expo 0 w} = 1 := by
+      rw [Nat.card_eq_one_iff_unique]
+      exact ⟨⟨fun x y => Subtype.ext (Subsingleton.elim _ _)⟩,
+        ⟨⟨default, Finsupp.ext fun i => i.elim0⟩⟩⟩
+    rw [Finset.prod_range_zero, Finset.sum_eq_single (⟨⊥, hbot⟩ : YoungDiagramOfSize 0)
+      (fun ξ _ hne => absurd (Subtype.ext (YoungDiagram.eq_bot_of_card_eq_zero ξ.property)) hne)
+      fun h => absurd (mem_univ _) h, hcard, schurPoly_bot, mul_one, Nat.cast_one, map_one]
+  | succ ℓ ih =>
+    have hsplit : (∑ i ∈ range ℓ, w i) + w ℓ = n := by rw [← hn, Finset.sum_range_succ]
+    subst hsplit
+    have hterm : ∀ ν : YoungDiagramOfSize (∑ i ∈ range ℓ, w i),
+        MvPolynomial.C (Nat.card {S : BoundedSemistandardTableau ℓ ν.val //
+              S.weight = expo ℓ w} : ℤ) * schurPoly N ν.val *
+            schurPoly N (singleRowPartition (w ℓ)).val =
+          ∑ ξ : YoungDiagramOfSize ((∑ i ∈ range ℓ, w i) + w ℓ),
+            MvPolynomial.C (if IsHorizontalStrip ν.val ξ.val then
+              (Nat.card {S : BoundedSemistandardTableau ℓ ν.val //
+                S.weight = expo ℓ w} : ℤ) else 0) * schurPoly N ξ.val := by
+      intro ν
+      rw [mul_assoc, schurPoly_mul_schurPoly_singleRow ν hN, Finset.mul_sum]
+      refine Finset.sum_congr rfl fun ξ _ => ?_
+      rw [← mul_assoc, ← MvPolynomial.C_mul]
+      by_cases h : IsHorizontalStrip ν.val ξ.val
+      · rw [if_pos h, if_pos h, mul_one]
+      · rw [if_neg h, if_neg h, mul_zero]
+    rw [Finset.prod_range_succ, ih rfl (by omega), Finset.sum_mul,
+      Finset.sum_congr rfl fun ν (_ : ν ∈ univ) => hterm ν, Finset.sum_comm]
+    refine Finset.sum_congr rfl fun ξ _ => ?_
+    rw [← Finset.sum_mul, ← map_sum, card_weight_fiber w rfl ξ, Nat.cast_sum]
+    exact congrArg (fun z : ℤ => MvPolynomial.C z * schurPoly N ξ.val)
+      (Finset.sum_congr rfl fun ν _ => by split <;> simp)
