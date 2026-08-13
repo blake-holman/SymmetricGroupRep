@@ -53,19 +53,41 @@ build `Sum.inl.inj`/`congrArg` chains bottom-up via intermediate `have`s;
 build `Representation.Equiv` over PLAIN representations (not `.ρ` of FDRep
 objects) or simp stalls on category-wrapped carriers.
 
+## Work Package B: COMPLETE (commit a8cdc20)
+
+`SymmetricGroupRep/LittlewoodRichardsonRepresentation.lean`:
+
+- `FDRep.character_biproduct` — bicone/trace proof (`biproduct.total`,
+  extraction AddMonoidHom with `map_add' := rfl`, `trace_comp_comm'`,
+  `biproduct.ι_π_self`); the private `biproductLinearEquivPi` was NOT needed.
+- `character_youngPermutationModule` — char M^α = ∑_μ K(μ,α)·char S^μ.
+- `sum_kostka_mul_finrank_hom_ind` —
+  `∑_{μ,ν} K(μ,α)·K(ν,β)·finrank(S^ξ ⟶ Ind(S^μ ⊠ S^ν)) = K(ξ, combine α β)`.
+  Chain: `finrank_hom_eq_kostkaNumber` ← `homCongrTarget` across
+  `youngPermutationCombineIso.symm` ← `hterm` (finrank_hom_symm +
+  indFunctor_obj + indResHomEquiv + scalar_product) ← `hexpand`
+  (outerTensor_character + Young character rule + sum_mul_sum + sum_comm) ←
+  cast via `Nat.cast_inj` + `push_cast`.
+
+Lesson: with a `set X := (Action.res ...).obj ...`, write
+`FDRep.character X` (FDRep is an Action abbrev, so dot notation fails).
+
 ## Next Exact Goal
 
-Work Package B (representation-side convolution), per guide §6:
-
-1. Small API: `FDRep.character_biproduct` (trace of finite biproduct is sum
-   of characters) via the private `FDRep.biproductLinearEquivPi`
-   (Decomposition.lean:311), following `FDRep.char_iso`.
-2. The chain: `finrank Hom(S^ξ, Ind(M^α ⊠ M^β)) = K(ξ, combine α β)` via
-   `finrank_hom_eq_kostkaNumber` transported across
-   `youngPermutationCombineIso`, then expand with `finrank_hom_symm`,
-   `indResHomEquiv`, `youngsRule` on both factors, `outerTensor_character`,
-   `scalar_product_char_eq_finrank_equivariant` to get the convolution
-   `∑ μ,ν K(μ,α) K(ν,β) cRep(μ,ν,ξ) = K(ξ, combine α β)`.
+Work Package D (Kostka inversion, guide §8) using the researched recipe:
+in a new `SymmetricGroupRep/KostkaInverse.lean`, define strict dominance
+`r α lam := α ≠ lam ∧ lam.val.Dominates α.val`, get well-foundedness from
+`Finite.wellFounded_of_trans_of_irrefl` (`Std.Irrefl`; `Dominates.antisymm`
+is at YoungDiagrams.lean:58, refl/trans are one-liners), define
+`z : YoungDiagramOfSize n → ℤ` by `WellFounded.fix`
+(`z lam = (if lam = μ then 1 else 0) - ∑_{α strictly dominated... } ...`)
+and prove `∑ α, z α * K(λ,α) = if λ = μ then 1 else 0` by splitting the sum
+(`Finset.add_sum_erase`, `sum_filter_add_sum_filter_not`,
+`kostkaNumber_self`, `kostkaNumber_eq_zero_of_not_dominates`) — no
+induction. Then Work Package C (guide §7): h-product identity via
+`BoundedSemistandardTableau.fiberEquiv` (SchurWeyl.lean), multiply, compare
+Schur coefficients with `coeff_schurPoly_eq_kostkaNumber` and
+`schurPoly_mul_schurPoly_eq_littlewoodRichardson`.
 
 Work Package D research (from wf_2ab03570-519, agent 3): strict dominance
 `r α lam := α ≠ lam ∧ lam.val.Dominates α.val`; `Dominates.antisymm` exists
