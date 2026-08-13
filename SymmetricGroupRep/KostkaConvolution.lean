@@ -316,7 +316,8 @@ private theorem card_weight_fiber {ℓ m : ℕ} (w : ℕ → ℕ) (hm : ∑ i �
       exact ⟨⟨hcell, hlt⟩, by rw [if_pos hlt]; exact hval⟩
   have hiff : ∀ (T : BoundedSemistandardTableau (ℓ + 1) xi.val) {nu : YoungDiagram}
       (h : T.tableau.below ℓ = nu),
-      (T.weight = expo (ℓ + 1) w ↔ (BoundedSemistandardTableau.restrict T h).weight = expo ℓ w) := by
+      (T.weight = expo (ℓ + 1) w ↔
+        (BoundedSemistandardTableau.restrict T h).weight = expo ℓ w) := by
     intro T nu h
     constructor
     · intro hT
@@ -424,3 +425,102 @@ private theorem prod_schurPoly_singleRow {N ℓ n : ℕ} (w : ℕ → ℕ)
     rw [← Finset.sum_mul, ← map_sum, card_weight_fiber w rfl ξ, Nat.cast_sum]
     exact congrArg (fun z : ℤ => MvPolynomial.C z * schurPoly N ξ.val)
       (Finset.sum_congr rfl fun ν _ => by split <;> simp)
+
+/-- The complete homogeneous polynomial of the weight `α`: the product of the
+one-row Schur polynomials of the rows of `α`, in `q` variables. -/
+noncomputable def hProd (q : ℕ) {n : ℕ} (α : YoungDiagramOfSize n) : MvPolynomial (Fin q) ℤ :=
+  ((α.val.rowLens : Multiset ℕ).map fun r => schurPoly q (singleRowPartition r).val).prod
+
+private theorem hProd_eq_prod_range {q n : ℕ} (α : YoungDiagramOfSize n) :
+    hProd q α = ∏ i ∈ range n, schurPoly q (singleRowPartition (α.val.rowLen i)).val := by
+  have hlist : α.val.rowLens.map (fun r => schurPoly q (singleRowPartition r).val) =
+      List.ofFn fun i : Fin α.val.rowLens.length =>
+        schurPoly q (singleRowPartition (α.val.rowLen i)).val := by
+    refine List.ext_getElem (by simp) fun i h1 h2 => ?_
+    simp [YoungDiagram.rowLens]
+  have hle : α.val.rowLens.length ≤ n := by
+    rw [YoungDiagram.length_rowLens]
+    exact YoungDiagramOfSize.colLen_zero_le α
+  rw [hProd, Multiset.map_coe, Multiset.prod_coe, hlist, List.prod_ofFn,
+    Fin.prod_univ_eq_prod_range fun i => schurPoly q (singleRowPartition (α.val.rowLen i)).val]
+  refine Finset.prod_subset (Finset.range_subset_range.mpr hle) fun i _ hi => ?_
+  rw [YoungDiagram.rowLen_eq_zero (le_of_eq YoungDiagram.length_rowLens.symm)
+    (by simpa using hi), singleRowPartition_zero, schurPoly_bot]
+
+/-- **The one-row product expansion.**  The product of the one-row Schur
+polynomials of the rows of `α` is the Kostka-weighted sum of Schur polynomials. -/
+theorem hProd_eq_sum_kostka {a N : ℕ} (α : YoungDiagramOfSize a) (hN : a ≤ N) :
+    hProd N α = ∑ μ : YoungDiagramOfSize a,
+      MvPolynomial.C (kostkaNumber μ α : ℤ) * schurPoly N μ.val := by
+  have hsum : ∑ i ∈ range a, α.val.rowLen i = a := by
+    rw [← YoungDiagram.card_eq_sum_rowLen (YoungDiagramOfSize.colLen_zero_le α), α.property]
+  rw [hProd_eq_prod_range, prod_schurPoly_singleRow α.val.rowLen hsum hN]
+  exact Finset.sum_congr rfl fun μ _ => by
+    rw [kostkaNumber, Nat.card_congr (WeightedSemistandardTableau.boundedEquiv μ α)]
+
+/-- Combining two weights multiplies their one-row products. -/
+private theorem hProd_combine {a b N : ℕ} (α : YoungDiagramOfSize a) (β : YoungDiagramOfSize b) :
+    hProd N (α.combine β) = hProd N α * hProd N β := by
+  rw [hProd, hProd, hProd, YoungDiagramOfSize.rowLens_combine, Multiset.map_add,
+    Multiset.prod_add]
+
+/-! ## The convolution identity -/
+
+/-- **The Schur polynomials of the shapes of a fixed size are linearly
+independent over `ℤ`.**  Multiplying by the staircase alternant turns a Schur
+expansion into an expansion in staircase alternants. -/
+theorem eq_of_sum_C_mul_schurPoly_eq {n N : ℕ} (hn : n ≤ N) {f g : YoungDiagramOfSize n → ℤ}
+    (h : ∑ ξ : YoungDiagramOfSize n, MvPolynomial.C (f ξ) * schurPoly N ξ.val =
+      ∑ ξ : YoungDiagramOfSize n, MvPolynomial.C (g ξ) * schurPoly N ξ.val) : f = g := by
+  have hexp : ∀ p : YoungDiagramOfSize n → ℤ,
+      MvPolynomial.alt (expo N fun i => N - 1 - i) *
+          ∑ ξ : YoungDiagramOfSize n, MvPolynomial.C (p ξ) * schurPoly N ξ.val =
+        ∑ ξ : YoungDiagramOfSize n, MvPolynomial.C (p ξ) *
+          MvPolynomial.alt (expo N fun i => ξ.val.rowLen i + (N - 1 - i)) := by
+    intro p
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl fun ξ _ => ?_
+    rw [← mul_assoc, mul_comm (MvPolynomial.alt _) (MvPolynomial.C (p ξ)), mul_assoc,
+      Stembridge.alt_staircase_mul_schurPoly (le_trans (YoungDiagramOfSize.colLen_zero_le ξ) hn)]
+  exact Stembridge.eq_of_sum_alt_staircase_eq hn (by rw [← hexp f, ← hexp g, h])
+
+private theorem sum_C_mul {ι : Type*} [Fintype ι] {q : ℕ} (g : ι → ℤ)
+    (p : MvPolynomial (Fin q) ℤ) :
+    ∑ i, MvPolynomial.C (g i) * p = MvPolynomial.C (∑ i, g i) * p := by
+  rw [← Finset.sum_mul, map_sum]
+
+/-- **The Kostka convolution of the Littlewood-Richardson coefficients.**
+Multiplying the one-row products of two weights and expanding both sides in
+Schur polynomials convolves the two Kostka matrices with the
+Littlewood-Richardson coefficients. -/
+theorem sum_kostka_mul_littlewoodRichardson {a b : ℕ}
+    (α : YoungDiagramOfSize a) (β : YoungDiagramOfSize b)
+    (ξ : YoungDiagramOfSize (a + b)) :
+    ∑ μ : YoungDiagramOfSize a, ∑ ν : YoungDiagramOfSize b,
+        kostkaNumber μ α * kostkaNumber ν β *
+          littlewoodRichardsonCoefficient μ ν ξ =
+      kostkaNumber ξ (α.combine β) := by
+  have hprod : ∀ (μ : YoungDiagramOfSize a) (ν : YoungDiagramOfSize b),
+      MvPolynomial.C (kostkaNumber μ α : ℤ) * schurPoly (a + b) μ.val *
+          (MvPolynomial.C (kostkaNumber ν β : ℤ) * schurPoly (a + b) ν.val) =
+        ∑ ζ : YoungDiagramOfSize (a + b),
+          MvPolynomial.C ((kostkaNumber μ α : ℤ) * (kostkaNumber ν β : ℤ) *
+            (littlewoodRichardsonCoefficient μ ν ζ : ℤ)) * schurPoly (a + b) ζ.val := by
+    intro μ ν
+    rw [mul_mul_mul_comm, ← MvPolynomial.C_mul,
+      schurPoly_mul_schurPoly_eq_littlewoodRichardson μ ν, Finset.mul_sum]
+    exact Finset.sum_congr rfl fun ζ _ => by rw [← mul_assoc, ← MvPolynomial.C_mul]
+  have hkey : (fun ζ : YoungDiagramOfSize (a + b) => (kostkaNumber ζ (α.combine β) : ℤ)) =
+      fun ζ : YoungDiagramOfSize (a + b) => ∑ μ : YoungDiagramOfSize a,
+        ∑ ν : YoungDiagramOfSize b, (kostkaNumber μ α : ℤ) * (kostkaNumber ν β : ℤ) *
+          (littlewoodRichardsonCoefficient μ ν ζ : ℤ) := by
+    refine eq_of_sum_C_mul_schurPoly_eq le_rfl ?_
+    rw [← hProd_eq_sum_kostka (α.combine β) le_rfl, hProd_combine,
+      hProd_eq_sum_kostka α (Nat.le_add_right a b),
+      hProd_eq_sum_kostka β (Nat.le_add_left b a), Fintype.sum_mul_sum,
+      Finset.sum_congr rfl fun μ (_ : μ ∈ univ) =>
+        Finset.sum_congr rfl fun ν (_ : ν ∈ univ) => hprod μ ν,
+      Finset.sum_congr rfl fun μ (_ : μ ∈ univ) => Finset.sum_comm, Finset.sum_comm]
+    exact Finset.sum_congr rfl fun ζ _ => by
+      rw [Finset.sum_congr rfl fun μ (_ : μ ∈ univ) => sum_C_mul _ _, sum_C_mul]
+  exact_mod_cast (congrFun hkey ξ).symm
