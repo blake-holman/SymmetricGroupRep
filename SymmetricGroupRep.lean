@@ -25,6 +25,7 @@ import SymmetricGroupRep.Kostka
 import SymmetricGroupRep.Kronecker
 import SymmetricGroupRep.LittlewoodRichardson
 import SymmetricGroupRep.LittlewoodRichardsonBridge
+import SymmetricGroupRep.LittlewoodRichardsonRepresentation
 import SymmetricGroupRep.MultiplicitySpaces
 import SymmetricGroupRep.Orthogonal
 import SymmetricGroupRep.OuterTensor
