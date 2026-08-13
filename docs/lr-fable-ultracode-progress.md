@@ -81,7 +81,65 @@ verification splits the sum with `Finset.add_sum_erase` + `Finset.sum_subset`
 `kostka_convolution_cancel` (`∀ α, ∑ μ K(μ,α)·c μ = 0` forces `c = 0`, via
 the inverse column + `Finset.sum_ite_eq'`).
 
-## Next Exact Goal
+## Work Package C: COMPLETE (commits 0339ee6, 6cdf3dd, d5e436a)
+
+`SymmetricGroupRep/KostkaConvolution.lean` (526 lines), imported into
+`SymmetricGroupRep.lean`. Endpoint:
+
+```lean
+theorem sum_kostka_mul_littlewoodRichardson {a b : ℕ}
+    (α : YoungDiagramOfSize a) (β : YoungDiagramOfSize b)
+    (ξ : YoungDiagramOfSize (a + b)) :
+    ∑ μ : YoungDiagramOfSize a, ∑ ν : YoungDiagramOfSize b,
+        kostkaNumber μ α * kostkaNumber ν β *
+          littlewoodRichardsonCoefficient μ ν ξ =
+      kostkaNumber ξ (α.combine β)
+```
+
+Layers, in dependency order:
+
+- One-row shapes: `singleRowPartition_rowLen`, `mem_singleRowPartition`,
+  `colLen_singleRowPartition`, `singleRowPartition_zero`, plus
+  `schurPoly_bot` and `YoungDiagram.eq_bot_of_card_eq_zero`.
+- One-row tableaux: `singleRow_ext` (a one-row tableau is determined by its
+  weight) and `exists_singleRow_weight` (every admissible weight occurs).
+  Both reuse the `rowFill`/`SkewFilling`/`GoodTableau.ofMatrix` machinery
+  already in `LittlewoodRichardsonBridge.lean`; no new word construction was
+  needed. `GoodTableau.ofMatrix` forced `N = a + r`, obtained by
+  `obtain ⟨a, rfl⟩ : ∃ a, N = a + r`; its `mu`-indexed companions
+  (`isGood_ofMatrix`, `addWeight_ofMatrix`) were NOT usable because they tie
+  `mu`'s size to the variable count, so goodness and `addWeight` are proved
+  directly instead.
+- `schurPoly_mul_schurPoly_singleRow`: the one-row Pieri rule in `N ≥ n + r`
+  variables, from `Stembridge.schurPoly_mul_schurPoly` by `Finset.sum_bij`
+  onto the horizontal strips. Goodness ⟹ strip cuts the row just before its
+  first entry above `i` (`Nat.find`), giving `colWeight j i = 0` and
+  `colWeight j (i+1) = weight (i+1)`; strip ⟹ goodness is
+  `Stembridge.isGood_iff` plus `colWeight ≤ weight`.
+- `card_weight_fiber`: the peeling recursion, `Equiv.sigmaFiberEquiv` over
+  `T ↦ T.tableau.below ℓ` plus `Nat.card_sigma` and
+  `BoundedSemistandardTableau.fiberEquiv`; the top weight is recovered from
+  `sum_weight`.
+- `prod_schurPoly_singleRow`: induction on `ℓ` generalizing `n`.
+- `hProd`, `hProd_eq_prod_range`, `hProd_eq_sum_kostka`, `hProd_combine`.
+- `eq_of_sum_C_mul_schurPoly_eq`: fixed-size Schur independence over `ℤ`, via
+  `Stembridge.alt_staircase_mul_schurPoly` and
+  `Stembridge.eq_of_sum_alt_staircase_eq`. The `kostka_convolution_cancel`
+  fallback route was therefore not needed here.
+
+No blockers. `#print axioms sum_kostka_mul_littlewoodRichardson` is
+`[propext, Classical.choice, Quot.sound]`; likewise for `hProd_eq_sum_kostka`
+and `eq_of_sum_C_mul_schurPoly_eq`.
+
+Lean lessons: `Finset.range_subset` is `range n ⊆ s ↔ ∀ x < n, x ∈ s` — for
+`range ⊆ range` use `Finset.range_subset_range`; `YoungDiagram.get_rowLens`
+would not fire under `simp only`, `simp [YoungDiagram.rowLens]` does; pair
+projections `(0, c).1` block `omega`, so restate through
+`have : T.tableau 0 c = i := hval`; a `rw [← h]` that also occurs inside
+`restrict T h` breaks the motive, so rewrite the membership statement in a
+separate `have`.
+
+## Work Package C Planning Notes (superseded by the section above)
 
 Work Package C (guide §7). KEY REALIZATION: C2 needs NO Schur-independence
 lemma — extracting `MvPolynomial.coeff (expo (a+b) ξw.val.rowLen)` from the
@@ -117,6 +175,17 @@ verify the inverse column with `Finset.add_sum_erase` +
 Work Package C notes: use `BoundedSemistandardTableau.fiberEquiv`
 (SchurWeyl.lean) for the h-product identity, keep `a+b` variables.
 
+## Next Exact Goal
+
+Work Package E (guide §4, §9). Combine `sum_kostka_mul_finrank_hom_ind`
+(WP B) with `sum_kostka_mul_littlewoodRichardson` (WP C) and apply
+`kostka_convolution_cancel` (WP D) twice, once in `α` and once in `β`, to get
+`finrank_hom_ind_spechtOuterTensor_eq_lr`; then the frozen assembly, the
+`AxiomAudit.lean` entry, the docs update, and the full gate (guide §14).
+Import direction to watch: `KostkaConvolution.lean` imports
+`LittlewoodRichardsonBridge.lean` and `Kronecker.lean`, both of which already
+import `LittlewoodRichardson.lean`.
+
 ## Verification Log
 
 - 2026-08-13: b9029a7 (A1), 9f8d069 (row equiv + A2 linearization),
@@ -125,3 +194,10 @@ Work Package C notes: use `BoundedSemistandardTableau.fiberEquiv`
   `lake env lean SymmetricGroupRep/YoungPermutationProduct.lean` OK;
   `verify_build_coverage.py` and `verify_frozen_signatures.py` pass
   (25/27 converted; LR + deferred Kronecker still axioms, as expected).
+- 2026-08-13: 0339ee6 (one-row Pieri), 6cdf3dd (product of one-row Schur
+  polynomials), d5e436a (Kostka convolution). Each layer: zero lean-lsp
+  diagnostics and `lake env lean SymmetricGroupRep/KostkaConvolution.lean` OK.
+  Final: `lake build` 3263 jobs zero errors; `verify_build_coverage.py`
+  (71/71 modules) and `verify_frozen_signatures.py` (25/27, all frozen
+  signatures preserved) pass; no `sorry`/`admit`/`native_decide`/`unsafe` in
+  the new module.
