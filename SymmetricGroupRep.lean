@@ -63,4 +63,5 @@ import SymmetricGroupRep.YoungBranching
 import SymmetricGroupRep.YoungDiagrams
 import SymmetricGroupRep.YoungGraph
 import SymmetricGroupRep.YoungPermutation
+import SymmetricGroupRep.YoungPermutationProduct
 import SymmetricGroupRep.YoungSubgroup
