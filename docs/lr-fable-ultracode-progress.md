@@ -72,22 +72,39 @@ objects) or simp stalls on category-wrapped carriers.
 Lesson: with a `set X := (Action.res ...).obj ...`, write
 `FDRep.character X` (FDRep is an Action abbrev, so dot notation fails).
 
+## Work Package D: COMPLETE (commit 1632b6f)
+
+`SymmetricGroupRep/KostkaInverse.lean`: `exists_kostka_inverse` (strict
+dominance + `Finite.wellFounded_of_trans_of_irrefl` + `WellFounded.fix`;
+verification splits the sum with `Finset.add_sum_erase` + `Finset.sum_subset`
++ `kostkaNumber_self` + `kostkaNumber_eq_zero_of_not_dominates`), and
+`kostka_convolution_cancel` (`∀ α, ∑ μ K(μ,α)·c μ = 0` forces `c = 0`, via
+the inverse column + `Finset.sum_ite_eq'`).
+
 ## Next Exact Goal
 
-Work Package D (Kostka inversion, guide §8) using the researched recipe:
-in a new `SymmetricGroupRep/KostkaInverse.lean`, define strict dominance
-`r α lam := α ≠ lam ∧ lam.val.Dominates α.val`, get well-foundedness from
-`Finite.wellFounded_of_trans_of_irrefl` (`Std.Irrefl`; `Dominates.antisymm`
-is at YoungDiagrams.lean:58, refl/trans are one-liners), define
-`z : YoungDiagramOfSize n → ℤ` by `WellFounded.fix`
-(`z lam = (if lam = μ then 1 else 0) - ∑_{α strictly dominated... } ...`)
-and prove `∑ α, z α * K(λ,α) = if λ = μ then 1 else 0` by splitting the sum
-(`Finset.add_sum_erase`, `sum_filter_add_sum_filter_not`,
-`kostkaNumber_self`, `kostkaNumber_eq_zero_of_not_dominates`) — no
-induction. Then Work Package C (guide §7): h-product identity via
-`BoundedSemistandardTableau.fiberEquiv` (SchurWeyl.lean), multiply, compare
-Schur coefficients with `coeff_schurPoly_eq_kostkaNumber` and
-`schurPoly_mul_schurPoly_eq_littlewoodRichardson`.
+Work Package C (guide §7). KEY REALIZATION: C2 needs NO Schur-independence
+lemma — extracting `MvPolynomial.coeff (expo (a+b) ξw.val.rowLen)` from the
+h-identity turns everything into Kostka-weighted sums, and
+`kostka_convolution_cancel` (WP D) recovers the pointwise convolution
+`∑_{μ,ν} K(μ,α)K(ν,β)·c^ρ_{μν} = K(ρ, combine α β)`. The only real work is
+C1: `hProd q α := (α.partition.parts.map (single-row schurPoly q)).prod =
+∑_μ C(K(μ,α)) · schurPoly q μ.val` in q := a+b variables (then
+`hProd α · hProd β = hProd (combine)` is `Multiset.prod_add` via
+`rowLens_combine`). Watch: C1's Kostka number has size-a indices but q = a+b
+variables — may need a q-padded version of `coeff_schurPoly_eq_kostkaNumber`
+(via `WeightedSemistandardTableau.boundedEquiv`).
+
+Ultracode planning workflow `lr-wpc-plan` (run wf_4225e3fc-1ff) is producing
+the exact C1/C2 signature-checked plan (agent 1: SchurWeyl peeling machinery
++ single-row infrastructure + expo/boundedEquiv generality; agent 2: C2
+assembly lemma names + cancellation orientation). Read its report first,
+then implement C in `SymmetricGroupRep/LittlewoodRichardsonBridge`-adjacent
+new file or extend LittlewoodRichardsonRepresentation.lean.
+
+After C: Work Package E — `finrank_hom_ind_spechtOuterTensor_eq_lr` from
+B + C + `kostka_convolution_cancel` (twice, once per index), then the frozen
+assembly (guide §4), AxiomAudit entry, docs update, full gate (guide §14).
 
 Work Package D research (from wf_2ab03570-519, agent 3): strict dominance
 `r α lam := α ≠ lam ∧ lam.val.Dominates α.val`; `Dominates.antisymm` exists
