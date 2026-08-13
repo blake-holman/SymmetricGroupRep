@@ -22,6 +22,7 @@ import SymmetricGroupRep.Induction
 import SymmetricGroupRep.JucysMurphy
 import SymmetricGroupRep.KSubsets
 import SymmetricGroupRep.Kostka
+import SymmetricGroupRep.KostkaInverse
 import SymmetricGroupRep.Kronecker
 import SymmetricGroupRep.LittlewoodRichardson
 import SymmetricGroupRep.LittlewoodRichardsonBridge
