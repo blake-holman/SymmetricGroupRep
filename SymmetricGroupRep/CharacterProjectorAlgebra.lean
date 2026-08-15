@@ -59,7 +59,8 @@ private theorem characterProjectorLinear_character_convolution {G : Type} [Group
   have htrace := congrArg (LinearMap.trace ℂ U) hcomp
   rw [characterProjectorLinear_trace_comp] at htrace
   split_ifs at htrace ⊢
-  · simpa only [LinearMap.id_comp, FDRep.character] using htrace
+  · simpa only [Action.id_hom, ObjectProperty.FullSubcategory.id_hom, ModuleCat.hom_id,
+      LinearMap.id_comp, FDRep.character] using htrace
   · simpa using htrace
 
 /-- The normalized character projectors multiply as the central idempotents

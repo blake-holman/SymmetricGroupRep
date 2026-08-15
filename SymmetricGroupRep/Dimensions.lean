@@ -4,6 +4,7 @@ import SymmetricGroupRep.HookLength
 open CategoryTheory CategoryTheory.Limits
 
 attribute [local instance] Limits.HasFiniteBiproducts.of_hasFiniteProducts
+attribute [local instance] Fintype.ofFinite
 
 /-- The dimension of `S^μ` is the number of standard tableaux of shape `μ`. -/
 theorem spechtModule_finrank_eq_card_standardYoungTableau {n : ℕ}

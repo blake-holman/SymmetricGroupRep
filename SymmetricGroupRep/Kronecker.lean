@@ -6,6 +6,7 @@ open CategoryTheory CategoryTheory.Limits
 open scoped MonoidalCategory
 
 attribute [local instance] Limits.HasFiniteBiproducts.of_hasFiniteProducts
+attribute [local instance] Fintype.ofFinite
 
 /-! # Internal tensor products and Kronecker coefficients -/
 

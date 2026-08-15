@@ -94,7 +94,7 @@ theorem spechtModule_character_im {n : ℕ} (μ : YoungDiagramOfSize n)
       {
       carrier := {h | realCoordinates ((spechtModule μ).ρ h)}
       one_mem' := by
-        simpa using realCoordinates_one
+        simpa [Module.End.one_eq_id] using realCoordinates_one
       mul_mem' {h k} hh hk := by
         simpa using realCoordinates_mul _ _ hh hk
       }

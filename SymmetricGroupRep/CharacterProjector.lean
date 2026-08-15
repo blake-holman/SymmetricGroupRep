@@ -69,13 +69,12 @@ theorem trace_characterProjectorLinear_simple {G : Type} [Group G] [Fintype G]
         (if Nonempty (V ≅ W) then 1 else 0) := by
   rw [trace_characterProjectorLinear]
   have h := FDRep.char_orthonormal V W
-  simp only [invOf_eq_inv, smul_eq_mul] at h
   have hsum : (∑ g : G, W.character g⁻¹ * V.character g) =
       ∑ g : G, V.character g * W.character g⁻¹ := by
     apply Finset.sum_congr rfl
     intro g _
     rw [mul_comm]
-  rw [hsum, div_eq_mul_inv, mul_assoc, h]
+  rw [hsum, div_eq_mul_inv, mul_assoc, Fintype.card_eq_nat_card, h]
 
 private theorem simple_finrank_pos {G : Type} [Group G]
     (V : FDRep ℂ G) [Simple V] : 0 < Module.finrank ℂ V := by
