@@ -94,7 +94,8 @@ private noncomputable def indPermToFinsupp (φ : G →* H) (j : Y → X)
     IndV φ (ofMulAction ℂ G Y) →ₗ[ℂ] (X →₀ ℂ) :=
   Coinvariants.lift _
     (Finsupp.lmapDomain ℂ ℂ (fun p : H × Y => p.1⁻¹ • j p.2) ∘ₗ
-      (finsuppTensorFinsupp' ℂ H Y).toLinearMap)
+      (MonoidAlgebra.coeffLinearEquiv ℂ).toLinearMap ∘ₗ
+      (MonoidAlgebra.tensorEquiv ℂ).toLinearMap)
     fun g => by
       ext h y
       simp [mul_smul, equivariant]
@@ -102,7 +103,7 @@ private noncomputable def indPermToFinsupp (φ : G →* H) (j : Y → X)
 private theorem indPermToFinsupp_mk (φ : G →* H) (j : Y → X)
     (equivariant : ∀ (g : G) (y : Y), j (g • y) = φ g • j y)
     (h : H) (y : Y) (z : ℂ) :
-    indPermToFinsupp φ j equivariant (IndV.mk φ _ h (Finsupp.single y z)) =
+    indPermToFinsupp φ j equivariant (IndV.mk φ _ h (MonoidAlgebra.single y z)) =
       Finsupp.single (h⁻¹ • j y) z := by
   simp [indPermToFinsupp]
 
@@ -112,24 +113,24 @@ private noncomputable def indPermOfFinsupp (φ : G →* H) (j : Y → X)
     (surj : ∀ x : X, ∃ h : H, ∃ y : Y, h⁻¹ • j y = x) :
     (X →₀ ℂ) →ₗ[ℂ] IndV φ (ofMulAction ℂ G Y) :=
   Finsupp.linearCombination ℂ fun x =>
-    IndV.mk φ _ (surj x).choose (Finsupp.single (surj x).choose_spec.choose 1)
+    IndV.mk φ _ (surj x).choose (MonoidAlgebra.single (surj x).choose_spec.choose 1)
 
 private theorem indPermOfFinsupp_single (φ : G →* H) (j : Y → X)
     (surj : ∀ x : X, ∃ h : H, ∃ y : Y, h⁻¹ • j y = x) (x : X) (z : ℂ) :
     indPermOfFinsupp φ j surj (Finsupp.single x z) =
       IndV.mk φ _ (surj x).choose
-        (Finsupp.single (surj x).choose_spec.choose z) := by
+        (MonoidAlgebra.single (surj x).choose_spec.choose z) := by
   rw [indPermOfFinsupp, Finsupp.linearCombination_single, ← map_smul,
-    Finsupp.smul_single, smul_eq_mul, mul_one]
+    MonoidAlgebra.smul_single', mul_one]
 
 /-- Generators of the induced permutation representation indexed by the same
 coset of the same basis point agree. -/
 private theorem indPermMk_mul (φ : G →* H) (g : G) (h : H) (y : Y) (z : ℂ) :
-    IndV.mk φ (ofMulAction ℂ G Y) (φ g * h) (Finsupp.single (g • y) z) =
-      IndV.mk φ _ h (Finsupp.single y z) := by
+    IndV.mk φ (ofMulAction ℂ G Y) (φ g * h) (MonoidAlgebra.single (g • y) z) =
+      IndV.mk φ _ h (MonoidAlgebra.single y z) := by
   have := Coinvariants.mk_self_apply
     (Representation.tprod ((leftRegular ℂ H).comp φ) (ofMulAction ℂ G Y)) g
-    (Finsupp.single h (1 : ℂ) ⊗ₜ[ℂ] Finsupp.single y z)
+    (MonoidAlgebra.single h (1 : ℂ) ⊗ₜ[ℂ] MonoidAlgebra.single y z)
   simpa using this
 
 /-- When `H` acts on `X` so that `j` matches `Y` with the fibre of a point and
@@ -147,16 +148,18 @@ private noncomputable def indPermFinsuppEquiv (φ : G →* H) (j : Y → X)
           (indPermOfFinsupp φ j surj (Finsupp.single x 1)) = Finsupp.single x 1
       rw [indPermOfFinsupp_single, indPermToFinsupp_mk,
         (surj x).choose_spec.choose_spec]))
-    (IndV.hom_ext _ _ fun h => Finsupp.lhom_ext fun y z => by
+    (IndV.hom_ext _ _ fun h => MonoidAlgebra.lhom_ext' fun y =>
+      LinearMap.ext_ring (by
       obtain ⟨g, hg, hgy⟩ := rel (h * (surj (h⁻¹ • j y)).choose⁻¹) y
         (surj (h⁻¹ • j y)).choose_spec.choose (by
           rw [mul_smul, (surj (h⁻¹ • j y)).choose_spec.choose_spec, smul_inv_smul])
       show indPermOfFinsupp φ j surj (indPermToFinsupp φ j equivariant
-          (IndV.mk φ _ h (Finsupp.single y z))) = IndV.mk φ _ h (Finsupp.single y z)
+          (IndV.mk φ _ h (MonoidAlgebra.single y 1))) =
+        IndV.mk φ _ h (MonoidAlgebra.single y 1)
       rw [indPermToFinsupp_mk, indPermOfFinsupp_single,
         ← indPermMk_mul φ g (surj (h⁻¹ • j y)).choose
-          (surj (h⁻¹ • j y)).choose_spec.choose z,
-        hg, hgy, inv_mul_cancel_right])
+          (surj (h⁻¹ • j y)).choose_spec.choose 1,
+        hg, hgy, inv_mul_cancel_right]))
 
 end Representation
 
@@ -173,19 +176,27 @@ noncomputable def FDRep.indOfMulActionIso {G H Y X : Type} [Group G] [Group H]
   haveI : Module.Finite ℂ (Representation.IndV φ (Representation.ofMulAction ℂ G Y)) :=
     Module.Finite.equiv
       (Representation.indPermFinsuppEquiv φ j equivariant surj rel).symm
+  let E : Representation.IndV φ (Representation.ofMulAction ℂ G Y) ≃ₗ[ℂ]
+      MonoidAlgebra ℂ X :=
+    (Representation.indPermFinsuppEquiv φ j equivariant surj rel).trans
+      (MonoidAlgebra.coeffLinearEquiv ℂ).symm
   refine Action.mkIso
-    (Representation.indPermFinsuppEquiv φ j equivariant surj rel).toFGModuleCatIso ?_
+    E.toFGModuleCatIso ?_
   intro h
   apply FGModuleCat.hom_ext
-  refine Representation.IndV.hom_ext φ _ fun h₂ => Finsupp.lhom_ext fun y z => ?_
-  show Representation.indPermToFinsupp φ j equivariant
-      (Representation.ind φ _ h (Representation.IndV.mk φ _ h₂ (Finsupp.single y z))) =
-    Representation.ofMulAction ℂ H X h
+  refine Representation.IndV.hom_ext φ _ fun h₂ => MonoidAlgebra.lhom_ext' fun y =>
+    LinearMap.ext_ring ?_
+  show (MonoidAlgebra.coeffLinearEquiv ℂ).symm
       (Representation.indPermToFinsupp φ j equivariant
-        (Representation.IndV.mk φ _ h₂ (Finsupp.single y z)))
+        (Representation.ind φ _ h
+          (Representation.IndV.mk φ _ h₂ (MonoidAlgebra.single y 1)))) =
+    Representation.ofMulAction ℂ H X h
+      ((MonoidAlgebra.coeffLinearEquiv ℂ).symm
+        (Representation.indPermToFinsupp φ j equivariant
+          (Representation.IndV.mk φ _ h₂ (MonoidAlgebra.single y 1))))
   rw [Representation.ind_mk, Representation.indPermToFinsupp_mk,
-    Representation.indPermToFinsupp_mk, Representation.ofMulAction_single,
-    mul_inv_rev, inv_inv, mul_smul]
+    Representation.indPermToFinsupp_mk]
+  simp [mul_inv_rev, mul_smul]
 
 /-- A row has cells exactly when it is listed in `rowLens`. -/
 private theorem rowLen_pos_iff {μ : YoungDiagram} {r : ℕ} :
@@ -437,14 +448,13 @@ noncomputable def outerTensorYoungPermutationIso {a b : ℕ}
           (MonoidHom.snd _ _)))
       (Representation.ofMulAction ℂ (SymmetricGroup a × SymmetricGroup b)
         (Tabloid α × Tabloid β)) :=
-    Representation.Equiv.mk (finsuppTensorFinsupp' ℂ (Tabloid α) (Tabloid β))
+    Representation.Equiv.mk (MonoidAlgebra.tensorEquiv ℂ)
       fun p => by
         obtain ⟨g, h⟩ := p
         apply TensorProduct.ext'
         intro x y
         ext ⟨A, B⟩
-        simp [finsuppTensorFinsupp'_apply_apply, Representation.tprod_apply,
-          Representation.ofMulAction_apply]
+        simp [Representation.tprod_apply]
   exact Action.mkIso E.toLinearEquiv.toFGModuleCatIso fun p => by
     apply FGModuleCat.hom_ext
     exact E.toIntertwiningMap.2 p

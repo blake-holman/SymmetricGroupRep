@@ -11,7 +11,7 @@ tuples are therefore orthogonal, and a nonzero vector has a positive length.
 
 /-- A Specht vector as an element of the Young permutation module. -/
 noncomputable def spechtInclusion {n : ℕ} (μ : YoungDiagramOfSize n) :
-    spechtModule μ →ₗ[ℂ] (Tabloid μ →₀ ℂ) :=
+    spechtModule μ →ₗ[ℂ] MonoidAlgebra ℂ (Tabloid μ) :=
   (spechtSubrepresentation μ).toSubmodule.subtype
 
 theorem spechtInclusion_injective {n : ℕ} (μ : YoungDiagramOfSize n) :

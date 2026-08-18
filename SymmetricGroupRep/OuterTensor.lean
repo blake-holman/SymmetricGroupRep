@@ -99,7 +99,7 @@ theorem finrank_hom_outerTensor (V V' : FDRep k G) (W W' : FDRep k H) :
     ← scalar_product_char_eq_finrank_equivariant,
     ← scalar_product_char_eq_finrank_equivariant,
     ← scalar_product_char_eq_finrank_equivariant, hsum]
-  simp only [invOf_eq_inv, smul_eq_mul, Fintype.card_prod, Nat.cast_mul, mul_inv]
+  rw [Nat.card_prod, Nat.cast_mul, mul_inv]
   ring
 
 end Hom

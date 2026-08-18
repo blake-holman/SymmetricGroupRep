@@ -208,11 +208,11 @@ theorem exists_mem_columnGroup_sign_eq_neg_one {ν : YoungDiagramOfSize n}
 See Sagan, *The Symmetric Group*, 2nd ed., Section 2.4: the polytabloid `e_t` is the value of the
 column antisymmetriser on the tabloid of `t`. -/
 noncomputable def columnAntisymmetriser (t : YoungTableau μ) :
-    (Tabloid μ →₀ ℂ) →ₗ[ℂ] (Tabloid μ →₀ ℂ) :=
+    (MonoidAlgebra ℂ (Tabloid μ)) →ₗ[ℂ] (MonoidAlgebra ℂ (Tabloid μ)) :=
   ∑ sigma : t.columnGroup, ((Equiv.Perm.sign (sigma : SymmetricGroup n) : ℤ) : ℂ) •
     Representation.ofMulAction ℂ (SymmetricGroup n) (Tabloid μ) (sigma : SymmetricGroup n)
 
-theorem columnAntisymmetriser_apply (t : YoungTableau μ) (v : Tabloid μ →₀ ℂ) :
+theorem columnAntisymmetriser_apply (t : YoungTableau μ) (v : MonoidAlgebra ℂ (Tabloid μ)) :
     columnAntisymmetriser t v = ∑ sigma : t.columnGroup,
       ((Equiv.Perm.sign (sigma : SymmetricGroup n) : ℤ) : ℂ) •
         Representation.ofMulAction ℂ (SymmetricGroup n) (Tabloid μ)
@@ -222,13 +222,13 @@ theorem columnAntisymmetriser_apply (t : YoungTableau μ) (v : Tabloid μ →₀
 
 @[simp]
 theorem columnAntisymmetriser_tabloid (t : YoungTableau μ) :
-    columnAntisymmetriser t (Finsupp.single t.tabloid 1) = polytabloid t := by
+    columnAntisymmetriser t (MonoidAlgebra.single t.tabloid 1) = polytabloid t := by
   rw [columnAntisymmetriser_apply, polytabloid]
   exact Finset.sum_congr rfl fun sigma _ => by rw [Representation.ofMulAction_single]
 
 /-- The column antisymmetriser absorbs a column permutation through its sign. -/
 theorem columnAntisymmetriser_ofMulAction (t : YoungTableau μ) {g : SymmetricGroup n}
-    (hg : g ∈ t.columnGroup) (v : Tabloid μ →₀ ℂ) :
+    (hg : g ∈ t.columnGroup) (v : MonoidAlgebra ℂ (Tabloid μ)) :
     columnAntisymmetriser t
         (Representation.ofMulAction ℂ (SymmetricGroup n) (Tabloid μ) g v) =
       ((Equiv.Perm.sign g : ℤ) : ℂ) • columnAntisymmetriser t v := by
@@ -249,20 +249,20 @@ by the polytabloid.
 Adapted from `TauCetiProject/TauCeti` (Apache-2.0),
 `RepresentationTheory/Symmetric/Specht/SubmoduleTheorem.lean`. -/
 theorem columnAntisymmetriser_single_mem_span (t : YoungTableau μ) (U : Tabloid μ) :
-    columnAntisymmetriser t (Finsupp.single U 1) ∈ Submodule.span ℂ {polytabloid t} := by
+    columnAntisymmetriser t (MonoidAlgebra.single U 1) ∈ Submodule.span ℂ {polytabloid t} := by
   by_cases hinj : Function.Injective fun i => ((U.rowOf i : ℕ), t.column i)
   · obtain ⟨pi, hpi, rfl⟩ := t.exists_mem_columnGroup_smul_tabloid_eq U hinj
     rw [← Representation.ofMulAction_single, columnAntisymmetriser_ofMulAction t hpi,
       columnAntisymmetriser_tabloid]
     exact Submodule.smul_mem _ _ (Submodule.mem_span_singleton_self _)
   · obtain ⟨sigma, hsigma, hsign, hfix⟩ := t.exists_mem_columnGroup_sign_eq_neg_one U hinj
-    have hself : columnAntisymmetriser t (Finsupp.single U 1) =
-        -columnAntisymmetriser t (Finsupp.single U 1) := by
+    have hself : columnAntisymmetriser t (MonoidAlgebra.single U 1) =
+        -columnAntisymmetriser t (MonoidAlgebra.single U 1) := by
       conv_lhs => rw [← hfix, ← Representation.ofMulAction_single,
         columnAntisymmetriser_ofMulAction t hsigma, hsign]
       simp
-    have hzero : columnAntisymmetriser t (Finsupp.single U 1) = 0 := by
-      have htwo : (2 : ℂ) • columnAntisymmetriser t (Finsupp.single U 1) = 0 := by
+    have hzero : columnAntisymmetriser t (MonoidAlgebra.single U 1) = 0 := by
+      have htwo : (2 : ℂ) • columnAntisymmetriser t (MonoidAlgebra.single U 1) = 0 := by
         rw [two_smul, ← eq_neg_iff_add_eq_zero]
         exact hself
       exact (smul_eq_zero.mp htwo).resolve_left two_ne_zero
@@ -271,13 +271,13 @@ theorem columnAntisymmetriser_single_mem_span (t : YoungTableau μ) (U : Tabloid
 
 /-- The column antisymmetriser collapses the whole Young permutation module onto the line spanned
 by the polytabloid. -/
-theorem columnAntisymmetriser_mem_span (t : YoungTableau μ) (v : Tabloid μ →₀ ℂ) :
+theorem columnAntisymmetriser_mem_span (t : YoungTableau μ) (v : MonoidAlgebra ℂ (Tabloid μ)) :
     columnAntisymmetriser t v ∈ Submodule.span ℂ {polytabloid t} := by
-  induction v using Finsupp.induction_linear with
+  induction v using MonoidAlgebra.induction_linear with
   | zero => rw [map_zero]; exact Submodule.zero_mem _
   | add x y hx hy => rw [map_add]; exact Submodule.add_mem _ hx hy
   | single U c =>
-      rw [← Finsupp.smul_single_one, map_smul]
+      rw [← mul_one c, ← smul_eq_mul, ← MonoidAlgebra.smul_single, map_smul]
       exact Submodule.smul_mem _ _ (columnAntisymmetriser_single_mem_span t U)
 
 end YoungTableau
@@ -293,105 +293,110 @@ are orthonormal.
 
 See Sagan, *The Symmetric Group*, 2nd ed., Section 2.4, where it is taken over `ℚ`; over `ℂ` the
 second argument is conjugated, which is what keeps the form positive definite. -/
-noncomputable def tabloidForm (x y : Tabloid μ →₀ ℂ) : ℂ :=
-  ∑ T : Tabloid μ, x T * (starRingEnd ℂ) (y T)
+noncomputable def tabloidForm (x y : MonoidAlgebra ℂ (Tabloid μ)) : ℂ :=
+  ∑ T : Tabloid μ, x.coeff T * (starRingEnd ℂ) (y.coeff T)
 
 @[simp]
-theorem tabloidForm_zero_left (y : Tabloid μ →₀ ℂ) : tabloidForm 0 y = 0 := by
+theorem tabloidForm_zero_left (y : MonoidAlgebra ℂ (Tabloid μ)) : tabloidForm 0 y = 0 := by
   simp [tabloidForm]
 
 @[simp]
-theorem tabloidForm_zero_right (x : Tabloid μ →₀ ℂ) : tabloidForm x 0 = 0 := by
+theorem tabloidForm_zero_right (x : MonoidAlgebra ℂ (Tabloid μ)) : tabloidForm x 0 = 0 := by
   simp [tabloidForm]
 
-theorem tabloidForm_add_left (x y z : Tabloid μ →₀ ℂ) :
+theorem tabloidForm_add_left (x y z : MonoidAlgebra ℂ (Tabloid μ)) :
     tabloidForm (x + y) z = tabloidForm x z + tabloidForm y z := by
   simp [tabloidForm, add_mul, Finset.sum_add_distrib]
 
-theorem tabloidForm_add_right (x y z : Tabloid μ →₀ ℂ) :
+theorem tabloidForm_add_right (x y z : MonoidAlgebra ℂ (Tabloid μ)) :
     tabloidForm x (y + z) = tabloidForm x y + tabloidForm x z := by
   simp [tabloidForm, mul_add, Finset.sum_add_distrib]
 
-theorem tabloidForm_single_left (T : Tabloid μ) (y : Tabloid μ →₀ ℂ) :
-    tabloidForm (Finsupp.single T 1) y = (starRingEnd ℂ) (y T) := by
+theorem tabloidForm_single_left (T : Tabloid μ) (y : MonoidAlgebra ℂ (Tabloid μ)) :
+    tabloidForm (MonoidAlgebra.single T 1) y = (starRingEnd ℂ) (y.coeff T) := by
   rw [tabloidForm, Finset.sum_eq_single T]
   · simp
   · intro U _ hne
-    rw [Finsupp.single_eq_of_ne hne, zero_mul]
+    simp [hne]
   · intro hmem
     exact absurd (Finset.mem_univ T) hmem
 
-theorem tabloidForm_sum_left {ι : Type*} (s : Finset ι) (f : ι → Tabloid μ →₀ ℂ)
-    (y : Tabloid μ →₀ ℂ) :
+theorem tabloidForm_sum_left {ι : Type*} (s : Finset ι) (f : ι → MonoidAlgebra ℂ (Tabloid μ))
+    (y : MonoidAlgebra ℂ (Tabloid μ)) :
     tabloidForm (∑ i ∈ s, f i) y = ∑ i ∈ s, tabloidForm (f i) y := by
-  simp only [tabloidForm, Finsupp.finset_sum_apply, Finset.sum_mul]
-  exact Finset.sum_comm
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp
+  | @insert a s ha ih => simp [ha, tabloidForm_add_left, ih]
 
-theorem tabloidForm_sum_right {ι : Type*} (x : Tabloid μ →₀ ℂ) (s : Finset ι)
-    (f : ι → Tabloid μ →₀ ℂ) :
+theorem tabloidForm_sum_right {ι : Type*} (x : MonoidAlgebra ℂ (Tabloid μ)) (s : Finset ι)
+    (f : ι → MonoidAlgebra ℂ (Tabloid μ)) :
     tabloidForm x (∑ i ∈ s, f i) = ∑ i ∈ s, tabloidForm x (f i) := by
-  simp only [tabloidForm, Finsupp.finset_sum_apply, map_sum, Finset.mul_sum]
-  exact Finset.sum_comm
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp
+  | @insert a s ha ih => simp [ha, tabloidForm_add_right, ih]
 
-theorem tabloidForm_smul_left (c : ℂ) (x y : Tabloid μ →₀ ℂ) :
+theorem tabloidForm_smul_left (c : ℂ) (x y : MonoidAlgebra ℂ (Tabloid μ)) :
     tabloidForm (c • x) y = c * tabloidForm x y := by
   simp [tabloidForm, Finset.mul_sum, mul_assoc]
 
-theorem tabloidForm_smul_right (c : ℂ) (x y : Tabloid μ →₀ ℂ) :
+theorem tabloidForm_smul_right (c : ℂ) (x y : MonoidAlgebra ℂ (Tabloid μ)) :
     tabloidForm x (c • y) = (starRingEnd ℂ) c * tabloidForm x y := by
   simp [tabloidForm, Finset.mul_sum, mul_left_comm]
 
 /-- The symmetric group acts on the Young permutation module by isometries of the tabloid form. -/
-theorem tabloidForm_ofMulAction (g : SymmetricGroup n) (x y : Tabloid μ →₀ ℂ) :
+theorem tabloidForm_ofMulAction (g : SymmetricGroup n) (x y : MonoidAlgebra ℂ (Tabloid μ)) :
     tabloidForm (Representation.ofMulAction ℂ (SymmetricGroup n) (Tabloid μ) g x)
         (Representation.ofMulAction ℂ (SymmetricGroup n) (Tabloid μ) g y) = tabloidForm x y := by
   refine (Fintype.sum_equiv (MulAction.toPerm g) _ _ fun T => ?_).symm
-  rw [Representation.ofMulAction_apply, Representation.ofMulAction_apply]
-  simp
+  simp [Representation.coeff_ofMulAction]
 
 /-- A permutation moves across the tabloid form by inverting. -/
-theorem tabloidForm_ofMulAction_left (g : SymmetricGroup n) (x y : Tabloid μ →₀ ℂ) :
+theorem tabloidForm_ofMulAction_left (g : SymmetricGroup n) (x y : MonoidAlgebra ℂ (Tabloid μ)) :
     tabloidForm (Representation.ofMulAction ℂ (SymmetricGroup n) (Tabloid μ) g x) y =
       tabloidForm x (Representation.ofMulAction ℂ (SymmetricGroup n) (Tabloid μ) g⁻¹ y) := by
   rw [← tabloidForm_ofMulAction g x
     (Representation.ofMulAction ℂ (SymmetricGroup n) (Tabloid μ) g⁻¹ y)]
   congr 1
-  refine Finsupp.ext fun T => ?_
-  rw [Representation.ofMulAction_apply, Representation.ofMulAction_apply]
+  apply MonoidAlgebra.coeff_injective
+  ext T
   simp
 
 /-- The form pairs a vector with itself in the sum of the squared moduli of its
 coefficients, a nonnegative real. -/
-theorem tabloidForm_self (x : Tabloid μ →₀ ℂ) :
-    tabloidForm x x = ((∑ T : Tabloid μ, Complex.normSq (x T) : ℝ) : ℂ) := by
+theorem tabloidForm_self (x : MonoidAlgebra ℂ (Tabloid μ)) :
+    tabloidForm x x = ((∑ T : Tabloid μ, Complex.normSq (x.coeff T) : ℝ) : ℂ) := by
   rw [Complex.ofReal_sum, tabloidForm]
-  exact Finset.sum_congr rfl fun T _ => Complex.mul_conj (x T)
+  exact Finset.sum_congr rfl fun T _ => Complex.mul_conj (x.coeff T)
 
 /-- Pairing a vector with itself gives a real number. -/
-theorem tabloidForm_self_eq_ofReal (x : Tabloid μ →₀ ℂ) :
+theorem tabloidForm_self_eq_ofReal (x : MonoidAlgebra ℂ (Tabloid μ)) :
     tabloidForm x x = ((tabloidForm x x).re : ℂ) := by
   rw [tabloidForm_self]
   simp
 
 /-- Pairing a vector with itself gives a nonnegative number. -/
-theorem tabloidForm_self_re_nonneg (x : Tabloid μ →₀ ℂ) : 0 ≤ (tabloidForm x x).re := by
+theorem tabloidForm_self_re_nonneg (x : MonoidAlgebra ℂ (Tabloid μ)) : 0 ≤ (tabloidForm x x).re := by
   rw [tabloidForm_self, Complex.ofReal_re]
-  exact Finset.sum_nonneg fun T _ => Complex.normSq_nonneg (x T)
+  exact Finset.sum_nonneg fun T _ => Complex.normSq_nonneg (x.coeff T)
 
 /-- The form is positive definite, so only the zero vector is self-orthogonal. -/
-theorem eq_zero_of_tabloidForm_self_eq_zero {x : Tabloid μ →₀ ℂ} (h : tabloidForm x x = 0) :
+theorem eq_zero_of_tabloidForm_self_eq_zero {x : MonoidAlgebra ℂ (Tabloid μ)} (h : tabloidForm x x = 0) :
     x = 0 := by
-  have hcast : ((∑ T : Tabloid μ, Complex.normSq (x T) : ℝ) : ℂ) = 0 := by
+  have hcast : ((∑ T : Tabloid μ, Complex.normSq (x.coeff T) : ℝ) : ℂ) = 0 := by
     rw [← tabloidForm_self, h]
-  have hsum : ∑ T : Tabloid μ, Complex.normSq (x T) = 0 := by exact_mod_cast hcast
-  refine Finsupp.ext fun T => Complex.normSq_eq_zero.mp ?_
-  exact (Finset.sum_eq_zero_iff_of_nonneg fun U _ => Complex.normSq_nonneg (x U)).mp hsum T
-    (Finset.mem_univ T)
+  have hsum : ∑ T : Tabloid μ, Complex.normSq (x.coeff T) = 0 := by exact_mod_cast hcast
+  apply MonoidAlgebra.coeff_injective
+  ext T
+  exact Complex.normSq_eq_zero.mp
+    ((Finset.sum_eq_zero_iff_of_nonneg fun U _ => Complex.normSq_nonneg (x.coeff U)).mp hsum T
+    (Finset.mem_univ T))
 
 /-- **The column antisymmetriser is self-adjoint for the tabloid form.** Permutations act by
 isometries, so moving one across the form inverts it, and inversion is a sign-preserving
 involution of the column group. -/
-theorem tabloidForm_columnAntisymmetriser (t : YoungTableau μ) (v w : Tabloid μ →₀ ℂ) :
+theorem tabloidForm_columnAntisymmetriser (t : YoungTableau μ) (v w : MonoidAlgebra ℂ (Tabloid μ)) :
     tabloidForm (YoungTableau.columnAntisymmetriser t v) w =
       tabloidForm v (YoungTableau.columnAntisymmetriser t w) := by
   rw [YoungTableau.columnAntisymmetriser_apply, YoungTableau.columnAntisymmetriser_apply,
@@ -421,7 +426,7 @@ theorem spechtSubrepresentation_le_or_forall_tabloidForm_eq_zero {n : ℕ}
     (spechtSubrepresentation μ).toSubmodule ≤ U.toSubmodule ∨
       ∀ v ∈ U.toSubmodule, ∀ w ∈ (spechtSubrepresentation μ).toSubmodule,
         tabloidForm v w = 0 := by
-  by_cases hex : ∃ (t : YoungTableau μ) (v : Tabloid μ →₀ ℂ), v ∈ U.toSubmodule ∧
+  by_cases hex : ∃ (t : YoungTableau μ) (v : MonoidAlgebra ℂ (Tabloid μ)), v ∈ U.toSubmodule ∧
       YoungTableau.columnAntisymmetriser t v ≠ 0
   · obtain ⟨t, v, hv, hne⟩ := hex
     obtain ⟨c, hc⟩ :=
@@ -494,7 +499,7 @@ instance isIrreducible_spechtSubrepresentation {n : ℕ} (μ : YoungDiagramOfSiz
     show W.toSubmodule = ⊥
     rw [eq_bot_iff]
     intro x hx
-    have hzero : (x : Tabloid μ →₀ ℂ) = 0 :=
+    have hzero : (x : MonoidAlgebra ℂ (Tabloid μ)) = 0 :=
       eq_zero_of_tabloidForm_self_eq_zero (horthogonal _ ⟨x, hx, rfl⟩ _ x.2)
     rw [Submodule.mem_bot]
     exact Subtype.ext hzero

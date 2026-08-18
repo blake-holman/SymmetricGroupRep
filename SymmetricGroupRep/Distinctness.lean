@@ -153,12 +153,14 @@ dominates `ν`.
 Pick a tabloid on which the vector has a nonzero coefficient. Two labels sharing a row of that
 tabloid and a column of the tableau would give an odd column permutation fixing the tabloid, hence
 a coefficient equal to its own negative; so no two do, and the dominance lemma applies. -/
-theorem dominates_of_smul_eq_sign_smul (t : YoungTableau μ) {x : Tabloid ν →₀ ℂ} (hx : x ≠ 0)
+theorem dominates_of_smul_eq_sign_smul (t : YoungTableau μ)
+    {x : MonoidAlgebra ℂ (Tabloid ν)} (hx : x ≠ 0)
     (hsign : ∀ sigma ∈ t.columnGroup,
       Representation.ofMulAction ℂ (SymmetricGroup n) (Tabloid ν) sigma x =
         ((Equiv.Perm.sign sigma : ℤ) : ℂ) • x) :
     μ.val.Dominates ν.val := by
-  obtain ⟨S, hS⟩ := Finsupp.ne_iff.mp hx
+  have hxcoeff : x.coeff ≠ 0 := fun h => hx (MonoidAlgebra.coeff_injective h)
+  obtain ⟨S, hS⟩ := Finsupp.ne_iff.mp hxcoeff
   rw [Finsupp.coe_zero, Pi.zero_apply] at hS
   refine dominates_of_injective t S ?_
   by_contra hinj
@@ -166,9 +168,10 @@ theorem dominates_of_smul_eq_sign_smul (t : YoungTableau μ) {x : Tabloid ν →
   have hinvfix : sigma⁻¹ • S = S := by
     conv_lhs => rw [← hfix]
     rw [inv_smul_smul]
-  have hself : x S = -x S := by
-    have hvalue := congrArg (fun y : Tabloid ν →₀ ℂ => y S) (hsign sigma hsigma)
-    simpa [Representation.ofMulAction_apply, hinvfix, hsgn] using hvalue
+  have hself : x.coeff S = -x.coeff S := by
+    have hvalue := congrArg (fun y : MonoidAlgebra ℂ (Tabloid ν) => y.coeff S)
+      (hsign sigma hsigma)
+    simpa [Representation.coeff_ofMulAction, hinvfix, hsgn] using hvalue
   exact hS (by linear_combination hself / 2)
 
 end YoungTableau
@@ -197,7 +200,8 @@ theorem dominates_of_iso_spechtSubrepresentation {n : ℕ} (μ ν : YoungDiagram
     rw [hab, hb] at ha
     exact ha.symm
   refine YoungTableau.dominates_of_smul_eq_sign_smul t
-    (x := ((F e : ↥(spechtSubrepresentation ν).toSubmodule) : Tabloid ν →₀ ℂ)) ?_ ?_
+    (x := ((F e : ↥(spechtSubrepresentation ν).toSubmodule) :
+      MonoidAlgebra ℂ (Tabloid ν))) ?_ ?_
   · intro hzero
     have he : e = 0 := hFinj (by rw [map_zero]; exact Submodule.coe_eq_zero.mp hzero)
     exact YoungTableau.polytabloid_ne_zero t (congrArg Subtype.val he)

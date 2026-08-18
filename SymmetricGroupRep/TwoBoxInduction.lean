@@ -333,6 +333,8 @@ theorem lastAdjacentTranspositionEndomorphism_apply_basis_of_not_swap {n : ℕ}
     (lastAdjacentTranspositionEndomorphism ξ).hom.hom.hom (spechtOrthogonalBasis ξ T) =
       ((T.axialDistance (Fin.last n) : ℂ)⁻¹) • spechtOrthogonalBasis ξ T := by
   rw [lastAdjacentTranspositionEndomorphism_hom]
+  change (spechtModule ξ).ρ (SymmetricGroup.adjacentTransposition (Fin.last n))
+      (spechtOrthogonalBasis ξ T) = _
   simpa [swappedOrthogonalBasisVector, h] using
     spechtOrthogonalBasis_adjacentTransposition ξ T (Fin.last n)
 
@@ -827,7 +829,17 @@ noncomputable def outerTensorEval
       (spechtModule ξ).ρ (SymmetricGroup.inclusion (n + 1) (SymmetricGroup.inclusion n g))
         (F.hom.hom.hom (v ⊗ₜ[ℂ] x))
     rw [← SymmetricGroup.youngSubgroupInclusion_left]
-    simpa using FDRep.hom_apply_rho F (g, (1 : SymmetricGroup 2)) (v ⊗ₜ[ℂ] x)
+    change _ = (((Action.res (FGModuleCat ℂ)
+      (SymmetricGroup.youngSubgroupInclusion n 2)).obj (spechtModule ξ)).ρ (g, 1)).hom
+        (F.hom.hom.hom (v ⊗ₜ[ℂ] x))
+    have hF := FDRep.hom_apply_rho F (g, (1 : SymmetricGroup 2)) (v ⊗ₜ[ℂ] x)
+    rw [FDRep.outerTensor_ρ_tmul] at hF
+    simp only [map_one, Module.End.one_apply] at hF
+    change F.hom.hom.hom ((spechtModule μ).ρ g v ⊗ₜ[ℂ] x) =
+      (((Action.res (FGModuleCat ℂ)
+        (SymmetricGroup.youngSubgroupInclusion n 2)).obj (spechtModule ξ)).ρ (g, 1)).hom
+          (F.hom.hom.hom (v ⊗ₜ[ℂ] x)) at hF
+    exact hF
 
 theorem outerTensorEval_mem (hc : ∀ y : X, X.ρ (Equiv.swap 0 1) y = c • y)
     (F : FDRep.outerTensor (spechtModule μ) X ⟶

@@ -30,17 +30,25 @@ theorem symmetricGroupLeftRegular_character (n : ℕ) (g : SymmetricGroup n) :
     (symmetricGroupLeftRegular n).character g =
       if g = 1 then (Fintype.card (SymmetricGroup n) : ℂ) else 0 := by
   have hsingle : ∀ x : SymmetricGroup n,
-      Representation.leftRegular ℂ (SymmetricGroup n) g (Finsupp.single x 1) =
-        Finsupp.single (g * x) (1 : ℂ) := fun x => Representation.ofMulAction_single g x 1
+      Representation.leftRegular ℂ (SymmetricGroup n) g (MonoidAlgebra.single x 1) =
+        MonoidAlgebra.single (g * x) (1 : ℂ) :=
+    fun x => Representation.ofMulAction_single g x 1
   have htrace : (symmetricGroupLeftRegular n).character g =
-      Matrix.trace (LinearMap.toMatrix (Finsupp.basisSingleOne (ι := SymmetricGroup n) (R := ℂ))
-        Finsupp.basisSingleOne (Representation.leftRegular ℂ (SymmetricGroup n) g)) :=
+      Matrix.trace (LinearMap.toMatrix (MonoidAlgebra.basis (SymmetricGroup n) ℂ)
+        (MonoidAlgebra.basis (SymmetricGroup n) ℂ)
+        (Representation.leftRegular ℂ (SymmetricGroup n) g)) :=
     LinearMap.trace_eq_matrix_trace ℂ _ _
   rw [htrace]
   simp only [Matrix.trace, Matrix.diag_apply, LinearMap.toMatrix_apply,
-    Finsupp.coe_basisSingleOne, Finsupp.basisSingleOne_repr, LinearEquiv.refl_apply, hsingle,
-    Finsupp.single_apply, mul_eq_right]
-  split <;> simp
+    MonoidAlgebra.basis_apply, hsingle]
+  change (∑ x : SymmetricGroup n, (MonoidAlgebra.single (g * x) (1 : ℂ)).coeff x) = _
+  by_cases hg : g = 1
+  · subst g
+    simp
+  · rw [if_neg hg]
+    apply Finset.sum_eq_zero
+    intro x _
+    simp [hg]
 
 /-- Every representation occurs in the left-regular representation with multiplicity its own
 dimension: the character pairing collapses to the single term at `g = 1`. -/
@@ -55,5 +63,8 @@ theorem finrank_hom_symmetricGroupLeftRegular (n : ℕ) (V : SymmetricGroupRepre
       rw [symmetricGroupLeftRegular_character, if_neg hb, zero_mul]
     · exact fun h => absurd (Finset.mem_univ _) h
   have h := FDRep.scalar_product_char_eq_finrank_equivariant V (symmetricGroupLeftRegular n)
-  rw [hsum, smul_eq_mul, invOf_mul_cancel_left] at h
+  rw [hsum, Fintype.card_eq_nat_card] at h
+  have hcard : (Nat.card (SymmetricGroup n) : ℂ) ≠ 0 :=
+    Nat.cast_ne_zero.mpr (Nat.card_ne_zero.mpr ⟨inferInstance, inferInstance⟩)
+  field_simp [hcard] at h
   exact_mod_cast h.symm

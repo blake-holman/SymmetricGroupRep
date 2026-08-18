@@ -113,11 +113,11 @@ theorem toColex_smul_tabloid_lt {n : ℕ} {μ : YoungDiagramOfSize n}
 
 /-- Every tabloid occurring in a polytabloid is a column permutation of the tabloid itself. -/
 theorem exists_mem_columnGroup_of_apply_ne_zero {n : ℕ} {μ : YoungDiagramOfSize n}
-    (t : YoungTableau μ) {S : Tabloid μ} (h : polytabloid t S ≠ 0) :
+    (t : YoungTableau μ) {S : Tabloid μ} (h : (polytabloid t).coeff S ≠ 0) :
     ∃ sigma ∈ columnGroup t, sigma • tabloid t = S := by
   by_contra hc
   refine h ?_
-  rw [polytabloid, Finsupp.finset_sum_apply]
+  rw [polytabloid, MonoidAlgebra.coeff_sum, Finset.sum_apply']
   refine Finset.sum_eq_zero fun sigma _ => ?_
   have hne : (sigma : SymmetricGroup n) • tabloid t ≠ S := fun heq => hc ⟨sigma, sigma.2, heq⟩
   simp [hne]
@@ -138,11 +138,11 @@ theorem linearIndependent_polytabloid {n : ℕ} (μ : YoungDiagramOfSize n) :
   have hT₀s : T₀ ∈ s := (Finset.mem_filter.mp hT₀).1
   have hT₀ne : g T₀ ≠ 0 := (Finset.mem_filter.mp hT₀).2
   have hvanish : ∀ T ∈ s, T ≠ T₀ →
-      (g T • polytabloid T.entry) (tabloid T₀.entry) = 0 := by
+      (g T • polytabloid T.entry).coeff (tabloid T₀.entry) = 0 := by
     intro T hTs hTne
     by_cases hg : g T = 0
     · simp [hg]
-    have hzero : polytabloid T.entry (tabloid T₀.entry) = 0 := by
+    have hzero : (polytabloid T.entry).coeff (tabloid T₀.entry) = 0 := by
       by_contra hnz
       obtain ⟨sigma, hsigma, hsmul⟩ := exists_mem_columnGroup_of_apply_ne_zero T.entry hnz
       rcases eq_or_ne sigma 1 with rfl | hsne
@@ -152,10 +152,12 @@ theorem linearIndependent_polytabloid {n : ℕ} (μ : YoungDiagramOfSize n) :
         rw [← hsmul]
         exact toColex_smul_tabloid_lt T hsigma hsne
     simp [hzero]
-  have heval := congrArg (fun x : Tabloid μ →₀ ℂ => x (tabloid T₀.entry)) hsum
-  simp only [Finsupp.finset_sum_apply, Finsupp.coe_zero, Pi.zero_apply] at heval
+  have heval := congrArg
+    (fun x : MonoidAlgebra ℂ (Tabloid μ) => x.coeff (tabloid T₀.entry)) hsum
+  simp only [MonoidAlgebra.coeff_sum, Finset.sum_apply'] at heval
   rw [Finset.sum_eq_single_of_mem T₀ hT₀s hvanish] at heval
-  simp only [Finsupp.smul_apply, polytabloid_apply_tabloid, smul_eq_mul, mul_one] at heval
+  simp only [MonoidAlgebra.coeff_smul_apply, polytabloid_apply_tabloid,
+    smul_eq_mul, mul_one] at heval
   exact hT₀ne heval
 
 /-- The standard polytabloids, viewed inside the Specht module. -/

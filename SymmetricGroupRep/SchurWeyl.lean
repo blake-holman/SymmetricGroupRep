@@ -417,7 +417,6 @@ theorem card_boundedSemistandardTableau_mul_prod_factorial (q : ℕ) (μ : Young
         intro i
         have := hrmem i
         have hi := i.isLt
-        dsimp only
         omega
       · intro γ hγ
         rw [hIcomem] at hγ
@@ -425,7 +424,6 @@ theorem card_boundedSemistandardTableau_mul_prod_factorial (q : ℕ) (μ : Young
         intro i
         have := hγ i
         have hi := i.isLt
-        dsimp only
         omega
       · intro r _
         funext i

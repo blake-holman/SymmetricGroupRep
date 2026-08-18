@@ -106,6 +106,7 @@ theorem sum_kostka_mul_finrank_hom_ind {a b : ℕ}
       (FDRep.indResHomEquiv (SymmetricGroup.youngSubgroupInclusion a b) V
         (spechtModule ξ)).finrank_eq,
       ← FDRep.scalar_product_char_eq_finrank_equivariant]
+    rw [hX, invOf_eq_inv, smul_eq_mul, Fintype.card_eq_nat_card]
   have hexpand : ∑ p : SymmetricGroup a × SymmetricGroup b,
       FDRep.character X p * (FDRep.outerTensor (youngPermutationModule α)
         (youngPermutationModule β)).character p⁻¹ =

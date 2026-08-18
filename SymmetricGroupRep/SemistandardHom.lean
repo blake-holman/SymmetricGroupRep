@@ -107,11 +107,11 @@ theorem blockGroup.swap_mem {X : Finset (Fin n)} {a b : Fin n}
 /-- The antisymmetriser over the permutations of a block of labels, acting on the permutation
 module of a set of fillings. -/
 noncomputable def blockAntisymmetriser (X : Finset (Fin n)) (Y : Type)
-    [MulAction (SymmetricGroup n) Y] : (Y →₀ ℂ) →ₗ[ℂ] (Y →₀ ℂ) :=
+    [MulAction (SymmetricGroup n) Y] : MonoidAlgebra ℂ Y →ₗ[ℂ] MonoidAlgebra ℂ Y :=
   ∑ sigma : blockGroup X, ((Equiv.Perm.sign (sigma : SymmetricGroup n) : ℤ) : ℂ) •
     Representation.ofMulAction ℂ (SymmetricGroup n) Y (sigma : SymmetricGroup n)
 
-theorem blockAntisymmetriser_apply (X : Finset (Fin n)) (v : Y →₀ ℂ) :
+theorem blockAntisymmetriser_apply (X : Finset (Fin n)) (v : MonoidAlgebra ℂ Y) :
     blockAntisymmetriser X Y v = ∑ sigma : blockGroup X,
       ((Equiv.Perm.sign (sigma : SymmetricGroup n) : ℤ) : ℂ) •
         Representation.ofMulAction ℂ (SymmetricGroup n) Y
@@ -121,7 +121,7 @@ theorem blockAntisymmetriser_apply (X : Finset (Fin n)) (v : Y →₀ ℂ) :
 
 /-- The block antisymmetriser absorbs a block permutation through its sign. -/
 theorem blockAntisymmetriser_ofMulAction (X : Finset (Fin n)) {g : SymmetricGroup n}
-    (hg : g ∈ blockGroup X) (v : Y →₀ ℂ) :
+    (hg : g ∈ blockGroup X) (v : MonoidAlgebra ℂ Y) :
     blockAntisymmetriser X Y
         (Representation.ofMulAction ℂ (SymmetricGroup n) Y g v) =
       ((Equiv.Perm.sign g : ℤ) : ℂ) • blockAntisymmetriser X Y v := by
@@ -140,13 +140,13 @@ theorem blockAntisymmetriser_ofMulAction (X : Finset (Fin n)) {g : SymmetricGrou
 transposition is an odd block permutation fixing the filling. -/
 theorem blockAntisymmetriser_single_eq_zero [LabelFilling n Y] {X : Finset (Fin n)} {U : Y}
     {a b : Fin n} (ha : a ∈ X) (hb : b ∈ X) (hab : a ≠ b) (hrow : entry U a = entry U b) :
-    blockAntisymmetriser X Y (Finsupp.single U 1) = 0 := by
-  have hself : blockAntisymmetriser X Y (Finsupp.single U 1) =
-      -blockAntisymmetriser X Y (Finsupp.single U 1) := by
+    blockAntisymmetriser X Y (MonoidAlgebra.single U 1) = 0 := by
+  have hself : blockAntisymmetriser X Y (MonoidAlgebra.single U 1) =
+      -blockAntisymmetriser X Y (MonoidAlgebra.single U 1) := by
     conv_lhs => rw [← LabelFilling.smul_swap_eq U hrow, ← Representation.ofMulAction_single,
       blockAntisymmetriser_ofMulAction X (blockGroup.swap_mem ha hb), Equiv.Perm.sign_swap hab]
     simp
-  have htwo : (2 : ℂ) • blockAntisymmetriser X Y (Finsupp.single U 1) = 0 := by
+  have htwo : (2 : ℂ) • blockAntisymmetriser X Y (MonoidAlgebra.single U 1) = 0 := by
     rw [two_smul, ← eq_neg_iff_add_eq_zero]
     exact hself
   exact (smul_eq_zero.mp htwo).resolve_left two_ne_zero
@@ -547,7 +547,7 @@ theorem blockAntisymmetriser_polytabloid (t : YoungTableau lam) {A B : Finset (F
       (f := fun x => t.row ((pi : SymmetricGroup n)⁻¹ x))
       (by rwa [Finset.card_range]) fun x hx => Finset.mem_range.mpr (hrows x hx)
   have hzero : blockAntisymmetriser (A ∪ B) (Tabloid lam)
-      (Finsupp.single ((pi : SymmetricGroup n) • t.tabloid) 1) = 0 :=
+      (MonoidAlgebra.single ((pi : SymmetricGroup n) • t.tabloid) 1) = 0 :=
     blockAntisymmetriser_single_eq_zero hx hy hxy (by
       show (((pi : SymmetricGroup n) • t.tabloid).rowOf x : ℕ) =
         (((pi : SymmetricGroup n) • t.tabloid).rowOf y : ℕ)
@@ -562,25 +562,25 @@ to `U`.
 Reading the slice off the orbit relation rather than off a coset representative makes
 equivariance the substitution `sigma ↦ tau⁻¹ * sigma`. -/
 noncomputable def orbitVector (t : YoungTableau lam) (S0 : Y) (U : Tabloid lam) :
-    Y →₀ ℂ :=
-  Finsupp.equivFunOnFinite.symm
+    MonoidAlgebra ℂ Y :=
+  (MonoidAlgebra.coeffLinearEquiv ℂ).symm <| Finsupp.equivFunOnFinite.symm
     (Set.indicator {S | ∃ sigma : SymmetricGroup n, sigma • t.tabloid = U ∧ sigma • S0 = S} 1)
 
 theorem orbitVector_apply_eq_one (t : YoungTableau lam) (S0 : Y) (U : Tabloid lam)
     (S : Y) (h : ∃ sigma : SymmetricGroup n, sigma • t.tabloid = U ∧ sigma • S0 = S) :
-    orbitVector t S0 U S = 1 :=
+    (orbitVector t S0 U).coeff S = 1 :=
   Set.indicator_of_mem h 1
 
 theorem orbitVector_apply_eq_zero (t : YoungTableau lam) (S0 : Y) (U : Tabloid lam)
     (S : Y) (h : ¬ ∃ sigma : SymmetricGroup n, sigma • t.tabloid = U ∧ sigma • S0 = S) :
-    orbitVector t S0 U S = 0 :=
+    (orbitVector t S0 U).coeff S = 0 :=
   Set.indicator_of_notMem h 1
 
 theorem orbitVector_smul (t : YoungTableau lam) (S0 : Y) (tau : SymmetricGroup n)
     (U : Tabloid lam) :
     orbitVector t S0 (tau • U) =
       Representation.ofMulAction ℂ (SymmetricGroup n) (Y) tau (orbitVector t S0 U) := by
-  refine Finsupp.ext fun S => ?_
+  ext S
   rw [Representation.ofMulAction_apply]
   by_cases h : ∃ sigma : SymmetricGroup n, sigma • t.tabloid = U ∧ sigma • S0 = tau⁻¹ • S
   · obtain ⟨sigma, hfix, hval⟩ := h
@@ -595,21 +595,21 @@ theorem orbitVector_smul (t : YoungTableau lam) (S0 : Y) (tau : SymmetricGroup n
 
 This is Sagan, *The Symmetric Group*, 2nd ed., Definition 2.9.3. -/
 noncomputable def semistandardMap (t : YoungTableau lam) (S0 : Y) :
-    (Tabloid lam →₀ ℂ) →ₗ[ℂ] (Y →₀ ℂ) :=
-  Finsupp.linearCombination ℂ (orbitVector t S0)
+    MonoidAlgebra ℂ (Tabloid lam) →ₗ[ℂ] MonoidAlgebra ℂ Y :=
+  (Finsupp.linearCombination ℂ (orbitVector t S0)).comp
+    (MonoidAlgebra.coeffLinearEquiv ℂ).toLinearMap
 
 theorem semistandardMap_ofMulAction (t : YoungTableau lam) (S0 : Y)
-    (tau : SymmetricGroup n) (v : Tabloid lam →₀ ℂ) :
+    (tau : SymmetricGroup n) (v : MonoidAlgebra ℂ (Tabloid lam)) :
     semistandardMap t S0
         (Representation.ofMulAction ℂ (SymmetricGroup n) (Tabloid lam) tau v) =
       Representation.ofMulAction ℂ (SymmetricGroup n) (Y) tau
         (semistandardMap t S0 v) := by
-  induction v using Finsupp.induction_linear with
+  induction v using MonoidAlgebra.induction_linear with
   | zero => simp
   | add x y hx hy => simp [hx, hy]
   | single U c =>
-      rw [Representation.ofMulAction_single, semistandardMap, Finsupp.linearCombination_single,
-        Finsupp.linearCombination_single, orbitVector_smul, map_smul]
+      simp [semistandardMap, Representation.ofMulAction_single, orbitVector_smul]
 
 /-- The semistandard homomorphism `S^lam ⟶ ℂ[Y]` attached to a filling `S0`. -/
 noncomputable def semistandardHom (t : YoungTableau lam) (S0 : Y) :
@@ -620,7 +620,8 @@ noncomputable def semistandardHom (t : YoungTableau lam) (S0 : Y) :
       (spechtSubrepresentation lam).toRepresentation
       (Representation.ofMulAction ℂ (SymmetricGroup n) Y)
       ((semistandardMap t S0).comp (spechtSubrepresentation lam).toSubmodule.subtype)
-      fun tau v => semistandardMap_ofMulAction t S0 tau (v : Tabloid lam →₀ ℂ))
+      fun tau v => semistandardMap_ofMulAction t S0 tau
+        (v : MonoidAlgebra ℂ (Tabloid lam)))
 
 @[simp]
 theorem semistandardHom_polytabloid (t : YoungTableau lam) (S0 : Y) :
@@ -674,19 +675,22 @@ theorem eq_and_eq_one_of_smul_eq (t : YoungTableau lam) {S0 S1 : Y}
 
 /-- The coefficients of the semistandard homomorphism at the polytabloid of `t`. -/
 theorem semistandardMap_polytabloid (t : YoungTableau lam) (S0 S1 : Y) :
-    semistandardMap t S0 (polytabloid t) S1 =
+    (semistandardMap t S0 (polytabloid t)).coeff S1 =
       ∑ pi : t.columnGroup, ((Equiv.Perm.sign (pi : SymmetricGroup n) : ℤ) : ℂ) *
-        orbitVector t S0 ((pi : SymmetricGroup n) • t.tabloid) S1 := by
+        (orbitVector t S0 ((pi : SymmetricGroup n) • t.tabloid)).coeff S1 := by
   have hsingle : ∀ U : Tabloid lam,
-      semistandardMap t S0 (Finsupp.single U 1) = orbitVector t S0 U := fun U => by
-    rw [semistandardMap, Finsupp.linearCombination_single, one_smul]
-  rw [polytabloid, map_sum, Finsupp.finset_sum_apply]
+      semistandardMap t S0 (MonoidAlgebra.single U 1) = orbitVector t S0 U := fun U => by
+    rw [semistandardMap, LinearMap.comp_apply]
+    change (Finsupp.linearCombination ℂ (orbitVector t S0)) (Finsupp.single U 1) = _
+    rw [Finsupp.linearCombination_single, one_smul]
+  rw [polytabloid, map_sum]
+  rw [MonoidAlgebra.coeff_sum, Finsupp.finsetSum_apply]
   exact Finset.sum_congr rfl fun pi _ => by
-    rw [map_smul, Finsupp.smul_apply, hsingle, smul_eq_mul]
+    rw [map_smul, MonoidAlgebra.coeff_smul_apply, hsingle, smul_eq_mul]
 
 /-- The semistandard homomorphism attached to `S0` has coefficient one at `S0`. -/
 theorem semistandardMap_polytabloid_self (t : YoungTableau lam) {S0 : Y}
-    (hS0 : Semistandard t S0) : semistandardMap t S0 (polytabloid t) S0 = 1 := by
+    (hS0 : Semistandard t S0) : (semistandardMap t S0 (polytabloid t)).coeff S0 = 1 := by
   rw [semistandardMap_polytabloid]
   refine (Finset.sum_eq_single (1 : t.columnGroup) (fun pi _ hne => ?_) fun h =>
     absurd (Finset.mem_univ _) h).trans ?_
@@ -703,7 +707,7 @@ at least the same row weight. -/
 theorem semistandardMap_polytabloid_of_ne (t : YoungTableau lam) {S0 S1 : Y}
     (hS0 : Semistandard t S0) (hS1 : Semistandard t S1)
     (hweight : rowWeight t S0 ≤ rowWeight t S1) (hne : S1 ≠ S0) :
-    semistandardMap t S0 (polytabloid t) S1 = 0 := by
+    (semistandardMap t S0 (polytabloid t)).coeff S1 = 0 := by
   rw [semistandardMap_polytabloid]
   refine Finset.sum_eq_zero fun pi _ => ?_
   rw [orbitVector_apply_eq_zero, mul_zero]
@@ -902,8 +906,8 @@ private theorem rowWeight_lt_of_mem_blockGroup (t : YoungTableau lam) {S : Y}
           exact Nat.mul_lt_mul_of_pos_left (by exact_mod_cast hval) (hsdiff ▸ hpos)
       _ ≤ ∑ k ∈ Z \ B, entry S k := by
           simpa using Finset.card_nsmul_le_sum _ _ _ fun k hk => hlow k (hZB hk)
-  have hsplitB := Finset.sum_inter_add_sum_diff B Z fun k => entry S k
-  have hsplitZ := Finset.sum_inter_add_sum_diff Z B fun k => entry S k
+  have hsplitB := Finset.sum_inter_add_sum_sdiff B Z fun k => entry S k
+  have hsplitZ := Finset.sum_inter_add_sum_sdiff Z B fun k => entry S k
   rw [Finset.inter_comm] at hsplitZ
   omega
 
@@ -918,7 +922,7 @@ theorem exists_semistandard_apply_ne_zero (t : YoungTableau lam)
     (F : Representation.IntertwiningMap (spechtSubrepresentation lam).toRepresentation
       (Representation.ofMulAction ℂ (SymmetricGroup n) Y))
     (hF : F (spechtPolytabloid t) ≠ 0) :
-    ∃ S : Y, Semistandard t S ∧ F (spechtPolytabloid t) S ≠ 0 := by
+    ∃ S : Y, Semistandard t S ∧ (F (spechtPolytabloid t)).coeff S ≠ 0 := by
   classical
   set x := F (spechtPolytabloid t) with hxdef
   have hsq : ∀ sigma : SymmetricGroup n,
@@ -926,7 +930,7 @@ theorem exists_semistandard_apply_ne_zero (t : YoungTableau lam)
     rcases Int.units_eq_one_or (Equiv.Perm.sign sigma) with hone | hone <;> rw [hone] <;> norm_num
   -- the value is a sign eigenvector for the column group of `t`
   have hsign : ∀ pi ∈ t.columnGroup, ∀ S : Y,
-      x (pi • S) = ((Equiv.Perm.sign pi : ℤ) : ℂ) * x S := by
+      x.coeff (pi • S) = ((Equiv.Perm.sign pi : ℤ) : ℂ) * x.coeff S := by
     intro pi hpi S
     have heigen : Representation.ofMulAction ℂ (SymmetricGroup n) (Y) pi x =
         ((Equiv.Perm.sign pi : ℤ) : ℂ) • x := by
@@ -935,17 +939,17 @@ theorem exists_semistandard_apply_ne_zero (t : YoungTableau lam)
           ((Equiv.Perm.sign pi : ℤ) : ℂ) • spechtPolytabloid t from
           Subtype.ext (smul_polytabloid_of_mem_columnGroup t hpi)]
       exact map_smul F _ _
-    have hval := congrArg (fun y : Y →₀ ℂ => y (pi • S)) heigen
-    simp only [Representation.ofMulAction_apply, inv_smul_smul, Finsupp.smul_apply,
-      smul_eq_mul] at hval
+    have hval := congrArg (fun y : MonoidAlgebra ℂ Y => y.coeff (pi • S)) heigen
+    simp only [Representation.ofMulAction_apply, inv_smul_smul,
+      MonoidAlgebra.coeff_smul_apply, smul_eq_mul] at hval
     rw [hval, ← mul_assoc, hsq, one_mul]
   -- two labels of one column of `t` sharing an entry kill the coefficient at `S`
   have hcolzero : ∀ (S : Y) (a b : Fin n), a ≠ b → t.column a = t.column b →
-      entry S a = entry S b → x S = 0 := by
+      entry S a = entry S b → x.coeff S = 0 := by
     intro S a b hab hcol hentry
     have hself := hsign (Equiv.swap a b) (swap_mem_columnGroup hcol) S
     rw [LabelFilling.smul_swap_eq S hentry, Equiv.Perm.sign_swap hab] at hself
-    have htwo : (2 : ℂ) * x S = 0 := by push_cast at hself; linear_combination hself
+    have htwo : (2 : ℂ) * x.coeff S = 0 := by push_cast at hself; linear_combination hself
     exact (mul_eq_zero.mp htwo).resolve_left two_ne_zero
   -- the Garnir relation transports along `F`
   have hblock : ∀ X : Finset (Fin n), blockAntisymmetriser X (Tabloid lam) (polytabloid t) = 0 →
@@ -972,27 +976,28 @@ theorem exists_semistandard_apply_ne_zero (t : YoungTableau lam)
               (spechtPolytabloid t)) := (map_sum F _ _).symm
       _ = 0 := by rw [hsum, map_zero]
   have heval : ∀ (X : Finset (Fin n)) (S : Y),
-      blockAntisymmetriser X Y x S = ∑ sigma : blockGroup X,
+      (blockAntisymmetriser X Y x).coeff S = ∑ sigma : blockGroup X,
         ((Equiv.Perm.sign (sigma : SymmetricGroup n) : ℤ) : ℂ) *
-          x ((sigma : SymmetricGroup n) • S) := by
+          x.coeff ((sigma : SymmetricGroup n) • S) := by
     intro X S
-    rw [blockAntisymmetriser_apply, Finsupp.finset_sum_apply]
+    rw [blockAntisymmetriser_apply]
+    rw [MonoidAlgebra.coeff_sum, Finsupp.finsetSum_apply]
     refine Fintype.sum_equiv (Equiv.inv (blockGroup X)) _ _ fun sigma => ?_
-    rw [Finsupp.smul_apply, Representation.ofMulAction_apply, smul_eq_mul,
+    rw [MonoidAlgebra.coeff_smul_apply, Representation.ofMulAction_apply, smul_eq_mul,
       show ((Equiv.inv (blockGroup X) sigma : blockGroup X) : SymmetricGroup n) =
         (sigma : SymmetricGroup n)⁻¹ from rfl, Equiv.Perm.sign_inv]
   -- a tabloid of the support with the largest row weight, then the largest column weight
-  obtain ⟨S₁, hS₁mem, hS₁max⟩ := Finset.exists_max_image x.support (rowWeight t)
-    (Finsupp.support_nonempty_iff.mpr hF)
+  obtain ⟨S₁, hS₁mem, hS₁max⟩ := Finset.exists_max_image x.coeff.support (rowWeight t)
+    (Finsupp.support_nonempty_iff.mpr (fun hx => hF (MonoidAlgebra.coeff_eq_zero.mp hx)))
   obtain ⟨S, hSmem, hSmax⟩ := Finset.exists_max_image
-    (x.support.filter fun T => rowWeight t T = rowWeight t S₁) (colWeight t)
+    (x.coeff.support.filter fun T => rowWeight t T = rowWeight t S₁) (colWeight t)
     ⟨S₁, Finset.mem_filter.mpr ⟨hS₁mem, rfl⟩⟩
-  have hSne : x S ≠ 0 := Finsupp.mem_support_iff.mp (Finset.mem_filter.mp hSmem).1
+  have hSne : x.coeff S ≠ 0 := Finsupp.mem_support_iff.mp (Finset.mem_filter.mp hSmem).1
   have hSrow : rowWeight t S = rowWeight t S₁ := (Finset.mem_filter.mp hSmem).2
-  have hrowmax : ∀ T : Y, x T ≠ 0 → rowWeight t T ≤ rowWeight t S := fun T hT => by
+  have hrowmax : ∀ T : Y, x.coeff T ≠ 0 → rowWeight t T ≤ rowWeight t S := fun T hT => by
     rw [hSrow]
     exact hS₁max T (Finsupp.mem_support_iff.mpr hT)
-  have hcolmax : ∀ T : Y, x T ≠ 0 → rowWeight t T = rowWeight t S →
+  have hcolmax : ∀ T : Y, x.coeff T ≠ 0 → rowWeight t T = rowWeight t S →
       colWeight t T ≤ colWeight t S := fun T hT hw =>
     hSmax T (Finset.mem_filter.mpr ⟨Finsupp.mem_support_iff.mpr hT, hw.trans hSrow⟩)
   -- a column descent would raise the column weight without changing the row weight
@@ -1014,16 +1019,16 @@ theorem exists_semistandard_apply_ne_zero (t : YoungTableau lam)
     set X := lowerBlock t (t.row i) (t.column i) ∪ upperBlock t (t.row i) (t.column i) with hX
     have hgarnir : ∑ sigma : blockGroup X,
         ((Equiv.Perm.sign (sigma : SymmetricGroup n) : ℤ) : ℂ) *
-          x ((sigma : SymmetricGroup n) • S) = 0 := by
+          x.coeff ((sigma : SymmetricGroup n) • S) = 0 := by
       rw [← heval X S, hblock X (blockAntisymmetriser_polytabloid t
         (fun a ha => (mem_lowerBlock.mp ha).1) (fun b hb => (mem_upperBlock.mp hb).1)
         (colLen_lt_card_block t hrow hcol))]
       rfl
     have hterm : ∀ sigma : blockGroup X,
         ((Equiv.Perm.sign (sigma : SymmetricGroup n) : ℤ) : ℂ) *
-            x ((sigma : SymmetricGroup n) • S) =
+            x.coeff ((sigma : SymmetricGroup n) • S) =
           if ∀ a, (sigma : SymmetricGroup n) a ∈ upperBlock t (t.row i) (t.column i) ↔
-            a ∈ upperBlock t (t.row i) (t.column i) then x S else 0 := by
+            a ∈ upperBlock t (t.row i) (t.column i) then x.coeff S else 0 := by
       intro sigma
       by_cases hp : ∀ a, (sigma : SymmetricGroup n) a ∈ upperBlock t (t.row i) (t.column i) ↔
           a ∈ upperBlock t (t.row i) (t.column i)
@@ -1071,7 +1076,7 @@ theorem apply_eq_zero_of_apply_spechtPolytabloid_eq_zero {W : Type} [AddCommGrou
 /-- The value a homomorphism takes at the polytabloid of `t`, read in the tabloid basis. -/
 noncomputable def polytabloidValue (t : YoungTableau lam)
     (f : spechtModule lam ⟶ FDRep.of (Representation.ofMulAction ℂ (SymmetricGroup n) Y)) :
-    Y →₀ ℂ :=
+    MonoidAlgebra ℂ Y :=
   FDRep.homEquivIntertwiningMap (spechtModule lam)
     (FDRep.of (Representation.ofMulAction ℂ (SymmetricGroup n) Y)) f (spechtPolytabloid t)
 
@@ -1079,7 +1084,7 @@ noncomputable def polytabloidValue (t : YoungTableau lam)
 noncomputable def semistandardCoeff (t : YoungTableau lam) :
     (spechtModule lam ⟶ FDRep.of (Representation.ofMulAction ℂ (SymmetricGroup n) Y)) →ₗ[ℂ]
       ({S : Y // Semistandard t S} → ℂ) where
-  toFun f S := polytabloidValue t f S.val
+  toFun f S := (polytabloidValue t f).coeff S.val
   map_add' f g := by ext S; simp only [polytabloidValue, map_add]; rfl
   map_smul' c f := by ext S; simp only [polytabloidValue, map_smul]; rfl
 
@@ -1114,8 +1119,9 @@ theorem linearIndependent_semistandardHom (t : YoungTableau lam) :
     (fun S => rowWeight t S.val) ⟨S', Finset.mem_filter.mpr ⟨mem_univ _, hS'⟩⟩
   have hcoeff : ∀ S : {S : Y // Semistandard t S},
       semistandardCoeff t (semistandardHom t S.val) S₁ =
-        semistandardMap t S.val (polytabloid t) S₁.val := fun S =>
-    congrArg (fun v : Y →₀ ℂ => v S₁.val) (semistandardHom_polytabloid t S.val)
+        (semistandardMap t S.val (polytabloid t)).coeff S₁.val := fun S =>
+    congrArg (fun v : MonoidAlgebra ℂ Y => v.coeff S₁.val)
+      (semistandardHom_polytabloid t S.val)
   have hsum : semistandardCoeff (Y := Y) t (∑ S, g S • semistandardHom t S.val) = 0 := by
     rw [hg, map_zero]
   rw [map_sum] at hsum
@@ -1123,7 +1129,7 @@ theorem linearIndependent_semistandardHom (t : YoungTableau lam) :
   simp only [Finset.sum_apply, map_smul, Pi.smul_apply, Pi.zero_apply, smul_eq_mul,
     hcoeff] at heval
   have hvanish : ∀ S ∈ (univ : Finset {S : Y // Semistandard t S}), S ≠ S₁ →
-      g S * semistandardMap t S.val (polytabloid t) S₁.val = 0 := by
+      g S * (semistandardMap t S.val (polytabloid t)).coeff S₁.val = 0 := by
     intro S _ hSne
     by_cases hgS : g S = 0
     · rw [hgS, zero_mul]

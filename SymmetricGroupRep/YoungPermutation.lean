@@ -15,10 +15,10 @@ variable {G H X : Type} [Group G] [Group H] [MulAction H X]
 the point `h⁻¹ • base`. -/
 private noncomputable def indTrivialToFinsupp (φ : G →* H) (base : X)
     (fixesBase : ∀ g : G, φ g • base = base) :
-    IndV φ (1 : Representation ℂ G ℂ) →ₗ[ℂ] (X →₀ ℂ) :=
+    IndV φ (1 : Representation ℂ G ℂ) →ₗ[ℂ] MonoidAlgebra ℂ X :=
   Coinvariants.lift _
-    (Finsupp.lmapDomain ℂ ℂ (fun h : H => h⁻¹ • base) ∘ₗ
-      (_root_.TensorProduct.rid ℂ (H →₀ ℂ)).toLinearMap)
+    (MonoidAlgebra.mapDomainLinearMap ℂ ℂ (fun h : H => h⁻¹ • base) ∘ₗ
+      (_root_.TensorProduct.rid ℂ (MonoidAlgebra ℂ H)).toLinearMap)
     fun g => by
       ext h z
       simp [mul_smul, ← map_inv, fixesBase]
@@ -26,28 +26,32 @@ private noncomputable def indTrivialToFinsupp (φ : G →* H) (base : X)
 private theorem indTrivialToFinsupp_mk (φ : G →* H) (base : X)
     (fixesBase : ∀ g : G, φ g • base = base) (h : H) (z : ℂ) :
     indTrivialToFinsupp φ base fixesBase (IndV.mk φ _ h z) =
-      Finsupp.single (h⁻¹ • base) z := by
+      MonoidAlgebra.single (h⁻¹ • base) z := by
   simp [indTrivialToFinsupp]
 
 /-- The map into the induced trivial representation sending a point to a generator carrying the
 base point to it. -/
 private noncomputable def indTrivialOfFinsupp (φ : G →* H) (base : X)
     (transitive : ∀ x : X, ∃ h : H, h⁻¹ • base = x) :
-    (X →₀ ℂ) →ₗ[ℂ] IndV φ (1 : Representation ℂ G ℂ) :=
-  Finsupp.linearCombination ℂ fun x => IndV.mk φ _ (transitive x).choose 1
+    MonoidAlgebra ℂ X →ₗ[ℂ] IndV φ (1 : Representation ℂ G ℂ) :=
+  (Finsupp.linearCombination ℂ fun x => IndV.mk φ _ (transitive x).choose 1).comp
+    (MonoidAlgebra.coeffLinearEquiv ℂ).toLinearMap
 
 private theorem indTrivialOfFinsupp_single (φ : G →* H) (base : X)
     (transitive : ∀ x : X, ∃ h : H, h⁻¹ • base = x) (x : X) (z : ℂ) :
-    indTrivialOfFinsupp φ base transitive (Finsupp.single x z) =
+    indTrivialOfFinsupp φ base transitive (MonoidAlgebra.single x z) =
       IndV.mk φ _ (transitive x).choose z := by
-  rw [indTrivialOfFinsupp, Finsupp.linearCombination_single, ← map_smul, smul_eq_mul, mul_one]
+  rw [indTrivialOfFinsupp, LinearMap.comp_apply]
+  change (Finsupp.linearCombination ℂ fun x => IndV.mk φ _ (transitive x).choose 1)
+      (Finsupp.single x z) = _
+  rw [Finsupp.linearCombination_single, ← map_smul, smul_eq_mul, mul_one]
 
 /-- Generators of the induced trivial representation indexed by the same coset agree. -/
 private theorem indTrivialMk_mul (φ : G →* H) (g : G) (h : H) (z : ℂ) :
     IndV.mk φ (1 : Representation ℂ G ℂ) (φ g * h) z = IndV.mk φ _ h z := by
   have := Coinvariants.mk_self_apply
     (Representation.tprod ((leftRegular ℂ H).comp φ) (1 : Representation ℂ G ℂ)) g
-    (Finsupp.single h (1 : ℂ) ⊗ₜ[ℂ] z)
+    (MonoidAlgebra.single h (1 : ℂ) ⊗ₜ[ℂ] z)
   simpa using this
 
 /-- On a transitive `H`-set whose base-point stabiliser is the image of `φ`, the induced trivial
@@ -55,13 +59,14 @@ representation is the permutation module on the set. -/
 private noncomputable def indTrivialFinsuppEquiv (φ : G →* H) (base : X)
     (transitive : ∀ x : X, ∃ h : H, h⁻¹ • base = x)
     (stabilizer : ∀ h : H, h • base = base ↔ h ∈ φ.range) :
-    IndV φ (1 : Representation ℂ G ℂ) ≃ₗ[ℂ] (X →₀ ℂ) :=
+    IndV φ (1 : Representation ℂ G ℂ) ≃ₗ[ℂ] MonoidAlgebra ℂ X :=
   have fixesBase : ∀ g : G, φ g • base = base := fun g => (stabilizer (φ g)).2 ⟨g, rfl⟩
   LinearEquiv.ofLinear (indTrivialToFinsupp φ base fixesBase)
     (indTrivialOfFinsupp φ base transitive)
-    (Finsupp.lhom_ext' fun x => LinearMap.ext_ring (by
+    (MonoidAlgebra.lhom_ext' fun x => LinearMap.ext_ring (by
       show indTrivialToFinsupp φ base fixesBase
-          (indTrivialOfFinsupp φ base transitive (Finsupp.single x 1)) = Finsupp.single x 1
+          (indTrivialOfFinsupp φ base transitive (MonoidAlgebra.single x 1)) =
+            MonoidAlgebra.single x 1
       rw [indTrivialOfFinsupp_single, indTrivialToFinsupp_mk, (transitive x).choose_spec]))
     (IndV.hom_ext _ _ fun h => LinearMap.ext fun z => by
       obtain ⟨g, hg⟩ := (stabilizer (h * (transitive (h⁻¹ • base)).choose⁻¹)).1 (by

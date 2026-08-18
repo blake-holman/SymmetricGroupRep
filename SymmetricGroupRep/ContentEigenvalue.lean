@@ -28,7 +28,8 @@ theorem exists_classSum_spechtModule_eq_smul {n : ℕ} (μ : YoungDiagramOfSize 
   obtain ⟨c, hc⟩ := spechtEndomorphism_eq_smul_id μ (classSumHom (spechtModule μ))
   refine ⟨c, fun v => ?_⟩
   have h := congrArg (fun f : spechtModule μ ⟶ spechtModule μ => f.hom.hom.hom v) hc
-  simpa using h
+  change classSum (spechtModule μ) v = c • v at h
+  exact h
 
 /-- The scalar by which the sum of the transpositions acts on `S^μ`. -/
 noncomputable def transpositionScalar {n : ℕ} (μ : YoungDiagramOfSize n) : ℂ :=
@@ -44,17 +45,18 @@ two labels share a row, by `-1` when they share a column, and not at all
 otherwise. -/
 theorem polytabloid_swap_apply_tabloid {n : ℕ} {μ : YoungDiagramOfSize n}
     (t : YoungTableau μ) {a b : Fin n} (hab : a ≠ b) :
-    YoungTableau.polytabloid (Equiv.swap a b • t) t.tabloid =
+    (YoungTableau.polytabloid (Equiv.swap a b • t)).coeff t.tabloid =
       (if t.row a = t.row b then 1 else 0) - (if t.column a = t.column b then 1 else 0) := by
   classical
-  have hexpand : YoungTableau.polytabloid (Equiv.swap a b • t) t.tabloid =
+  have hexpand : (YoungTableau.polytabloid (Equiv.swap a b • t)).coeff t.tabloid =
       ∑ τ : t.columnGroup, ((Equiv.Perm.sign (τ : SymmetricGroup n) : ℤ) : ℂ) *
         (if (Equiv.swap a b * (τ : SymmetricGroup n)) • t.tabloid = t.tabloid then 1 else 0) := by
     rw [← YoungTableau.smul_polytabloid, YoungTableau.polytabloid, map_sum,
-      Finsupp.finset_sum_apply]
+      MonoidAlgebra.coeff_sum, Finset.sum_apply']
     refine Finset.sum_congr rfl fun τ _ => ?_
-    rw [map_smul, Representation.ofMulAction_single, ← mul_smul, Finsupp.smul_apply,
-      Finsupp.single_apply, smul_eq_mul]
+    rw [map_smul, Representation.ofMulAction_single, ← mul_smul,
+      MonoidAlgebra.coeff_smul_apply, MonoidAlgebra.coeff_single, Finsupp.single_apply,
+      smul_eq_mul]
   rw [hexpand]
   by_cases hrow : t.row a = t.row b
   · have hcol : t.column a ≠ t.column b := fun h =>
@@ -133,15 +135,16 @@ theorem transpositionScalar_eq_sum {n : ℕ} (μ : YoungDiagramOfSize n) (t : Yo
         ((if t.row p.1 = t.row p.2 then 1 else 0) -
           (if t.column p.1 = t.column p.2 then 1 else 0)) := by
   classical
-  set incl : spechtModule μ →ₗ[ℂ] (Tabloid μ →₀ ℂ) :=
+  set incl : spechtModule μ →ₗ[ℂ] MonoidAlgebra ℂ (Tabloid μ) :=
     (spechtSubrepresentation μ).toSubmodule.subtype with hincl
   set e : spechtModule μ := (⟨YoungTableau.polytabloid t, Submodule.subset_span ⟨t, rfl⟩⟩ :
     ↥(spechtSubrepresentation μ).toSubmodule) with hedef
-  have hleft : incl (classSum (spechtModule μ) e) t.tabloid = transpositionScalar μ := by
+  have hleft : (incl (classSum (spechtModule μ) e)).coeff t.tabloid =
+      transpositionScalar μ := by
     rw [classSum_spechtModule, map_smul]
-    change transpositionScalar μ * YoungTableau.polytabloid t t.tabloid = _
+    change transpositionScalar μ * (YoungTableau.polytabloid t).coeff t.tabloid = _
     rw [YoungTableau.polytabloid_apply_tabloid, mul_one]
-  rw [← hleft, classSum_apply, map_sum, Finsupp.finset_sum_apply]
+  rw [← hleft, classSum_apply, map_sum, MonoidAlgebra.coeff_sum, Finset.sum_apply']
   refine Finset.sum_congr rfl fun p hp => ?_
   have hne : p.1 ≠ p.2 := (mem_transpositionPairs.mp hp).ne
   rw [← polytabloid_swap_apply_tabloid t hne, ← YoungTableau.smul_polytabloid]

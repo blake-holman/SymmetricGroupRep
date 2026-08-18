@@ -214,15 +214,17 @@ private theorem signTwistOrbitMap_smul (t : YoungTableau μ) (g : SymmetricGroup
 
 /-- The linear extension of the orbit map to the transposed permutation module. -/
 private noncomputable def signTwistLinearMap (t : YoungTableau μ) :
-    (Tabloid μ.transpose →₀ ℂ) →ₗ[ℂ] ↥(spechtSubrepresentation μ).toSubmodule :=
-  Finsupp.linearCombination ℂ (signTwistOrbitMap t)
+    MonoidAlgebra ℂ (Tabloid μ.transpose) →ₗ[ℂ]
+      ↥(spechtSubrepresentation μ).toSubmodule :=
+  (Finsupp.linearCombination ℂ (signTwistOrbitMap t)).comp
+    (MonoidAlgebra.coeffLinearEquiv ℂ).toLinearMap
 
 private theorem signTwistLinearMap_ofMulAction (t : YoungTableau μ) (g : SymmetricGroup n)
-    (v : Tabloid μ.transpose →₀ ℂ) :
+    (v : MonoidAlgebra ℂ (Tabloid μ.transpose)) :
     signTwistLinearMap t
         (Representation.ofMulAction ℂ (SymmetricGroup n) (Tabloid μ.transpose) g v) =
       (spechtSubrepresentation μ).toRepresentation.signTwist g (signTwistLinearMap t v) := by
-  induction v using Finsupp.induction_linear with
+  induction v using MonoidAlgebra.induction_linear with
   | zero => simp
   | add x y hx hy => simp [hx, hy]
   | single T c =>
@@ -236,27 +238,41 @@ private theorem signTwistLinearMap_polytabloid (t : YoungTableau μ) :
   rw [polytabloid, map_sum]
   refine Finset.sum_congr rfl fun sigma _ => ?_
   rw [map_smul]
-  simp only [signTwistLinearMap, Finsupp.linearCombination_single, one_smul]
-  rw [signTwistOrbitMap_eq t (sigma := (sigma : SymmetricGroup n)) rfl,
-    Representation.signTwist_apply, smul_smul, ← Int.cast_mul, ← Units.val_mul,
-    Int.units_mul_self, Units.val_one, Int.cast_one, one_smul]
+  simp only [signTwistLinearMap, LinearMap.comp_apply]
+  have hcoeff : (MonoidAlgebra.coeffLinearEquiv ℂ)
+      (MonoidAlgebra.single ((sigma : SymmetricGroup n) • t.transpose.tabloid) (1 : ℂ)) =
+        Finsupp.single ((sigma : SymmetricGroup n) • t.transpose.tabloid) (1 : ℂ) := by
+    ext T
+    simp [MonoidAlgebra.coeffLinearEquiv_apply]
+  calc
+    _ = (Equiv.Perm.sign (sigma : SymmetricGroup n) : ℂ) •
+        (Finsupp.linearCombination ℂ (signTwistOrbitMap t))
+          (Finsupp.single ((sigma : SymmetricGroup n) • t.transpose.tabloid) 1) :=
+      congrArg (fun v => (Equiv.Perm.sign (sigma : SymmetricGroup n) : ℂ) •
+        (Finsupp.linearCombination ℂ (signTwistOrbitMap t)) v) hcoeff
+    _ = _ := by
+      rw [Finsupp.linearCombination_single, one_smul,
+        signTwistOrbitMap_eq t (sigma := (sigma : SymmetricGroup n)) rfl,
+        Representation.signTwist_apply, smul_smul, ← Int.cast_mul, ← Units.val_mul,
+        Int.units_mul_self, Units.val_one, Int.cast_one, one_smul]
 
 private theorem signTwistLinearMap_polytabloid_ne_zero (t : YoungTableau μ) :
     signTwistLinearMap t (polytabloid t.transpose) ≠ 0 := by
-  have hvalue : (signTwistLinearMap t (polytabloid t.transpose) : Tabloid μ →₀ ℂ) t.tabloid =
+  have hvalue : (signTwistLinearMap t (polytabloid t.transpose) :
+      MonoidAlgebra ℂ (Tabloid μ)).coeff t.tabloid =
       (Fintype.card t.transpose.columnGroup : ℂ) := by
     have hterm : ∀ sigma : t.transpose.columnGroup,
         ((spechtSubrepresentation μ).toRepresentation (sigma : SymmetricGroup n)
-          t.spechtPolytabloid : Tabloid μ →₀ ℂ) t.tabloid = 1 := fun sigma => by
+          t.spechtPolytabloid : MonoidAlgebra ℂ (Tabloid μ)).coeff t.tabloid = 1 :=
+      fun sigma => by
       rw [show ((spechtSubrepresentation μ).toRepresentation (sigma : SymmetricGroup n)
-            t.spechtPolytabloid : Tabloid μ →₀ ℂ) =
+            t.spechtPolytabloid : MonoidAlgebra ℂ (Tabloid μ)) =
             Representation.ofMulAction ℂ (SymmetricGroup n) (Tabloid μ)
               (sigma : SymmetricGroup n) (polytabloid t) from rfl,
         Representation.ofMulAction_apply,
         smul_tabloid_of_mem_transpose_columnGroup (t.transpose.columnGroup.inv_mem sigma.2),
         polytabloid_apply_tabloid]
-    rw [signTwistLinearMap_polytabloid, AddSubmonoidClass.coe_finset_sum,
-      Finsupp.finset_sum_apply]
+    rw [signTwistLinearMap_polytabloid, AddSubmonoidClass.coe_finset_sum]
     simp [hterm]
   intro hzero
   rw [hzero] at hvalue
@@ -282,7 +298,8 @@ private theorem spechtSignTwistHom_ne_zero (t : YoungTableau μ) : spechtSignTwi
   apply signTwistLinearMap_polytabloid_ne_zero t
   have happly := congrArg (fun f : spechtModule μ.transpose ⟶ spechtSignTwist μ =>
     f.hom.hom t.transpose.spechtPolytabloid) hzero
-  simpa [spechtSignTwistHom, signTwistHom, spechtPolytabloid] using happly
+  simp [spechtSignTwistHom, signTwistHom, spechtPolytabloid] at happly
+  exact happly
 
 end YoungTableau
 

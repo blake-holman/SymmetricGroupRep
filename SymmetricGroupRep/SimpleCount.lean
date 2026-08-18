@@ -51,7 +51,8 @@ theorem FDRep.card_le_card_conjClasses {G ι : Type} [Group G] [Finite G] [Finit
       intro i
       haveI := hsimple i
       haveI := hsimple j
-      rw [← smul_eq_mul, FDRep.char_orthonormal]
+      simp only [invOf_eq_inv, Fintype.card_eq_nat_card]
+      rw [FDRep.char_orthonormal]
       by_cases hij : i = j
       · subst hij
         rw [if_pos ⟨Iso.refl _⟩, if_pos rfl]

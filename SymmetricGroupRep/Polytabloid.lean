@@ -150,10 +150,10 @@ def columnGroupEquiv (sigma : SymmetricGroup n) (t : YoungTableau μ) :
     simp [mul_assoc]
 
 /-- The polytabloid of a tableau: the column-antisymmetrised tabloid. -/
-noncomputable def polytabloid (t : YoungTableau μ) : Tabloid μ →₀ ℂ :=
+noncomputable def polytabloid (t : YoungTableau μ) : MonoidAlgebra ℂ (Tabloid μ) :=
   ∑ sigma : t.columnGroup,
     ((Equiv.Perm.sign (sigma : SymmetricGroup n) : ℤ) : ℂ) •
-      Finsupp.single ((sigma : SymmetricGroup n) • t.tabloid) 1
+      MonoidAlgebra.single ((sigma : SymmetricGroup n) • t.tabloid) 1
 
 /-- Relabelling a tableau relabels its polytabloid. This is Sagan's Lemma 2.3.3(4). -/
 theorem smul_polytabloid (sigma : SymmetricGroup n) (t : YoungTableau μ) :
@@ -177,8 +177,8 @@ theorem smul_polytabloid (sigma : SymmetricGroup n) (t : YoungTableau μ) :
 /-- The polytabloid has coefficient one on its own tabloid; in particular it is
 nonzero, so the Specht module is a nonzero subrepresentation. -/
 theorem polytabloid_apply_tabloid (t : YoungTableau μ) :
-    polytabloid t t.tabloid = 1 := by
-  rw [polytabloid, Finsupp.finset_sum_apply]
+    (polytabloid t).coeff t.tabloid = 1 := by
+  rw [polytabloid, MonoidAlgebra.coeff_sum, Finset.sum_apply']
   rw [Finset.sum_eq_single (1 : t.columnGroup)]
   · simp
   · intro sigma _ hne

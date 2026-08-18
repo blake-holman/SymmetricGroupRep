@@ -127,6 +127,6 @@ noncomputable def youngPermutationModule {n : ℕ} (mu : YoungDiagramOfSize n) :
 @[simp]
 theorem youngPermutationModule_rho_single {n : ℕ} (mu : YoungDiagramOfSize n)
     (sigma : SymmetricGroup n) (T : Tabloid mu) (c : ℂ) :
-    (youngPermutationModule mu).ρ sigma (Finsupp.single T c) =
-      Finsupp.single (sigma • T) c :=
+    (youngPermutationModule mu).ρ sigma (MonoidAlgebra.single T c) =
+      MonoidAlgebra.single (sigma • T) c :=
   Representation.ofMulAction_single sigma T c

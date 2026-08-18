@@ -230,15 +230,21 @@ row of the removed corner, and forgets that label.
 
 See Sagan, *The Symmetric Group*, 2nd ed., proof of Theorem 2.8.3. -/
 noncomputable def rowProjectionMap (ν : OneBoxRemoval μ) :
-    (Tabloid μ →₀ ℂ) →ₗ[ℂ] (Tabloid ν.val →₀ ℂ) :=
-  Finsupp.lsum ℂ fun T => if h : (T.rowOf (Fin.last n) : ℕ) = (cell ν).1
-    then Finsupp.lsingle (restrictTabloid ν T h) else 0
+    (MonoidAlgebra ℂ (Tabloid μ)) →ₗ[ℂ] (MonoidAlgebra ℂ (Tabloid ν.val)) :=
+  (MonoidAlgebra.coeffLinearEquiv ℂ).symm.toLinearMap.comp <|
+    (Finsupp.lsum ℂ fun T => if h : (T.rowOf (Fin.last n) : ℕ) = (cell ν).1
+      then Finsupp.lsingle (restrictTabloid ν T h) else 0).comp
+        (MonoidAlgebra.coeffLinearEquiv ℂ).toLinearMap
 
 theorem rowProjectionMap_single (ν : OneBoxRemoval μ) (T : Tabloid μ) (c : ℂ) :
-    rowProjectionMap ν (Finsupp.single T c)
+    rowProjectionMap ν (MonoidAlgebra.single T c)
       = if h : (T.rowOf (Fin.last n) : ℕ) = (cell ν).1
-        then Finsupp.single (restrictTabloid ν T h) c else 0 := by
-  rw [rowProjectionMap, Finsupp.lsum_single]
+        then MonoidAlgebra.single (restrictTabloid ν T h) c else 0 := by
+  apply MonoidAlgebra.coeff_injective
+  simp only [rowProjectionMap, LinearMap.comp_apply, LinearEquiv.coe_coe]
+  change ((Finsupp.lsum ℂ) (fun T => if h : (T.rowOf (Fin.last n) : ℕ) = (cell ν).1
+    then Finsupp.lsingle (restrictTabloid ν T h) else 0)) (Finsupp.single T c) = _
+  rw [Finsupp.lsum_single]
   by_cases h : (T.rowOf (Fin.last n) : ℕ) = (cell ν).1
   · rw [dif_pos h, dif_pos h]
     rfl
@@ -246,12 +252,12 @@ theorem rowProjectionMap_single (ν : OneBoxRemoval μ) (T : Tabloid μ) (c : �
     rfl
 
 theorem rowProjectionMap_ofMulAction (ν : OneBoxRemoval μ) (g : SymmetricGroup n)
-    (v : Tabloid μ →₀ ℂ) :
+    (v : MonoidAlgebra ℂ (Tabloid μ)) :
     rowProjectionMap ν (Representation.ofMulAction ℂ (SymmetricGroup (n + 1)) (Tabloid μ)
         (SymmetricGroup.inclusion n g) v)
       = Representation.ofMulAction ℂ (SymmetricGroup n) (Tabloid ν.val) g
         (rowProjectionMap ν v) := by
-  induction v using Finsupp.induction_linear with
+  induction v using MonoidAlgebra.induction_linear with
   | zero => simp
   | add x y hx hy => simp only [map_add, hx, hy]
   | single T c =>
@@ -380,7 +386,7 @@ theorem rowProjectionMap_polytabloid (ν : OneBoxRemoval μ) (t : YoungTableau �
   have hincl : Function.Injective incl := fun g₁ g₂ hg => Subtype.ext
     (SymmetricGroup.inclusionOfLE_injective (Nat.le_succ n) (congrArg Subtype.val hg))
   have houtside : ∀ σ ∈ (Finset.univ : Finset t.columnGroup), σ ∉ Finset.univ.image incl →
-      rowProjectionMap ν (Finsupp.single ((σ : SymmetricGroup (n + 1)) • t.tabloid) 1) = 0 := by
+      rowProjectionMap ν (MonoidAlgebra.single ((σ : SymmetricGroup (n + 1)) • t.tabloid) 1) = 0 := by
     intro σ _ hσ
     rw [rowProjectionMap_single, dif_neg]
     intro hrow
@@ -391,16 +397,16 @@ theorem rowProjectionMap_polytabloid (ν : OneBoxRemoval μ) (t : YoungTableau �
       Finset.mem_univ _, Subtype.ext hg⟩)
   calc rowProjectionMap ν (YoungTableau.polytabloid t)
       = ∑ σ : t.columnGroup, ((Equiv.Perm.sign (σ : SymmetricGroup (n + 1)) : ℤ) : ℂ) •
-          rowProjectionMap ν (Finsupp.single ((σ : SymmetricGroup (n + 1)) • t.tabloid) 1) := by
+          rowProjectionMap ν (MonoidAlgebra.single ((σ : SymmetricGroup (n + 1)) • t.tabloid) 1) := by
         rw [YoungTableau.polytabloid, map_sum]
         exact Finset.sum_congr rfl fun σ _ => map_smul _ _ _
     _ = ∑ σ ∈ Finset.univ.image incl, ((Equiv.Perm.sign (σ : SymmetricGroup (n + 1)) : ℤ) : ℂ) •
-          rowProjectionMap ν (Finsupp.single ((σ : SymmetricGroup (n + 1)) • t.tabloid) 1) :=
+          rowProjectionMap ν (MonoidAlgebra.single ((σ : SymmetricGroup (n + 1)) • t.tabloid) 1) :=
         (Finset.sum_subset (Finset.subset_univ _) fun σ hσ hσ' => by
           rw [houtside σ hσ hσ', smul_zero]).symm
     _ = ∑ g : (restrictTableau ν t ht).columnGroup,
           ((Equiv.Perm.sign (SymmetricGroup.inclusion n (g : SymmetricGroup n)) : ℤ) : ℂ) •
-            rowProjectionMap ν (Finsupp.single
+            rowProjectionMap ν (MonoidAlgebra.single
               ((SymmetricGroup.inclusion n (g : SymmetricGroup n)) • t.tabloid) 1) :=
         Finset.sum_image fun x _ y _ hxy => hincl hxy
     _ = YoungTableau.polytabloid (restrictTableau ν t ht) := by
@@ -448,10 +454,14 @@ theorem finrank_hom_res_spechtModule_pos (ν : OneBoxRemoval μ) :
         (spechtModule μ) ⟶ spechtModule ν.val =>
       f.hom.hom ⟨YoungTableau.polytabloid t, Submodule.subset_span ⟨t, rfl⟩⟩) hzero
     have hzero' : r.hom.hom (rowProjectionMap ν (YoungTableau.polytabloid t)) = 0 := by
-      simpa using hvalue
+      change r.hom.hom (rowProjectionMap ν (YoungTableau.polytabloid t)) = 0 at hvalue
+      exact hvalue
     rw [rowProjectionMap_polytabloid ν t ht, hsplit] at hzero'
     exact YoungTableau.polytabloid_ne_zero (restrictTableau ν t ht)
-      (by simpa using congrArg Subtype.val hzero')
+      (by
+        have hzero'' := congrArg Subtype.val hzero'
+        change YoungTableau.polytabloid (restrictTableau ν t ht) = 0 at hzero''
+        exact hzero'')
   haveI : Nontrivial ((SymmetricGroupRepresentation.restriction n).obj (spechtModule μ) ⟶
     spechtModule ν.val) := nontrivial_of_ne _ _ hne
   exact Module.finrank_pos

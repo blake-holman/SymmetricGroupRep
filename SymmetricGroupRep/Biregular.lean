@@ -54,21 +54,24 @@ theorem symmetricGroupBiregular_character (n : ℕ) (g h : SymmetricGroup n) :
   letI := symmetricGroupBiregularAction n
   have hsingle : ∀ x : SymmetricGroup n,
       Representation.ofMulAction ℂ (SymmetricGroup n × SymmetricGroup n) (SymmetricGroup n)
-        (g, h) (Finsupp.single x 1) = Finsupp.single (g * x * h⁻¹) (1 : ℂ) :=
+        (g, h) (MonoidAlgebra.single x 1) =
+          MonoidAlgebra.single (g * x * h⁻¹) (1 : ℂ) :=
     fun x => Representation.ofMulAction_single (g, h) x 1
   have htrace : (symmetricGroupBiregular n).character (g, h) =
-      Matrix.trace (LinearMap.toMatrix (Finsupp.basisSingleOne (ι := SymmetricGroup n) (R := ℂ))
-        Finsupp.basisSingleOne
+      Matrix.trace (LinearMap.toMatrix (MonoidAlgebra.basis (SymmetricGroup n) ℂ)
+        (MonoidAlgebra.basis (SymmetricGroup n) ℂ)
         (Representation.ofMulAction ℂ (SymmetricGroup n × SymmetricGroup n) (SymmetricGroup n)
           (g, h))) :=
     LinearMap.trace_eq_matrix_trace ℂ _ _
   rw [htrace]
   simp only [Matrix.trace, Matrix.diag_apply, LinearMap.toMatrix_apply,
-    Finsupp.coe_basisSingleOne, Finsupp.basisSingleOne_repr, LinearEquiv.refl_apply, hsingle,
-    Finsupp.single_apply]
+    MonoidAlgebra.basis_apply, hsingle]
+  change (∑ x : SymmetricGroup n,
+    (MonoidAlgebra.single (g * x * h⁻¹) (1 : ℂ)).coeff x) = _
   refine Finset.sum_congr rfl fun x _ => ?_
+  rw [MonoidAlgebra.coeff_single_apply]
   congr 1
-  simp only [eq_iff_iff]
+  apply propext
   constructor
   · intro hx
     calc x⁻¹ * g * x = x⁻¹ * (g * x * h⁻¹) * h := by group
@@ -104,13 +107,19 @@ theorem finrank_hom_symmetricGroupBiregular (n : ℕ) (μ ν : YoungDiagramOfSiz
       · subst hμν; simp
       · rw [if_neg fun e => hμν ((spechtModule_iso_iff_eq ν μ).mp e).symm, if_neg hμν]
     rw [hif] at h
+    have h' : ⅟(Fintype.card (SymmetricGroup n) : ℂ) •
+        ∑ g : SymmetricGroup n,
+          (spechtModule μ).character g * (spechtModule ν).character g⁻¹ =
+          ((if μ = ν then 1 else 0 : ℕ) : ℂ) := by
+      rw [invOf_eq_inv, smul_eq_mul, Fintype.card_eq_nat_card]
+      exact h
     calc ∑ g : SymmetricGroup n, (spechtModule μ).character g * (spechtModule ν).character g⁻¹
         = (Fintype.card (SymmetricGroup n) : ℂ) *
             (⅟(Fintype.card (SymmetricGroup n) : ℂ) •
               ∑ g : SymmetricGroup n,
                 (spechtModule μ).character g * (spechtModule ν).character g⁻¹) := by
           rw [smul_eq_mul, ← mul_assoc, mul_invOf_self, one_mul]
-      _ = _ := by rw [h]
+      _ = _ := by rw [h']
   have hsum : ∑ p : SymmetricGroup n × SymmetricGroup n,
       (symmetricGroupBiregular n).character p * (spechtOuterTensor μ ν).character p⁻¹ =
         (Fintype.card (SymmetricGroup n) : ℂ) *
@@ -143,8 +152,8 @@ theorem finrank_hom_symmetricGroupBiregular (n : ℕ) (μ ν : YoungDiagramOfSiz
               FDRep.char_conj, symmetricGroup_character_inv]]
           rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
   rw [← Nat.cast_inj (R := ℂ), ← FDRep.scalar_product_char_eq_finrank_equivariant, hsum, hschur]
-  simp only [invOf_eq_inv, smul_eq_mul, Fintype.card_prod, Nat.cast_mul, mul_inv]
-  field_simp
+  rw [Nat.card_prod, Nat.cast_mul, ← Fintype.card_eq_nat_card]
+  field_simp [hN]
 
 open scoped Classical in
 /-- `S^μ ⊠ S^ν` occurs in `⨁ S^α ⊠ (S^α)ᘁ` once when `μ = ν` and never otherwise: the summand at

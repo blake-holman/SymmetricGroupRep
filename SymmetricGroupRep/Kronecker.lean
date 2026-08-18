@@ -67,9 +67,9 @@ noncomputable instance (n : ℕ) : Unique (Tabloid (singleRowPartition n)) :=
 /-- The one-row permutation module carries the trivial action, since it has only
 one tabloid. -/
 theorem ofMulAction_singleRow_apply (n : ℕ) (g : SymmetricGroup n)
-    (v : Tabloid (singleRowPartition n) →₀ ℂ) :
+    (v : MonoidAlgebra ℂ (Tabloid (singleRowPartition n))) :
     Representation.ofMulAction ℂ (SymmetricGroup n) (Tabloid (singleRowPartition n)) g v = v := by
-  induction v using Finsupp.induction_linear with
+  induction v using MonoidAlgebra.induction_linear with
   | zero => simp
   | add x y hx hy => rw [map_add, hx, hy]
   | single T c =>
@@ -79,18 +79,20 @@ theorem ofMulAction_singleRow_apply (n : ℕ) (g : SymmetricGroup n)
 theorem spechtSubrepresentation_singleRow_eq_top (n : ℕ) :
     (spechtSubrepresentation (singleRowPartition n)).toSubmodule = ⊤ := by
   obtain ⟨t⟩ := YoungTableau.nonempty (singleRowPartition n)
-  have hpoly : YoungTableau.polytabloid t = Finsupp.single default 1 := by
+  have hpoly : YoungTableau.polytabloid t = MonoidAlgebra.single default 1 := by
+    apply MonoidAlgebra.ext
     apply Finsupp.ext
     intro T
     have hT : T = default := Subsingleton.elim T default
     subst hT
-    rw [Finsupp.single_eq_same,
+    rw [MonoidAlgebra.coeff_single_apply, if_pos rfl,
       show (default : Tabloid (singleRowPartition n)) = t.tabloid from Subsingleton.elim _ _]
     exact YoungTableau.polytabloid_apply_tabloid t
   rw [eq_top_iff]
   intro v _
-  have hv : v = (v default) • YoungTableau.polytabloid t := by
+  have hv : v = (v.coeff default) • YoungTableau.polytabloid t := by
     rw [hpoly]
+    apply MonoidAlgebra.ext
     apply Finsupp.ext
     intro T
     have hT : T = default := Subsingleton.elim T default
@@ -103,7 +105,8 @@ theorem spechtSubrepresentation_singleRow_eq_top (n : ℕ) :
 private noncomputable def spechtSingleRowLinearEquiv (n : ℕ) :
     ↥(spechtSubrepresentation (singleRowPartition n)).toSubmodule ≃ₗ[ℂ] ℂ :=
   (LinearEquiv.ofEq _ _ (spechtSubrepresentation_singleRow_eq_top n)).trans <|
-    Submodule.topEquiv.trans (Finsupp.LinearEquiv.finsuppUnique ℂ ℂ _)
+    Submodule.topEquiv.trans <|
+      (MonoidAlgebra.coeffLinearEquiv ℂ).trans (Finsupp.uniqueLinearEquiv ℂ ℂ default)
 
 /-- The one-row Specht module is the trivial one-dimensional representation. -/
 private noncomputable def spechtSingleRowEquivTrivial (n : ℕ) :

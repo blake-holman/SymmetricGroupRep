@@ -41,5 +41,6 @@ theorem sum_finrank_spechtModule_sq (n : ℕ) :
       rw [FDRep.finrank_biproduct, Finset.sum_const, Finset.card_univ, Fintype.card_fin, sq]
       simp
   rw [← h2, ← h]
-  show Module.finrank ℂ (SymmetricGroup n →₀ ℂ) = n.factorial
-  rw [Module.finrank_finsupp_self, Fintype.card_perm, Fintype.card_fin]
+  show Module.finrank ℂ (MonoidAlgebra ℂ (SymmetricGroup n)) = n.factorial
+  rw [Module.finrank_eq_card_basis (MonoidAlgebra.basis (SymmetricGroup n) ℂ),
+    Fintype.card_perm, Fintype.card_fin]
